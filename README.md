@@ -442,3 +442,4 @@ theme/custom_font="res://assets/fonts/game_sc.otf"
 - [上鱼动画设计](docs/landing-animation.md)：角色动画方案、资源接口与验收标准
 - [调参手册](docs/tuning.md)：当前字段、公式和调整方向
 - [开发规范](docs/contributing.md)：改动流程、测试和防回归清单
+- [待办清单](docs/TODO.md)：已知短板，按「补了玩家能立刻感觉到」排序
