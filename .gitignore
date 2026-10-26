@@ -32,3 +32,6 @@ desktop.ini
 .DS_Store
 docs/*.import
 release/
+assets/fonts/NotoSansSC-Regular.otf
+assets/claude_full.png.import
+.github/

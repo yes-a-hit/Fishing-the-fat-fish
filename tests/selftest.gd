@@ -1052,13 +1052,16 @@ func _case_ending_overlay() -> void:
 	overlay.show_ending("claude", endings.get("claude", {}), sample, targets)
 	_ok("陷阱结局仍列出三条目标", targets.size() == 3)
 
-	# 卡片必须限高可滚动，否则 1280×800 下内容会把底部按钮顶出屏幕
+	# 卡片必须可滚动，否则 1280×800 下内容会把底部按钮顶出屏幕
 	_ok("结算卡片套了滚动容器", overlay._scroll != null)
 	if overlay._scroll != null:
-		var limit := overlay._scroll.custom_minimum_size.y
-		_ok("滚动容器限高在 320~720 之间", limit >= 320.0 and limit <= 720.5)
 		_ok("滚动容器允许纵向滚动",
 			overlay._scroll.vertical_scroll_mode != ScrollContainer.SCROLL_MODE_DISABLED)
+	_ok("按钮条在滚动区外", overlay._footer != null)
+	if overlay._scroll != null and overlay._footer != null:
+		# 手机上 ScrollContainer 拖不动，按钮只要还在滚动区里就等于消失
+		_ok("按钮条不是滚动区的后代", not overlay._scroll.is_ancestor_of(overlay._footer))
+		_ok("按钮条不参与滚动", overlay._footer.get_parent() != overlay._scroll)
 
 	# 多图结局翻到最后一页，三个按钮必须都在
 	overlay.show_ending("claude_fake", endings.get("claude_fake", {}), sample, targets)

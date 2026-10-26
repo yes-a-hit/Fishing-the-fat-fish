@@ -11,6 +11,7 @@ signal menu_requested
 
 var _box: VBoxContainer = null
 var _scroll: ScrollContainer = null
+var _footer: HBoxContainer = null
 
 ## 多图结局（claude_fake 那三段 meme）用这两组状态翻页。
 ## 只有 pages 非空时才走翻页路径，单图结局完全不受影响。
@@ -35,32 +36,37 @@ func show_ending(ending_key: String, data: Dictionary, summary: Dictionary, fish
 	var dim := ColorRect.new()
 	dim.color = Color(0.055, 0.129, 0.169, 0.72)
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(dim)
 
-	var center := CenterContainer.new()
-	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-
-	# 留边距，避免卡片在 1280×800 下贴到屏幕边缘
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	for side in ["left", "right", "top", "bottom"]:
-		margin.add_theme_constant_override("margin_" + side, 20)
+		margin.add_theme_constant_override("margin_" + side, 16)
 	add_child(margin)
-	margin.add_child(center)
 
-	# 内容（标题+正文+大图+统计+三个按钮）在 1280×800 下会超出屏幕，
-	# CenterContainer 居中后上下两端一起被推出可视区 —— 表现就是按钮点不到。
-	# 所以把卡片塞进一个限高的 ScrollContainer，超了就滚动，绝不裁掉底部。
-	var avail := get_viewport_rect().size.y - 44.0
+	# 整页竖排：上面是可滚动的内容，下面是固定在屏幕内的按钮条。
+	#
+	# 早先是把按钮放进 ScrollContainer 一起滚的 —— 桌面端靠滚轮还行，
+	# 手机上 ScrollContainer 一拖不动，三个按钮就永远够不着，游戏卡死在这儿。
+	# 按钮条移出滚动区，无论如何都在视野里。
+	var page := VBoxContainer.new()
+	page.add_theme_constant_override("separation", 10)
+	# 宽屏别把卡片拉成一条，窄屏铺满
+	page.custom_minimum_size = Vector2(minf(get_viewport_rect().size.x - 32.0, 660.0), 0)
+	page.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	page.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	margin.add_child(page)
+
 	_scroll = ScrollContainer.new()
-	_scroll.custom_minimum_size = Vector2(660, clampf(avail, 320.0, 720.0))
-	_scroll.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-	center.add_child(_scroll)
+	_scroll.follow_focus = false
+	page.add_child(_scroll)
 
 	var card := UIKit.card(Palette.CARD, Palette.RADIUS, 24)
-	card.custom_minimum_size = Vector2(640, 0)
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_scroll.add_child(card)
 
@@ -102,6 +108,12 @@ func show_ending(ending_key: String, data: Dictionary, summary: Dictionary, fish
 	_page_box.add_theme_constant_override("separation", 6)
 	_box.add_child(_page_box)
 
+	# 按钮条永远在滚动区外面
+	_footer = HBoxContainer.new()
+	_footer.add_theme_constant_override("separation", 10)
+	_footer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	page.add_child(_footer)
+
 	if not _pages.is_empty():
 		_show_page()
 		return
@@ -141,15 +153,16 @@ func _show_page() -> void:
 
 	if _page_index < _pages.size() - 1:
 		var next := UIKit.button("……")
+		next.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		next.pressed.connect(_next_page)
-		tail.add_child(next)
+		_footer.add_child(next)
 		return
 
 	tail.add_child(UIKit.spacer(4))
 	tail.add_child(UIKit.divider())
 	tail.add_child(UIKit.spacer(4))
 	tail.add_child(_stats_block(_page_summary, _page_fish))
-	_add_buttons(tail)
+	_add_buttons()
 
 
 func _next_page() -> void:
@@ -171,12 +184,19 @@ func _reset_scroll() -> void:
 
 
 func _add_buttons(parent: Control = null) -> void:
-	var host: Control = _box if parent == null else parent
-	host.add_child(UIKit.spacer(8))
+	# 按钮条默认落在 _footer —— 它在 ScrollContainer 外面，
+	# 内容再长也顶不掉，手机上一定点得到。
+	if _footer == null:
+		_footer = HBoxContainer.new()
+		_footer.add_theme_constant_override("separation", 10)
+		_footer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_box.add_child(_footer)
 
-	var btns := HBoxContainer.new()
+	var btns := _footer if parent == null else HBoxContainer.new()
 	btns.add_theme_constant_override("separation", 12)
-	host.add_child(btns)
+	btns.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	if btns != _footer:
+		parent.add_child(btns)
 
 	var again := UIKit.button("再来一局")
 	again.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -263,5 +283,6 @@ func _clear() -> void:
 	_page_index = 0
 	_page_box = null
 	_scroll = null
+	_footer = null
 	for child in get_children():
 		child.queue_free()

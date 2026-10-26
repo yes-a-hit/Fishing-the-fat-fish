@@ -318,13 +318,32 @@ tests/
 
 tools/
 ├── gen_voice.py             12 条台词，走 edge-tts 生成到 assets/voice/
-└── gen_bgm.py               60 秒循环 BGM，numpy + scipy 合成到 assets/bgm/
+├── gen_bgm.py               60 秒循环 BGM，numpy + scipy 合成到 assets/bgm/
+└── make_font.py             把 Noto Sans SC 子集化成项目实际用到的字
+
+assets/fonts/
+└── game_sc.otf              中文字体子集，1047 字，281 KB
 
 assets/                      游戏使用素材，文件名保持 ASCII
 素材/                        原始素材，Godot 不扫描、不打包
 .archive/                    旧原型与旧圆环面板归档
 .screenshots/                本地视觉快照输出
 ```
+
+### 中文字体为什么要自带
+
+Godot 4 的内置字体不含中日韩字形。桌面端还能靠系统字体回退凑合看，**Web 端没有可靠回退，所有中文都会烂成方块或乱码** —— 这是网页版早期最难看的一个 bug。
+
+所以项目自带 `assets/fonts/game_sc.otf`，是 [Noto Sans SC](https://github.com/googlefonts/noto-cjk)（OFL 授权）的子集：`tools/make_font.py` 扫一遍 `scripts/` 和 `data/`，把出现过的每一个字挑出来，8.1 MB 压到 281 KB。
+
+`project.godot` 里就一行：
+
+```ini
+[gui]
+theme/custom_font="res://assets/fonts/game_sc.otf"
+```
+
+**大量改文案之后要重跑 `python tools/make_font.py`**，否则新加的字不在子集里，界面上会显示成方块。脚本会打印保留了多少字、压到多大。源字体不进仓库（`.gitignore` 里有），需要时按脚本里的地址下载。
 
 ---
 
