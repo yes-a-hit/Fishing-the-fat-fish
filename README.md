@@ -28,13 +28,15 @@ Godot 4.7 · GDScript · 1280×800 · 单场景小游戏
 
 ## 下载
 
-| 平台 | 方式 | 大小 |
+| 平台 | 直接下载 | 大小 |
 |---|---|---|
-| **Windows** | 右侧 [Releases](https://github.com/yes-a-hit/Fishing-the-fat-fish/releases) 下载 `钓肥鱼-v1.0.0-windows-x64.zip`，解压双击 `钓肥鱼.exe` | 57 MB |
-| **Android** | 直接装 [`docs/download/钓肥鱼-v1.0.0.apk`](docs/download/钓肥鱼-v1.0.0.apk) | 46 MB |
-| **网页版** | [在线玩](https://yes-a-hit.github.io/Fishing-the-fat-fish/)（需要 Pages 已开启） | — |
+| **Windows** | [`钓肥鱼-v1.0.0-windows-x64.zip`](docs/download/钓肥鱼-v1.0.0-windows-x64.zip) — 解压后双击 `钓肥鱼.exe` | 57 MB |
+| **Android** | [`钓肥鱼-v1.0.0.apk`](docs/download/钓肥鱼-v1.0.0.apk) — 直接安装 | 46 MB |
+| **网页版** | [在线玩](https://yes-a-hit.github.io/Fishing-the-fat-fish/) | — |
 
-APK 放在仓库里是因为 Releases 之外的直链更省事，缺点是仓库会因此变大 46 MB，理解一下。
+如果链接点了没反应，右键 →「链接另存为」，或者把地址里的 `github.com/.../raw/main/...` 换成 `raw.githubusercontent.com/...`。
+
+网页版需要仓库开启 GitHub Pages 才能访问，没开的话就在本地双击 `dist/web/启动网页版.bat`（需要 Python）。
 
 ---
 
