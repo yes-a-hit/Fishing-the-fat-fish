@@ -26,6 +26,18 @@ Godot 4.7 · GDScript · 1280×800 · 单场景小游戏
 
 ---
 
+## 下载
+
+| 平台 | 方式 | 大小 |
+|---|---|---|
+| **Windows** | 右侧 [Releases](https://github.com/yes-a-hit/Fishing-the-fat-fish/releases) 下载 `钓肥鱼-v1.0.0-windows-x64.zip`，解压双击 `钓肥鱼.exe` | 57 MB |
+| **Android** | 直接装 [`docs/download/钓肥鱼-v1.0.0.apk`](docs/download/钓肥鱼-v1.0.0.apk) | 46 MB |
+| **网页版** | [在线玩](https://yes-a-hit.github.io/Fishing-the-fat-fish/)（需要 Pages 已开启） | — |
+
+APK 放在仓库里是因为 Releases 之外的直链更省事，缺点是仓库会因此变大 46 MB，理解一下。
+
+---
+
 ## 玩法
 
 从 `menu.tscn` 进入，选好难度点「开始钓鱼」。一局的白饭数由难度决定（4~6 碗），每次真正抛竿消耗一碗。蓄力转圈不扣饭；只有松手抛竿才扣。
