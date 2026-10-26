@@ -1,0 +1,33 @@
+# Godot 4 缓存与编辑器状态
+.godot/
+*.translation
+
+# 导出产物（网页版单独拷进 docs/ 才会进仓库）
+dist/
+/android/
+export_presets.cfg.bak*
+
+# 本地密钥与凭据。泄露等于没加密。
+.godot-encrypt-key
+export_presets.local.cfg
+
+# 本机 Godot 路径（run.bat / editor.bat 用它定位引擎）
+godot_path.txt
+
+# 原始素材、旧原型、其他工具的工作记录：一律不公开
+素材/
+.archive/
+.workbuddy-ai/
+
+# 开发时生成的视觉快照与本地残留
+.screenshots/
+*.tmp
+
+# 未被任何场景引用的原始大图
+assets/claude_full.png
+
+# 系统垃圾
+Thumbs.db
+desktop.ini
+.DS_Store
+docs/*.import

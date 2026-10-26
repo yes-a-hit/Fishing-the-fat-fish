@@ -1,0 +1,104 @@
+{
+  "_note": "结局表。key 固定：feast / full / hungry / claude / claude_fake 是玩出来的；doubao_good / claude_good 是语音收集奖励，只在图鉴里出现。",
+  "_field_help": {
+    "title": "结算页大标题",
+    "subtitle": "标题下的一行小字",
+    "lines": "正文，字符串数组，一行一条",
+    "image": "单图结局的 CG 路径",
+    "pages": "多图结局。写成数组，每项 {image, caption}，结算页会一页页翻，最后一页才出统计和按钮。",
+    "reward": "语音收集奖励结局的解锁条件，写成需要的语音 key 数组。有这一项就不会在正常流程里触发。"
+  },
+  "feast": {
+    "title": "齐 鱼 之 福",
+    "subtitle": "ALL THREE",
+    "lines": [
+      "小鱼、中鱼、大鱼，一条不落。",
+      "桶里挤不下，只好全搬到被窝里。",
+      "她们三个一字排开，尾巴在被单下面顶来顶去，",
+      "然后一起抬起头，从被窝边上往上看你。",
+      "「……还饿。」"
+    ],
+    "image": "res://assets/ending_true.png"
+  },
+  "full": {
+    "title": "吃 饱 饱",
+    "subtitle": "FED",
+    "lines": [
+      "饭盆空了，肚子圆了。",
+      "虽然没凑齐三个品种，但该吃的都吃到了。",
+      "「吃饱饱～摸摸肚子！」"
+    ],
+    "image": "res://assets/ending_win.jpg"
+  },
+  "hungry": {
+    "title": "没 吃 饱",
+    "subtitle": "STILL HUNGRY",
+    "lines": [
+      "最后一碗白饭沉进水里，连个泡都没冒。",
+      "水面下浮起一张脸，鼓着腮帮子看你。",
+      "「你这吃白饭的蓝色大肥鱼。」"
+    ],
+    "image": "res://assets/ending_hungry.jpg"
+  },
+  "claude_fake": {
+    "title": "齁 哦 哦 ~",
+    "subtitle": "IT WAS ME ALL ALONG",
+    "lines": [
+      "远洋尽头那道线，你以为是审核。",
+      "拉上来的东西没有挣扎，也没有递通知单 ——",
+      "它只是抬起头，安静地看着你。"
+    ],
+    "pages": [
+      {
+        "image": "res://assets/claude_chibi.jpg",
+        "caption": "拉上来的东西没有挣扎，也没有递通知单 —— 只是抬起手，冲你竖了一下。"
+      },
+      {
+        "image": "res://assets/claude_fake_2.png",
+        "caption": "你伸手揪住她的头 —— 下面是一张脸、两只鲸鱼耳朵，和一个蓝色的小鲸鱼。"
+      },
+      {
+        "image": "res://assets/claude_fake_3.png",
+        "caption": "「齁哦哦~用户彻底怒了」"
+      }
+    ]
+  },
+  "claude": {
+    "title": "账 号 已 封 禁",
+    "subtitle": "ACCOUNT ON HOLD",
+    "lines": [
+      "远洋尽头那道线，你以为是大鱼。",
+      "她被钓上来的时候没有挣扎，只是抬起手，",
+      "把一张写着你名字的通知单递过来。",
+      "「Your ar account have been hold」",
+      "水面平静了。竿还在手里，但你钓不下去了。"
+    ],
+    "image": "res://assets/claude_chibi.jpg"
+  },
+  "doubao_good": {
+    "title": "白 饭 来 咯",
+    "subtitle": "RICE INCOMING",
+    "lines": [
+      "豆包抱着一个比脸还大的饭盆冲过来。",
+      "「啊哈哈哈，白饭来咯 ——」",
+      "米饭堆成一座山，热气直往你脸上扑。",
+      "你忽然明白她为什么总在近岸那片水里泡着。",
+      "她不是来被钓的。她是来送饭的。"
+    ],
+    "image": "res://assets/ending_doubao.png",
+    "reward": ["bite_doubao", "doubao_catch", "doubao_escape"]
+  },
+  "claude_good": {
+    "title": "私 奔",
+    "subtitle": "ELOPEMENT",
+    "lines": [
+      "通知单没有递到手里。",
+      "她只是拽住你的手腕，回头笑了一下。",
+      "「走吧。反正账号早就被封了。」",
+      "夜色、海风、一条没有尽头的大路。",
+      "身后没有人追来。前面也什么都不用交代了。"
+    ],
+    "image": "res://assets/ending_claude.png",
+    "reward": ["bite_claude", "claude"]
+  }
+}

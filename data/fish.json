@@ -1,0 +1,73 @@
+{
+  "_note": "每条鱼的静态数据。加一条鱼只需要在这里加一项，距离带会自动重算，不用改代码。",
+  "_field_help": {
+    "stamina": "体力上限。磨空即上鱼。",
+    "damage_ratio": "命中一次削掉的体力比例。0.25 ≈ 4 次上鱼。",
+    "tension_rate": "张力自然上涨的乘数。1.15 表示这条鱼比标准快 15%。",
+    "tint": "立绘叠色。大/中鱼目前共用同一张立绘，靠 tint 区分。",
+    "tagline": "上鱼瞬间的台词。",
+    "blurb": "结算页里的一句介绍。",
+    "claude": "true = 陷阱。不计入收集目标，HUD 和结算都不会列出她；一旦钓上，本局立刻终止并进入 claude 结局。",
+    "doubao": "true = 救济。钓上来不算收集、不算上鱼次数，返还原饵 + 额外一份白饭（总量不超过开局碗数）。"
+  },
+  "_difficulty_check": "命中次数 = ceil(1 / damage_ratio)。当前：豆包 1 次 / 小鱼 4 次 / 中鱼 5 次 / 大鱼 5 次 / 陷阱 7 次。",
+  "fish": [
+    {
+      "id": "small",
+      "name": "小肥鱼",
+      "portrait": "res://assets/portrait_small.jpg",
+      "tint": "#ffffff",
+      "stamina": 100.0,
+      "damage_ratio": 0.25,
+      "tension_rate": 0.85,
+      "tagline": "「诶？饭呢？」",
+      "blurb": "近岸晃悠的小家伙，看到白饭就忘了自己在水里。"
+    },
+    {
+      "id": "mid",
+      "name": "中肥鱼",
+      "portrait": "res://assets/portrait_mid.jpg",
+      "tint": "#ffffff",
+      "stamina": 140.0,
+      "damage_ratio": 0.20,
+      "tension_rate": 1.0,
+      "tagline": "「这个饵……我认了。」",
+      "blurb": "中段水域的常客，力气比看上去大，线绷紧了会甩尾。"
+    },
+    {
+      "id": "big",
+      "name": "大肥鱼",
+      "portrait": "res://assets/portrait_big.jpg",
+      "tint": "#ffe2d2",
+      "stamina": 190.0,
+      "damage_ratio": 0.20,
+      "tension_rate": 1.0,
+      "tagline": "「五碗饭就想钓我？」",
+      "blurb": "远洋的大块头。体力最长，脾气最差，末段张力涨得最快。"
+    },
+    {
+      "id": "claude",
+      "name": "？ ？ ？",
+      "portrait": "res://assets/claude_chibi.jpg",
+      "tint": "#ffe4d4",
+      "stamina": 320.0,
+      "damage_ratio": 0.15,
+      "tension_rate": 1.1,
+      "tagline": "「Your account have been hold」",
+      "blurb": "远洋尽头那道线，不是鱼。",
+      "claude": true
+    },
+    {
+      "id": "doubao",
+      "name": "豆包",
+      "portrait": "res://assets/doubao.png",
+      "tint": "#ffffff",
+      "stamina": 60.0,
+      "damage_ratio": 1.0,
+      "tension_rate": 0.6,
+      "tagline": "「我用最直白最不绕弯子的方式告诉你」",
+      "blurb": "近岸水里泡着的一个奶黄包。捞起来它会还你两碗饭，然后被一脚踢回去。",
+      "doubao": true
+    }
+  ]
+}

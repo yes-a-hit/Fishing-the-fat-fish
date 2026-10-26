@@ -1,0 +1,56 @@
+{
+	"_note": "关于页的全部文案与链接。改这个文件就能换地址，不用动代码。",
+	"license_short": "CC BY-NC-SA 4.0",
+	"intro": "这是一个不收钱的小游戏。代码、玩法、文案由本项目作者完成；角色形象与梗图来自别人，出处列在下面。转载、改作、做成视频都欢迎，条件是署名、不商用、并且同样开放。",
+	"_field_help": {
+		"sections": "正文小节，每项 {title, body}",
+		"links": "去处，每项 {label, url}，点一行就开系统浏览器",
+		"easter_eggs": "彩蛋图，每项 {image, caption}。摆在关于页最下面，点一下放大。"
+	},
+	"easter_eggs": [
+		{
+			"image": "res://assets/easter/easter_rod.jpg",
+			"caption": "「用户♡钓竿做好了」"
+		},
+		{
+			"image": "res://assets/easter/easter_caught.jpg",
+			"caption": "「？？—— 等下，这竿是钓我的？」"
+		},
+		{
+			"image": "res://assets/easter/easter_fat_game.jpg",
+			"caption": "「大肥鱼做的游戏肯定肥」"
+		},
+		{
+			"image": "res://assets/easter/easter_density.jpg",
+			"caption": "「鲸鱼密度大点怎么了」"
+		}
+	],
+	"sections": [
+		{
+			"title": "授权",
+			"body": "CC BY-NC-SA 4.0（署名—非商业性使用—相同方式共享）。你可以自由复制、分发、修改，但必须标注来源、不得用于商业目的、衍生作品须采用同样协议。完整条款见随包 LICENSE 文件。"
+		},
+		{
+			"title": "角色形象",
+			"body": "DeepSeek 鲸鱼娘 —— 画风来自 ZipZipPipe，LoRA 由社区训练（Anima 2B 基座）。Claude 娘与豆包 —— 社区二创与拟人形象戏仿，与 Anthropic、字节跳动无关。这套图不是本项目画的，转载时请一并署名原作者。"
+		},
+		{
+			"title": "梗图",
+			"body": "脱钩与结局里用到的 meme 来自网络与社区，其中两张 DeepSeek 脱钩梗图由本项目作者自制。涉及第三方作品的部分（如 Scooby-Doo 式构图）版权归原权利方，此处仅作戏仿使用。"
+		},
+		{
+			"title": "音频",
+			"body": "配音由 edge-tts 合成，豆包上鱼那条为作者本人录音，奶龙大笑为外来素材。背景音乐由程序合成，不含任何采样。引擎为 Godot 4.7.2（MIT）。"
+		}
+	],
+	"links": [
+		{
+			"label": "作者的 GitHub 小窝",
+			"url": "https://github.com/yes-a-hit"
+		},
+		{
+			"label": "画风来自 ZipZipPipe — B 站主页",
+			"url": "https://space.bilibili.com/zh-Hans/4168597"
+		}
+	]
+}
