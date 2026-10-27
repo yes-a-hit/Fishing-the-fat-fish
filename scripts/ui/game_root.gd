@@ -194,12 +194,14 @@ func _build_ui() -> void:
 
 ## 右上角那颗「暂停」。锚在右上角，永远压在 HUD 之上、结算层之下。
 ##
-## 做得醒目是刻意的：半透明幽灵按钮压在湖面上，玩家根本看不见第二局，
-## 手机端更是连点都点不到。所以给它实底、给它边框、给它足够的点击面积。
+## 上一版做成了 84×44 的白底汉字胶囊，太大太抢戏 —— 玩家在钓鱼，不是在看菜单。
+## 真正要的是「一眼能找到」而不是「占满视野」，所以缩回 44×44 的圆，
+## 靠实白底 + 描边保证醒目度，靠图标保证不占地。图标用 ASCII 的 || 画，
+## 不走字体子集（子集里没有 ⏸ 这类符号会变成方块）。
 func _build_pause_button() -> void:
 	var layer := MarginContainer.new()
 	layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	layer.add_theme_constant_override("margin_right", 20)
+	layer.add_theme_constant_override("margin_right", 18)
 	layer.add_theme_constant_override("margin_top", 16)
 	layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(layer)
@@ -210,26 +212,43 @@ func _build_pause_button() -> void:
 	layer.add_child(row)
 
 	var btn := Button.new()
-	btn.text = "暂 停"
 	btn.tooltip_text = "暂停（Esc）"
-	btn.custom_minimum_size = Vector2(84, 44)
-	btn.add_theme_font_size_override("font_size", Palette.F_BODY)
+	btn.custom_minimum_size = Vector2(44, 44)
 	btn.focus_mode = Control.FOCUS_NONE
 	_paint_pause_button(btn)
+
+	var glyph := _PauseGlyph.new()
+	glyph.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	glyph.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	btn.add_child(glyph)
+
 	btn.pressed.connect(_toggle_pause)
 	row.add_child(btn)
 
 
-## 实底胶囊：白底 + 深蓝字 + 一圈描边，任何时候都能一眼看到。
+## 两条圆角竖杠。用画的不用字体 —— 字体子集里没有 ⏸，
+## 而 || 这个 ASCII 组合在比例字体里又细又偏，画出来才和设计稿一致。
+class _PauseGlyph extends Control:
+	func _draw() -> void:
+		var c := size * 0.5
+		var bar_w := 4.0
+		var bar_h := 13.0
+		var gap := 4.5
+		for x in [c.x - gap * 0.5 - bar_w, c.x + gap * 0.5]:
+			draw_rect(Rect2(x, c.y - bar_h * 0.5, bar_w, bar_h), Palette.INK)
+
+
+## 小圆按钮：实白底 + 一圈强调色边，压在任何画面上都看得见。
 func _paint_pause_button(btn: Button) -> void:
 	var states := {
-		"normal": Color(1, 1, 1, 0.94),
+		"normal": Color(1, 1, 1, 0.92),
 		"hover": Color(1, 1, 1, 1.0),
-		"pressed": Color(0.86, 0.90, 0.94, 0.98),
+		"pressed": Color(0.86, 0.90, 0.94, 0.96),
 	}
+	var r: float = btn.custom_minimum_size.y * 0.5
 	for state in states.keys():
-		var sb := UIKit.flat(states[state], btn.custom_minimum_size.y * 0.5)
-		sb.set_content_margin_all(8)
+		var sb := UIKit.flat(states[state], r)
+		sb.set_content_margin_all(0)
 		sb.set_border_width_all(2)
 		sb.border_color = Palette.ACCENT
 		btn.add_theme_stylebox_override(state, sb)

@@ -990,6 +990,14 @@ func _case_scene_boot() -> void:
 	g.free()
 
 
+## 暂停键靠 tooltip 认 —— 它没有文字（图标是画的），只能这样找。
+func _find_pause_button(root: Node) -> Button:
+	for b in root.find_children("*", "Button", true, false):
+		if String((b as Button).tooltip_text).begins_with("暂停"):
+			return b
+	return null
+
+
 ## 暂停：ESC 和右上角那颗按钮走同一条路，暂停中 session 不许推进。
 func _case_pause() -> void:
 	print("[case] 暂停")
@@ -998,7 +1006,7 @@ func _case_pause() -> void:
 		return
 
 	_ok("开局没在暂停", g._paused_layer == null and not get_root().get_tree().paused)
-	_ok("右上角有暂停键", _collect_button_text(g).has("暂 停"))
+	_ok("右上角有暂停键", _find_pause_button(g) != null)
 
 	# 记一个会变的量：暂停期间它必须一动不动
 	g._session.charge = 0.37

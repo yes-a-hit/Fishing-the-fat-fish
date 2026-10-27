@@ -30,8 +30,8 @@ Godot 4.7 · GDScript · 1280×800 · 单场景小游戏
 
 | 平台 | 直接下载 | 大小 |
 |---|---|---|
-| **Windows** | [`钓肥鱼-v1.1.1-windows-x64.zip`](docs/download/钓肥鱼-v1.1.1-windows-x64.zip) — 解压后双击 `钓肥鱼.exe`，单文件 | 20 MB |
-| **Android** | [`钓肥鱼-v1.1.1.apk`](docs/download/钓肥鱼-v1.1.1.apk) — 直接安装 | 29 MB |
+| **Windows** | [`钓肥鱼-v1.1.2-windows-x64.zip`](docs/download/钓肥鱼-v1.1.2-windows-x64.zip) — 解压后双击 `钓肥鱼.exe`，单文件 | 20 MB |
+| **Android** | [`钓肥鱼-v1.1.2.apk`](docs/download/钓肥鱼-v1.1.2.apk) — 直接安装 | 29 MB |
 | **网页版** | [在线玩](https://yes-a-hit.github.io/Fishing-the-fat-fish/) | — |
 
 如果链接点了没反应，右键 →「链接另存为」，或者把地址里的 `github.com/.../raw/main/...` 换成 `raw.githubusercontent.com/...`。
@@ -175,7 +175,7 @@ Godot 4.7 · GDScript · 1280×800 · 单场景小游戏
 
 ### 暂停
 
-PC / 网页按 **Esc**，手机点**右上角那颗「暂停」**（白底 + 强调色描边，44 高的点击区），两条路等价：整棵场景树冻住，弹出一张卡给「继续 / 重新开始 / 返回菜单」。
+PC / 网页按 **Esc**，手机点**右上角那个小圆钮**（44×44，白底金边，中间两道竖杠 —— 图标是 `draw_rect` 画的，不走字体），两条路等价：整棵场景树冻住，弹出一张卡给「继续 / 重新开始 / 返回菜单」。
 
 暂停是真的 `get_tree().paused = true`，不是把输入吃掉装死 —— 动画、Tween、QTE 游标全停，恢复后不会接着跑半帧。遮罩自己挂 `PROCESS_MODE_WHEN_PAUSED`，否则按钮按不动。结算页也能暂停，那正是最想跑路的时候。
 
@@ -444,7 +444,7 @@ theme/custom_font="res://assets/fonts/game_sc.otf"
 - 远洋陷阱按难度掷骰：`easy`/`normal`/`hard` 各有 85%/75%/60% 是假的，假的那个走三段 meme 翻页结局。
 - 近岸有低权重豆包带，一次命中捞起，返还 2 碗白饭（含抛出的那碗），撞上限就只补 1 碗。它也会脱钩 —— 抱着肚子笑你，白饭不退。
 - 声音：设置页可开关与调音量，BGM 走 autoload 循环，14 条台词按角色分三种音色，豆包上鱼与脱钩用两条外来素材。
-- 暂停：Esc 或右上角那颗「暂停」，整棵树冻住，给继续 / 重新开始 / 返回菜单。
+- 暂停：Esc 或右上角那个小圆钮，整棵树冻住，给继续 / 重新开始 / 返回菜单。
 - claude的meme打错了，应为“Your account is on hold”
 - **上鱼动画未达标**：`LandingView` 目前只移动、缩放、旋转整张立绘。
 - **文档截图待更新**：`docs/images/` 仍有旧界面图，应在代码收尾后统一重拍。
