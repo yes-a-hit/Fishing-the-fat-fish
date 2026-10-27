@@ -35,6 +35,7 @@ var _stamina: float = 1.0
 var _tension: float = 0.0
 var _locked: bool = false
 var _hit_half: float = 0.24
+var _center: float = 0.0   ## 黄标中点。困难难度下随爆冲左右摆
 var _flash: float = 0.0
 var _flash_kind: String = ""
 var _fight: FightSession = null
@@ -53,6 +54,8 @@ func _process(delta: float) -> void:
 	# 游标每帧都在动，所以无条件重绘
 	if _flash > 0.0:
 		_flash = maxf(_flash - delta * 3.2, 0.0)
+	# 爆冲时黄标自己也在挪，每帧跟一遍，别让它和判定脱节
+	_center = _fight.hit_center()
 	queue_redraw()
 
 
@@ -67,6 +70,7 @@ func bind(fight: FightSession) -> void:
 	_tension = fight.tension_ratio()
 	_locked = fight.input_locked()
 	_hit_half = fight.current_hit_half()
+	_center = fight.hit_center()
 	_flash = 0.0
 
 	fight.cursor_changed.connect(_on_cursor)
@@ -131,14 +135,18 @@ func _draw_ring() -> void:
 	draw_arc(c, r, 0.0, TAU, 96, Color(1, 1, 1, 0.26), RING_W * 0.5, true)
 
 	# 命中区：整段就是一块黄标。没有第二层、没有内圈、没有渐变。
-	# 宽度由难度的 hit_half 决定（easy 216° / normal 173° / hard 122°），
-	# 黄标多宽就是命中区多宽 —— 玩家一眼量的就是这两道刀口之间的距离。
-	draw_arc(c, r, _angle(-_hit_half), _angle(_hit_half), 96,
+	# 宽度由难度的 hit_half 决定，黄标多宽就是命中区多宽 ——
+	# 玩家一眼量的就是这两道刀口之间的距离。
+	#
+	# 中点在 hit_center()：平常钉在顶部，困难难度下鱼会爆冲，整块黄标左右摆。
+	# 判定和画面用同一个函数，不会出现「看着在标里却判失手」。
+	var mid := _center
+	draw_arc(c, r, _angle(mid - _hit_half), _angle(mid + _hit_half), 96,
 		Palette.ACCENT, RING_W, true)
 
 	# 黄标两端各一道刀口。没有它，玩家不知道黄色从哪开始、到哪结束。
-	_draw_edge_tick(c, r, -_hit_half, Palette.ACCENT_DEEP)
-	_draw_edge_tick(c, r, _hit_half, Palette.ACCENT_DEEP)
+	_draw_edge_tick(c, r, mid - _hit_half, Palette.ACCENT_DEEP)
+	_draw_edge_tick(c, r, mid + _hit_half, Palette.ACCENT_DEEP)
 
 	# 命中闪光：整段黄标一起亮一下，亮完就退，不额外画别的东西
 	if _flash > 0.0:
@@ -146,7 +154,7 @@ func _draw_ring() -> void:
 		if _flash_kind == "round":
 			col = Palette.ACCENT
 		var w := RING_W + 12.0 * _flash
-		draw_arc(c, r, _angle(-_hit_half), _angle(_hit_half), 96,
+		draw_arc(c, r, _angle(mid - _hit_half), _angle(mid + _hit_half), 96,
 			Color(col, 0.5 * _flash), w, true)
 
 	# 游标

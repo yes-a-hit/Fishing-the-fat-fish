@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bogl4fccpdhll"
-path="res://.godot/imported/ending_claude.png-66eff0fd34a59049ca129161e2684bb3.ctex"
+uid="uid://c7munbdidq48m"
+path="res://.godot/imported/icon_monochrome_432.png-ab86b2d04c5435dc9783a817d903e1bf.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/ending_claude.png"
-dest_files=["res://.godot/imported/ending_claude.png-66eff0fd34a59049ca129161e2684bb3.ctex"]
+source_file="res://assets/icon_monochrome_432.png"
+dest_files=["res://.godot/imported/icon_monochrome_432.png-ab86b2d04c5435dc9783a817d903e1bf.ctex"]
 
 [params]
 

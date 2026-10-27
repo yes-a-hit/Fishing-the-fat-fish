@@ -61,10 +61,10 @@
 
 | 文件 | 大小 | 定位 |
 |---|---|---|
-| `assets/ending_feast.png` | 1,622,002 B | 精修 |
+| `assets/ending_feast.jpg` | 1,622,002 B | 精修 |
 | `assets/ending_true.png` | 1,148,963 B | 精修 |
-| `assets/ending_doubao.png` | 1,004,563 B | 精修 |
-| `assets/ending_claude.png` | 937,734 B | 精修 |
+| `assets/ending_doubao.jpg` | 1,004,563 B | 精修 |
+| `assets/ending_claude.jpg` | 937,734 B | 精修 |
 | `assets/ending_win.jpg` | 575,479 B | 梗图截取 |
 | `assets/ending_hungry.jpg` | 32,481 B / 447×447 | 梗图截取，分辨率最低 |
 
@@ -93,5 +93,3 @@
 - 手机端结算页按钮够不着 —— 按钮条移出 `ScrollContainer`
 - 网页版中文乱码 —— 自带 Noto Sans SC 子集（`tools/make_font.py`，8.1 MB → 281 KB）
 - 三端导出与 `docs/` 部署、APK 直链
-
-自测 **386 项**，`--headless --script res://tests/selftest.gd`。

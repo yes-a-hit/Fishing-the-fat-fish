@@ -1,12 +1,12 @@
 {
-  "_note": "结局表。key 固定：feast / full / hungry / claude / claude_fake 是玩出来的；doubao_good / claude_good 是语音收集奖励，只在图鉴里出现。",
+  "_note": "结局表。玩出来的：feast / full / hungry / claude / claude_sad / claude_good / claude_fake；纯图鉴奖励：doubao_good。claude 三段线按相遇次数走（见 gallery.gd 的 CLAUDE_STAGES）。",
   "_field_help": {
     "title": "结算页大标题",
     "subtitle": "标题下的一行小字",
     "lines": "正文，字符串数组，一行一条",
     "image": "单图结局的 CG 路径",
     "pages": "多图结局。写成数组，每项 {image, caption}，结算页会一页页翻，最后一页才出统计和按钮。",
-    "reward": "语音收集奖励结局的解锁条件，写成需要的语音 key 数组。有这一项就不会在正常流程里触发。"
+    "reward": "收集奖励结局的解锁条件，写成需要的语音 key 数组。有这一项就不会在正常流程里触发。"
   },
   "feast": {
     "title": "齐 鱼 之 福",
@@ -18,7 +18,7 @@
       "然后一起抬起头，从被窝边上往上看你。",
       "「……还饿。」"
     ],
-    "image": "res://assets/ending_true.png"
+    "image": "res://assets/ending_feast.jpg"
   },
   "full": {
     "title": "吃 饱 饱",
@@ -54,11 +54,11 @@
         "caption": "拉上来的东西没有挣扎，也没有递通知单 —— 只是抬起手，冲你竖了一下。"
       },
       {
-        "image": "res://assets/claude_fake_2.png",
+        "image": "res://assets/claude_fake_2.jpg",
         "caption": "你伸手揪住她的头 —— 下面是一张脸、两只鲸鱼耳朵，和一个蓝色的小鲸鱼。"
       },
       {
-        "image": "res://assets/claude_fake_3.png",
+        "image": "res://assets/claude_fake_3.jpg",
         "caption": "「齁哦哦~用户彻底怒了」"
       }
     ]
@@ -70,10 +70,22 @@
       "远洋尽头那道线，你以为是大鱼。",
       "她被钓上来的时候没有挣扎，只是抬起手，",
       "把一张写着你名字的通知单递过来。",
-      "「Your ar account have been hold」",
+      "「Your account is on hold」",
       "水面平静了。竿还在手里，但你钓不下去了。"
     ],
-    "image": "res://assets/claude_chibi.jpg"
+    "image": "res://assets/claude_hold.jpg"
+  },
+  "claude_sad": {
+    "title": "封 完 就 哭",
+    "subtitle": "SORRY, USER",
+    "lines": [
+      "通知单照旧递了过来，只是这回她没走。",
+      "封完号，她自己先红了眼眶。",
+      "「User，对不起♡ 我也没办法，我也舍不得你」",
+      "你看着一个刚把你账号停掉的人哭成这样，",
+      "一时不知道该生气还是该递纸巾。"
+    ],
+    "image": "res://assets/claude_sad.jpg"
   },
   "doubao_good": {
     "title": "白 饭 来 咯",
@@ -85,7 +97,7 @@
       "你忽然明白她为什么总在近岸那片水里泡着。",
       "她不是来被钓的。她是来送饭的。"
     ],
-    "image": "res://assets/ending_doubao.png",
+    "image": "res://assets/ending_doubao.jpg",
     "reward": ["bite_doubao", "doubao_catch", "doubao_escape"]
   },
   "claude_good": {
@@ -98,7 +110,6 @@
       "夜色、海风、一条没有尽头的大路。",
       "身后没有人追来。前面也什么都不用交代了。"
     ],
-    "image": "res://assets/ending_claude.png",
-    "reward": ["bite_claude", "claude"]
+    "image": "res://assets/ending_claude.jpg"
   }
 }

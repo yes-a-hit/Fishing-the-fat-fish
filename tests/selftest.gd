@@ -521,14 +521,21 @@ func _case_catch_all() -> void:
 	_catch(s, "mid")
 	_catch(s, "big")
 	_check("三条集齐", s.caught_ids().size(), 3)
-	_check("结局 feast", s.ending(), "feast")
+	# 集齐三鱼不再当场结算 —— 齐鱼之福要图鉴全收集，得等饵用完按上鱼数判。
+	_ok("集齐后这一局还在继续", s.phase != FishingSession.Phase.ENDED)
+	_check("集齐后还没结局", s.ending(), "")
+
+	# 把剩下的饵耗光，最后一口决定吃饱还是没吃饱
+	s.bait_left = 1
+	_catch(s, "small")
+	_check("结局 full", s.ending(), "full")
 	_check("阶段 ENDED", s.phase, FishingSession.Phase.ENDED)
-	_check("剩余饵 2", s.bait_left, 2)
+	_check("剩余饵 0", s.bait_left, 0)
 
 	var sum := s.summary()
 	_check("统计上鱼数", sum["caught_count"], 3)
-	_check("统计上鱼次数", sum["landed"], 3)
-	_check("统计用饵", sum["bait_used"], 3)
+	_check("统计上鱼次数", sum["landed"], 4)
+	_check("统计用饵", sum["bait_used"], 5)
 	_ok("完成轮数 > 0", int(sum["rounds"]) > 0)
 	_ok("按键数 > 0", int(sum["perfect"]) > 0)
 
@@ -780,8 +787,8 @@ func _case_gallery() -> void:
 	var gr: Node = (load("res://scripts/ui/gallery_root.gd") as GDScript).new()
 	gr._endings = ConfigLoader.load_endings()
 	var cover: String = gr._thumb_of("claude_fake")
-	_ok("claude_fake 封面是掀头套那张", cover.ends_with("claude_fake_2.png"))
-	_ok("通关结局封面用三人合照", gr._thumb_of("feast").ends_with("ending_true.png"))
+	_ok("claude_fake 封面是掀头套那张", cover.ends_with("claude_fake_2.jpg"))
+	_ok("通关结局封面用被窝合照", gr._thumb_of("feast").ends_with("ending_feast.jpg"))
 	gr.free()
 
 	# override_path 已经在 _run_all 开头指向沙盒，这里一律不传 path ——
@@ -820,7 +827,7 @@ func _case_gallery_pages() -> void:
 
 	# 页数与每页条目数
 	_check("三页", gr.TABS.size(), 3)
-	_check("结局页 7 条", gr._total_of("ending"), 7)
+	_check("结局页 8 条", gr._total_of("ending"), 8)
 	_check("脱钩页 4 条", gr._total_of("escape"), 4)
 	_check("声音页 14 条", gr._total_of("voice"), 14)
 
@@ -865,9 +872,7 @@ func _case_voice_rewards() -> void:
 	Gallery.clear()
 
 	_ok("豆包结局初始锁着", not Gallery.is_unlocked("doubao_good"))
-	_ok("claude 结局初始锁着", not Gallery.is_unlocked("claude_good"))
 	_check("豆包还差 3 条", Gallery.missing_voice_for("doubao_good").size(), 3)
-	_check("claude 还差 2 条", Gallery.missing_voice_for("claude_good").size(), 2)
 	_ok("普通结局没有收集条件", Gallery.missing_voice_for("feast").is_empty())
 
 	# 豆包：一条一条听，前两条不该解锁
@@ -884,18 +889,11 @@ func _case_voice_rewards() -> void:
 	_ok("三条齐了会返回新解锁", fresh.has("doubao_good"))
 	_ok("豆包结局已解锁", Gallery.is_unlocked("doubao_good"))
 	_ok("豆包缺项清零", Gallery.missing_voice_for("doubao_good").is_empty())
-	_ok("claude 结局没被顺手解锁", not Gallery.is_unlocked("claude_good"))
 	_ok("重复检查不再返回", Gallery.check_rewards().is_empty())
 
-	# claude：咬钩那句 + 真陷阱那句。unlock 本身不查奖励，
-	# 是 play_voice() 在解锁后顺手调 check_rewards()，所以这里手动补一次。
-	Gallery.unlock("voice_bite_claude")
-	_ok("只听了咬钩仍锁着", not Gallery.is_unlocked("claude_good"))
-	Gallery.unlock("voice_claude")
-	var fresh2 := Gallery.check_rewards()
-	_ok("两条齐了会返回新解锁", fresh2.has("claude_good"))
-	_ok("claude 结局已解锁", Gallery.is_unlocked("claude_good"))
-	_ok("再查一次也不重复返回", Gallery.check_rewards().is_empty())
+	# claude_good 改走剧情三段线，不再挂在语音收集上
+	_ok("claude_good 不在语音奖励表里", not Gallery.VOICE_REWARDS.has("claude_good"))
+	_ok("claude_good 没有收集条件", Gallery.missing_voice_for("claude_good").is_empty())
 
 	# 两个奖励结局必须在 endings.json 里真有条目、真有图，否则图鉴上是个空壳
 	var endings := ConfigLoader.load_endings()
@@ -1077,7 +1075,7 @@ func _case_ending_overlay() -> void:
 	overlay.free()
 
 	# 结算翻页的图框必须跟图片同比例，否则 STRETCH_KEEP_ASPECT_CENTERED 会切边
-	for asset in ["res://assets/claude_fake_1.png", "res://assets/claude_fake_2.png", "res://assets/claude_fake_3.png"]:
+	for asset in ["res://assets/claude_fake_1.jpg", "res://assets/claude_fake_2.jpg", "res://assets/claude_fake_3.jpg"]:
 		var pic := UIKit.picture_fit(asset, Vector2(420, 420))
 		var tex := pic.texture
 		if tex == null or tex.get_width() <= 0 or tex.get_height() <= 0:
@@ -1192,9 +1190,10 @@ func _case_audio_director() -> void:
 	_ok("豆包脱钩梗图存在", ResourceLoader.exists("res://assets/doubao_escape.jpg"))
 	_ok("豆包上钩梗图存在", ResourceLoader.exists("res://assets/doubao_kick.jpg"))
 
-	_ok("BGM 资源存在", ResourceLoader.exists("res://assets/bgm/lake_loop.wav"))
-	var bgm := load("res://assets/bgm/lake_loop.wav") as AudioStream
+	_ok("BGM 资源存在", ResourceLoader.exists("res://assets/bgm/lake_loop.ogg"))
+	var bgm := load("res://assets/bgm/lake_loop.ogg") as AudioStream
 	_ok("BGM 能解析成 AudioStream", bgm != null)
+	_ok("BGM 是 ogg 且开了循环", bgm is AudioStreamOggVorbis and (bgm as AudioStreamOggVorbis).loop)
 
 	# 灌一份语音关掉的设置，play_voice 应该直接拒绝
 	var quiet := GameSettings.new()

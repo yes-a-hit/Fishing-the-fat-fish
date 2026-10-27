@@ -252,6 +252,7 @@ func _start_session() -> void:
 	_session.landing_started.connect(_on_landing_started)
 	_session.resolved.connect(_on_resolved)
 	_session.doubao_started.connect(_on_doubao)
+	_session.claude_spared.connect(_on_claude_spared)
 	_session.finished.connect(_on_finished)
 
 	_ending.hide_overlay()
@@ -291,6 +292,8 @@ func _disconnect_session() -> void:
 		s.resolved.disconnect(_on_resolved)
 	if s.doubao_started.is_connected(_on_doubao):
 		s.doubao_started.disconnect(_on_doubao)
+	if s.claude_spared.is_connected(_on_claude_spared):
+		s.claude_spared.disconnect(_on_claude_spared)
 	if s.finished.is_connected(_on_finished):
 		s.finished.disconnect(_on_finished)
 
@@ -352,16 +355,18 @@ func _on_cast_made(point: float, _fish_id: String) -> void:
 func _on_bite_started(fish: FishSpec, fight: FightSession) -> void:
 	_qte.bind(fight)
 	_lake.set_bite(true)
-	Audio.play_voice("bite_" + fish.id)
+	# 咬钩不开口：鱼在水下咬着钩，这时候说话就露馅了。声音留到真的捞上来那一下。
 
 
 func _on_landing_started(fish: FishSpec) -> void:
 	_hud.refresh_caught(_session.caught_ids())
 	_cast_panel.refresh_caught(_session.caught_ids())
 	_landing.play(fish, _lake.bobber_screen_pos())
-	# 豆包上鱼有主人亲自录的那一条；其余鱼共用 catch
+	# 捞上来的瞬间才出声，每条鱼说自己的那句；豆包用主人录的那条
 	if fish.is_doubao:
 		Audio.play_voice("doubao_catch")
+	elif Audio.has_voice("bite_" + fish.id):
+		Audio.play_voice("bite_" + fish.id)
 	else:
 		Audio.play_voice("catch")
 
@@ -389,6 +394,12 @@ func _on_doubao(refund: int) -> void:
 	var gain_text := "+%d 碗白饭" % refund if refund > 0 else "碗已经满了"
 	var gain_color := Palette.GOOD if refund > 0 else Palette.INK_FAINT
 	_flash_card("res://assets/doubao_kick.jpg", "哪来的奶黄包！", gain_text, gain_color)
+
+
+## 私奔之后再钓上她。不封号，不结算，只是浮上来打个照面。
+func _on_claude_spared() -> void:
+	_feedback.show_text("她 看 了 你 一 眼", Palette.ACCENT_DEEP)
+	Audio.play_voice("claude")
 
 
 ## 脱钩弹脸。每条鱼一张，没有对应图才掉回纯文字。
@@ -421,7 +432,7 @@ func _escape_art_of(fish: FishSpec) -> Dictionary:
 		}
 	if fish.is_claude:
 		return {
-			"image": "res://assets/claude_escape.png",
+			"image": "res://assets/claude_escape.jpg",
 			"tip": "她 扭 过 头 去 了",
 			"gain": "通知单没递成",
 			"color": Palette.WARN,

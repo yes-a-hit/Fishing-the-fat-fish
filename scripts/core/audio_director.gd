@@ -8,7 +8,7 @@ extends Node
 ##
 ## 所有资源缺失都静默跳过：少一个 mp3 不该让游戏起不来。
 
-const BGM_PATH := "res://assets/bgm/lake_loop.wav"
+const BGM_PATH := "res://assets/bgm/lake_loop.ogg"
 const VOICE_DIR := "res://assets/voice/"
 const MUTE_DB := -60.0
 
@@ -30,7 +30,11 @@ func _ready() -> void:
 	add_child(_bgm)
 
 	var stream := _load_stream(BGM_PATH)
-	if stream is AudioStreamWAV:
+	if stream is AudioStreamOggVorbis:
+		# ogg 自带 loop 开关，比 wav 省 92% 体积，接缝一样听不出来
+		(stream as AudioStreamOggVorbis).loop = true
+		_bgm.stream = stream
+	elif stream is AudioStreamWAV:
 		var wav := stream as AudioStreamWAV
 		# 循环点设在整段首尾，生成 BGM 时已经做过交叉淡化，听不出接缝
 		wav.loop_mode = AudioStreamWAV.LOOP_FORWARD

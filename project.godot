@@ -14,6 +14,9 @@ config/name="钓肥鱼"
 run/main_scene="res://menu.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://assets/icon_app.png"
+; 手机上不锁帧就是白白烧电烧热。这个游戏是静态画面 + 一个转圈指针，
+; 60 帧完全够用，再高只是把电池当柴火烧。
+run/max_fps=60
 
 [autoload]
 

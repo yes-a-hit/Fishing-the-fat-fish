@@ -45,6 +45,9 @@ var _hit_half: float = 0.33
 var _perfect_half: float = 0.15
 var _speed_base: float = 0.45
 var _speed_accel: float = 0.5
+var _sway_amp: float = 0.0     ## 命中区左右摆动的幅度，0 = 不摆
+var _sway_period: float = 2.2  ## 摆动一个来回要几秒
+var _elapsed: float = 0.0      ## 搏斗累计时间，摆动相位靠它推
 
 
 func _init(fish: FishSpec, tuning: GameTuning, rng_source: RandomNumberGenerator = null) -> void:
@@ -63,6 +66,9 @@ func _init(fish: FishSpec, tuning: GameTuning, rng_source: RandomNumberGenerator
 	_perfect_half = clampf(float(tuning.fight_value("perfect_half", 0.15)), 0.01, _hit_half)
 	_speed_base = maxf(float(tuning.fight_value("cursor_speed", 0.45)), 0.02)
 	_speed_accel = maxf(float(tuning.fight_value("cursor_accel", 0.5)), 0.0)
+	# 爆冲：困难难度起，黄标会左右摆。振幅按圈宽算，0.12 大约是两个标位。
+	_sway_amp = clampf(float(tuning.fight_value("hit_sway", 0.0)), 0.0, 0.35)
+	_sway_period = maxf(float(tuning.fight_value("sway_period", 2.2)), 0.4)
 
 
 func start() -> void:
@@ -118,8 +124,8 @@ func strike() -> String:
 	if not active or _input_lock > 0.0:
 		return ""
 
-	# 环形距离：到顶部 0 的最近距离
-	var d := absf(cursor)
+	# 环形距离：到命中区中心的最近距离（中心会随爆冲左右摆）
+	var d := absf(cursor - hit_center())
 	d = minf(d, 1.0 - d)
 
 	if d <= _perfect_half:
@@ -137,6 +143,21 @@ func strike() -> String:
 	return "miss"
 
 
+## 命中区中心。平常固定在顶部（0），困难难度下鱼会爆冲，整块黄标左右摆。
+## 用 fposmod 保证返回值始终在 0~1，UI 画弧和这里判定用的是同一个数。
+func hit_center() -> float:
+	if _sway_amp <= 0.0:
+		return 0.0
+	return fposmod(sin(_elapsed * TAU / maxf(_sway_period, 0.1)) * _sway_amp, 1.0)
+
+
+## 距离下一次爆冲换向还有多久，给 UI 做预兆用。零振幅时恒为 0。
+func sway_phase() -> float:
+	if _sway_amp <= 0.0:
+		return 0.0
+	return 0.5 + 0.5 * sin(_elapsed * TAU / maxf(_sway_period, 0.1))
+
+
 func tick(delta: float) -> void:
 	if not active or delta <= 0.0:
 		return
@@ -145,6 +166,7 @@ func tick(delta: float) -> void:
 		if _input_lock <= 0.0:
 			input_lock_changed.emit(false)
 
+	_elapsed += delta
 	cursor = fposmod(cursor + current_speed() * delta, 1.0)
 	cursor_changed.emit(cursor)
 	_tick_tension(delta)

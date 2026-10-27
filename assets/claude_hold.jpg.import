@@ -2,22 +2,22 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b8kqplri05bbi"
-path="res://.godot/imported/ending_doubao.png-f3abcc081c1bd0e2d0813ae573adb393.ctex"
+uid="uid://klp2etm2mktq"
+path="res://.godot/imported/claude_hold.jpg-aa2c125663dbdb1451a08c64865c43da.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/ending_doubao.png"
-dest_files=["res://.godot/imported/ending_doubao.png-f3abcc081c1bd0e2d0813ae573adb393.ctex"]
+source_file="res://assets/claude_hold.jpg"
+dest_files=["res://.godot/imported/claude_hold.jpg-aa2c125663dbdb1451a08c64865c43da.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
-compress/lossy_quality=0.7
+compress/lossy_quality=0.85
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
@@ -36,5 +36,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=1600
 detect_3d/compress_to=1

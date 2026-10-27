@@ -29,6 +29,7 @@ signal bite_started(fish: FishSpec, fight: FightSession)
 signal landing_started(fish: FishSpec)
 signal resolved(kind: String, fish: FishSpec)
 signal doubao_started(refund: int)
+signal claude_spared  ## 私奔之后再钓上她：不封号，只是浮上来看你一眼
 signal finished(ending: String, summary: Dictionary)
 
 var phase: int = Phase.ENDED
@@ -351,16 +352,27 @@ func _advance_after_round() -> void:
 
 	# 陷阱优先级最高：钓上 claude 这一局就到此为止，不算赢也不算没饵
 	if claude_caught():
-		# 掀开头套发现是自己人 —— 她也照样把这一局终结掉了，只是结算画面完全不一样
-		_finish("claude_fake" if _pending_claude_fake else "claude")
+		if _pending_claude_fake:
+			# 掀开头套发现是自己人 —— 她也照样把这一局终结掉了，只是结算画面完全不一样
+			_finish("claude_fake")
+			return
+		# 真陷阱走三段线：封号 → 封完就哭 → 私奔 → 之后不再封号。
+		# 次数存在 Gallery 里，跨局累计 —— 她记得你见过她几回。
+		var staged := Gallery.bump_claude_stage()
+		if staged == "":
+			# 已经私奔过了。她只是浮上来看你一眼，然后自己游回去。
+			claude_spared.emit()
+			pending_fish = null
+			fight = null
+			_empty_reason = ""
+			_caught.erase("claude")
+			_set_phase(Phase.AIMING)
+			return
+		_finish(staged)
 		return
 
-	# 集齐三种 = 齐鱼之福，这是唯一的「通关」
-	if _caught_target_count() >= _targets.size() and not _targets.is_empty():
-		_finish("feast")
-		return
-
-	# 没集齐就得把饵用完才结算：钓够三条算吃饱，不够算没吃饱
+	# 没集齐就得把饵用完才结算：钓够三条算吃饱，不够算没吃饱。
+	# 齐鱼之福（feast）不在这里 —— 它要图鉴全收集才会解锁，见 gallery.gd。
 	if bait_left <= 0:
 		_finish("full" if _landed >= _tune.full_catch_threshold else "hungry")
 		return

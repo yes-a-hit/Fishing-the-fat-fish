@@ -143,8 +143,10 @@
                                                       }
                                                   ],
                                         "fight":  {
-                                                      "hit_half":  0.24,
-                                                      "cursor_speed":  0.45
+                                                      "miss_tension":  16.0,
+                                                      "hit_half":  0.22,
+                                                      "cursor_speed":  0.5,
+                                                      "hit_sway":  0.06
                                                   }
                                     },
                          "hard":  {
@@ -194,7 +196,9 @@
                                       "fight":  {
                                                     "miss_tension":  18.0,
                                                     "hit_half":  0.17,
-                                                    "cursor_speed":  0.58
+                                                    "cursor_speed":  0.58,
+                                                    "hit_sway":  0.13,
+                                                    "sway_period":  1.9
                                                 }
                                   }
                      },
