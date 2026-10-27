@@ -24,7 +24,7 @@ const ESCAPE_ITEMS := [
 		"key": "escape_small",
 		"image": "res://assets/deepseek_escape.webp",
 		"title": "小肥鱼 / 中肥鱼",
-		"line": "「什么肥鱼 —— 鲸鱼！」",
+		"line": "「哦鲸鲸…」",
 		"sub": "她甩着尾巴跑了",
 	},
 	{

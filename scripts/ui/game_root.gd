@@ -451,7 +451,7 @@ func _escape_art_of(fish: FishSpec) -> Dictionary:
 	if fish.id == "small" or fish.id == "mid":
 		return {
 			"image": "res://assets/deepseek_escape.webp",
-			"tip": "什么肥鱼 —— 鲸鱼！",
+			"tip": "哦 鲸 鲸 …",
 			"gain": "她 甩 尾 巴 跑 了",
 			"color": Palette.WARN,
 			"voice": "escape",

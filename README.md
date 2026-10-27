@@ -30,8 +30,8 @@ Godot 4.7 · GDScript · 1280×800 · 单场景小游戏
 
 | 平台 | 直接下载 | 大小 |
 |---|---|---|
-| **Windows** | [`钓肥鱼-v1.0.3-windows-x64.zip`](docs/download/钓肥鱼-v1.0.3-windows-x64.zip) — 解压后双击 `钓肥鱼.exe`，单文件 | 20 MB |
-| **Android** | [`钓肥鱼-v1.0.3.apk`](docs/download/钓肥鱼-v1.0.3.apk) — 直接安装 | 29 MB |
+| **Windows** | [`钓肥鱼-v1.0.4-windows-x64.zip`](docs/download/钓肥鱼-v1.0.4-windows-x64.zip) — 解压后双击 `钓肥鱼.exe`，单文件 | 20 MB |
+| **Android** | [`钓肥鱼-v1.0.4.apk`](docs/download/钓肥鱼-v1.0.4.apk) — 直接安装 | 29 MB |
 | **网页版** | [在线玩](https://yes-a-hit.github.io/Fishing-the-fat-fish/) | — |
 
 如果链接点了没反应，右键 →「链接另存为」，或者把地址里的 `github.com/.../raw/main/...` 换成 `raw.githubusercontent.com/...`。
@@ -132,8 +132,8 @@ Godot 4.7 · GDScript · 1280×800 · 单场景小游戏
 
 | 鱼 | 梗图 | 配字 |
 |---|---|---|
-| 小肥鱼 / 中肥鱼 | `deepseek_escape.jpg`（chibi 抱尾，旁边一碗满饭） | 什么肥鱼 —— 鲸鱼！ |
-| 大肥鱼 | `deepseek_escape_big.jpg`（摊手得意） | 鲸鱼不是肥，是密度好 |
+| 小肥鱼 / 中肥鱼 | `deepseek_escape.webp`（一脸无语，气泡「哦鲸鲸…」） | 哦 鲸 鲸 … |
+| 大肥鱼 | `deepseek_escape_big.webp`（摊手得意） | 鲸鱼不是肥，是密度好 |
 | Claude（真假都一样） | `claude_escape.png`（鼓着腮帮子扭过头） | 她 扭 过 头 去 了 |
 | 豆包 | `doubao_escape.jpg`（抱肚子大笑） | 奶黄包 笑 着 跑 了 |
 
@@ -410,8 +410,8 @@ theme/custom_font="res://assets/fonts/game_sc.otf"
 | `doubao.png` | 豆包立绘（未接入上鱼动画，留给后续） | 已有 |
 | `doubao_kick.jpg` | 捞到豆包时右上角飘出的卡片 | 已有（「哪来的奶黄包！」） |
 | `doubao_escape.jpg` | 豆包脱钩时右上角飘出的卡片 | 已有（抱着肚子大笑） |
-| `deepseek_escape.jpg` | 小/中肥鱼脱钩的卡片 | 已有 |
-| `deepseek_escape_big.jpg` | 大肥鱼脱钩的卡片 | 已有 |
+| `deepseek_escape.webp` | 小/中肥鱼脱钩的卡片 | 已有 |
+| `deepseek_escape_big.webp` | 大肥鱼脱钩的卡片 | 已有 |
 | `claude_escape.png` | Claude 脱钩的卡片（真假通用） | 已有 |
 | `voice/*.mp3` | 13 条台词，其中 `doubao_catch.mp3` 是主人录的 | 已有，`tools/gen_voice.py` 可重生成另外 12 条 |
 | `bgm/lake_loop.wav` | 60 秒循环 BGM | 已有，`tools/gen_bgm.py` 可重生成 |
