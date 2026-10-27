@@ -123,11 +123,14 @@ rate = fight.tension_passive_rate
 | `charge_full_seconds` | 1.9 | 1.6 | 1.3 |
 | `cast_jitter` | 2.5 | 1.5 | 1.0 |
 | `fake_claude_chance` | 0.85 | 0.75 | 0.60 |
-| `fight.miss_tension` | 10 | 14 | 18 |
-| `fight.hit_half` | 0.30（216°） | 0.24（173°） | 0.17（122°） |
-| `fight.cursor_speed` | 0.34 | 0.45 | 0.58 |
+| `fight.miss_tension` | 10 | 16 | 18 |
+| `fight.hit_half` | 0.30（216°） | 0.22（158°） | 0.17（122°） |
+| `fight.cursor_speed` | 0.34 | 0.50 | 0.58 |
+| `fight.hit_sway` | 0 | 0.06 | 0.13 |
 
-`hit_half` 与 `cursor_speed` 是环上唯二能读出难度差别的地方：黄标宽度肉眼可见，游标速度按一下就知道。
+`hit_half`、`cursor_speed`、`hit_sway` 是环上能读出难度差别的地方：黄标宽度肉眼可见，游标速度按一下就知道，爆冲则是黄标整块左右摆。
+
+`normal` 开始加爆冲（±0.06，轻微晃），`hard` 摆到 ±0.13、1.9 秒一个来回。**判定和画面共用 `FightSession.hit_center()`**，所以不存在「看着在标里却判失手」。
 
 难度是**唯一**的玩家设置，存 `user://settings.json`，由 `GameSettings` 读写。
 
@@ -205,9 +208,11 @@ rate = fight.tension_passive_rate
 | `perfect_relief` | 3.0 | 完美命中额外降低的张力 | 提高让「卡点准」更值钱 |
 | `miss_tension` | 14.0 | 每次失手立即增加的张力 | 过高会让少数失误直接断线 |
 | `rage_tension_bonus` | 0.6 | 体力接近空时最多额外增加 60% 基础速率 | 控制末段压力 |
-| `hit_half` | 0.24 | 黄标半宽（归一化） | 三档覆盖：easy 0.30 / normal 0.24 / hard 0.17。**不许低于 0.14**（约 100°），否则手机上点不准 |
+| `hit_half` | 0.22 | 黄标半宽（归一化） | 三档覆盖：easy 0.30 / normal 0.22 / hard 0.17。**不许低于 0.14**（约 100°），否则手机上点不准 |
 | `perfect_half` | 0.09 | 完美区半宽 | 必须 ≤ `hit_half`；只影响判定，不画出来 |
-| `cursor_speed` | 0.45 | 游标每秒转几圈 | 三档覆盖：easy 0.34 / normal 0.45 / hard 0.58。0.45 ≈ 2.2 秒一圈；高于 0.7 就开始考反应 |
+| `cursor_speed` | 0.50 | 游标每秒转几圈 | 三档覆盖：easy 0.34 / normal 0.50 / hard 0.58。0.50 = 2.0 秒一圈；高于 0.7 就开始考反应 |
+| `hit_sway` | 0 | 黄标左右摆动的幅度 | 0 = 钉在顶部。normal 0.06 轻微晃，hard 0.13 整块标挪出去一个身位 —— 这就是鱼在爆冲 |
+| `sway_period` | 2.2 | 摆动一个来回几秒 | 越小越急。hard 用 1.9 |
 | `cursor_accel` | 0.5 | 体力见底时游标额外加速的比例 | 0 = 全程匀速；0.8 以上末段会很难 |
 | `strike_lock` | 0.3 | 每次点完锁输入的秒数 | 低于 0.2 手快的人会连点误触 |
 
@@ -226,7 +231,7 @@ rate = fight.tension_passive_rate
 | 难度 | `hit_half` | 弧长 | `cursor_speed` | 一圈用时 |
 |---|---:|---:|---:|---:|
 | `easy` | 0.30 | 216° | 0.34 | 2.9 s |
-| `normal` | 0.24 | 173° | 0.45 | 2.2 s |
+| `normal` | 0.22 | 158° | 0.50 | 2.0 s |
 | `hard` | 0.17 | 122° | 0.58 | 1.7 s |
 
 `hard` 的黄标只剩三分之一圆，游标还比 `easy` 快七成。
