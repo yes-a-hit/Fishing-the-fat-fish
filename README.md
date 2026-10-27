@@ -431,9 +431,11 @@ theme/custom_font="res://assets/fonts/game_sc.otf"
 - 远洋陷阱按难度掷骰：`easy`/`normal`/`hard` 各有 85%/75%/60% 是假的，假的那个走三段 meme 翻页结局。
 - 近岸有低权重豆包带，一次命中捞起，返还 2 碗白饭（含抛出的那碗），撞上限就只补 1 碗。它也会脱钩 —— 抱着肚子笑你，白饭不退。
 - 声音：主菜单可开关与调音量，BGM 走 autoload 循环，14 条台词按角色分三种音色，豆包上鱼与脱钩用两条外来素材。
+- claude的meme打错了，应为“Your account is on hold”
 - **上鱼动画未达标**：`LandingView` 目前只移动、缩放、旋转整张立绘。
 - **文档截图待更新**：`docs/images/` 仍有旧界面图，应在代码收尾后统一重拍。
 - **BGM 是合成的，不是模型生成的**：ComfyUI 里没有音频模型（`models/audio_encoders` 为空），要换 ACE-Step 得先下约 3.5 GB，需要另外授权。
+- **关于隐藏CG** 想什么呢，这不是R18游戏，只可意会不可言传
 
 ## 文档导航
 
