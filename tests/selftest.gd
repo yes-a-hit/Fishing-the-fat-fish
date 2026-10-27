@@ -58,6 +58,7 @@ func _run_all() -> void:
 	_case_about()
 	_case_line_break()
 	_case_scene_boot()
+	_case_pause()
 	_case_mouse_policy()
 	_case_ending_overlay()
 	_case_settings_roundtrip()
@@ -989,6 +990,44 @@ func _case_scene_boot() -> void:
 	g.free()
 
 
+## 暂停：ESC 和右上角那颗按钮走同一条路，暂停中 session 不许推进。
+func _case_pause() -> void:
+	print("[case] 暂停")
+	var g = _spawn_game()
+	if g == null:
+		return
+
+	_ok("开局没在暂停", g._paused_layer == null and not get_root().get_tree().paused)
+	_ok("右上角有暂停键", _collect_button_text(g).has("Ⅱ"))
+
+	# 记一个会变的量：暂停期间它必须一动不动
+	g._session.charge = 0.37
+	g._pause_game()
+	_ok("暂停后遮罩在", g._paused_layer != null)
+	_ok("暂停后场景树冻结", get_root().get_tree().paused)
+
+	var before: float = g._session.charge
+	g._process(0.5)
+	g._process(0.5)
+	_check("暂停中 session 不推进", g._session.charge, before)
+
+	g._resume_game()
+	_ok("继续后遮罩没了", g._paused_layer == null)
+	_ok("继续后场景树解冻", not get_root().get_tree().paused)
+
+	# 再暂停一次，走「重新开始」那条路，必须解冻并且换一局新的
+	g._pause_game()
+	var old: FishingSession = g._session
+	g._restart_from_pause()
+	_ok("重新开始后遮罩没了", g._paused_layer == null)
+	_ok("重新开始后场景树解冻", not get_root().get_tree().paused)
+	_ok("重新开始后是新的 session", g._session != null and g._session != old)
+	_check("重新开始后回到起手", g._session.phase, FishingSession.Phase.AIMING)
+
+	g.free()
+	get_root().get_tree().paused = false
+
+
 ## 收集一棵节点树下所有 Button 的文字，用来验按钮有没有真的被摆出来。
 func _collect_button_text(root: Node) -> Array:
 	var out: Array = []
@@ -1196,7 +1235,7 @@ func _case_audio_director() -> void:
 
 
 
-## 菜单：难度按钮、说明、点击落盘。
+## 主菜单只负责开始 + 四个入口，难度和音量搬去 settings.tscn 了。
 func _case_menu_boot() -> void:
 	print("[case] 菜单装配")
 	var packed := load("res://menu.tscn") as PackedScene
@@ -1204,24 +1243,50 @@ func _case_menu_boot() -> void:
 	if packed == null:
 		return
 
-	# 记住玩家真实设置，测完还原，别污染
 	var original := GameSettings.load_settings().difficulty
 
 	var m = packed.instantiate()
 	get_root().add_child(m)
 
-	_check("难度按钮数量", m._buttons.size(), 3)
-	_ok("当前难度有对应按钮", m._buttons.has(m._settings.difficulty))
-	_ok("说明文字已填", m._blurb != null and m._blurb.text != "")
+	var labels := _collect_button_text(m)
+	_ok("菜单有「开始钓鱼」", labels.has("开 始 钓 鱼"))
+	_ok("菜单有「设置」入口", labels.has("设 置"))
+	_ok("菜单不再摆难度按钮", not labels.has("轻松") and not labels.has("普通") and not labels.has("困难"))
+	_ok("菜单不再摆音量滑块", _count_type(m, "HSlider") == 0)
 
-	m._on_pick("hard")
-	_check("切换难度生效", m._settings.difficulty, "hard")
+	m.free()
+
+	# 设置页：难度三按钮 + 两个滑块 + 落盘
+	var sp := load("res://settings.tscn") as PackedScene
+	_ok("settings.tscn 能加载", sp != null)
+	if sp == null:
+		return
+	var s = sp.instantiate()
+	get_root().add_child(s)
+
+	_check("设置页难度按钮数", s._buttons.size(), 3)
+	_ok("当前难度有对应按钮", s._buttons.has(s._settings.difficulty))
+	_ok("设置页有说明文字", s._blurb != null and s._blurb.text != "")
+	_check("设置页有两个音量滑块", _count_type(s, "HSlider"), 2)
+
+	s._on_pick("hard")
+	_check("切换难度生效", s._settings.difficulty, "hard")
 	_check("难度已落盘", GameSettings.load_settings().difficulty, "hard")
 
 	var restore := GameSettings.new()
 	restore.difficulty = original
 	restore.save()
-	m.free()
+	s.free()
+
+
+## 递归数某类节点有几个，用来确认菜单里确实没有滑块了。
+func _count_type(root: Node, cls: String) -> int:
+	var n := 0
+	if root.is_class(cls):
+		n += 1
+	for c in root.get_children():
+		n += _count_type(c, cls)
+	return n
 
 
 ## 难度必须真的改到数值上，不能只是换个标签。

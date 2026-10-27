@@ -30,8 +30,8 @@ Godot 4.7 · GDScript · 1280×800 · 单场景小游戏
 
 | 平台 | 直接下载 | 大小 |
 |---|---|---|
-| **Windows** | [`钓肥鱼-v1.0.4-windows-x64.zip`](docs/download/钓肥鱼-v1.0.4-windows-x64.zip) — 解压后双击 `钓肥鱼.exe`，单文件 | 20 MB |
-| **Android** | [`钓肥鱼-v1.0.4.apk`](docs/download/钓肥鱼-v1.0.4.apk) — 直接安装 | 29 MB |
+| **Windows** | [`钓肥鱼-v1.1.0-windows-x64.zip`](docs/download/钓肥鱼-v1.1.0-windows-x64.zip) — 解压后双击 `钓肥鱼.exe`，单文件 | 20 MB |
+| **Android** | [`钓肥鱼-v1.1.0.apk`](docs/download/钓肥鱼-v1.1.0.apk) — 直接安装 | 29 MB |
 | **网页版** | [在线玩](https://yes-a-hit.github.io/Fishing-the-fat-fish/) | — |
 
 如果链接点了没反应，右键 →「链接另存为」，或者把地址里的 `github.com/.../raw/main/...` 换成 `raw.githubusercontent.com/...`。
@@ -167,9 +167,17 @@ Godot 4.7 · GDScript · 1280×800 · 单场景小游戏
 
 **把这个游戏搬走、改一改、做成视频都欢迎**，前提是署名、不商用、并且同样开放。这条不是客套话，是 LICENSE 里的条款。
 
-### 声音
+### 设置
 
-主菜单难度下面有两行：**背景音乐**和**语音**，各自一个开关加一根音量滑块，改完立刻生效并写进 `user://settings.json`（`bgm_on` / `bgm_volume` / `voice_on` / `voice_volume`，音量是 0~1 的线性值）。
+主菜单只放「开始」和四个入口（图鉴 / 设置 / 关于 / 退出）。难度和声音都在设置页里，改完立刻写盘进 `user://settings.json`，退出再进不用重设。
+
+设置页三块：**难度**（三档按钮 + 一句说明）、**背景音乐**、**语音**（各一个开关加一根滑块，音量 0~1 线性值）。首屏不摆这些，是因为玩家每次进来都得先看一遍噪音。
+
+### 暂停
+
+PC / 网页按 **Esc**，手机点**右上角那颗 Ⅱ**，两条路等价：整棵场景树冻住，弹出一张卡给「继续 / 重新开始 / 返回菜单」。
+
+暂停是真的 `get_tree().paused = true`，不是把输入吃掉装死 —— 动画、Tween、QTE 游标全停，恢复后不会接着跑半帧。遮罩自己挂 `PROCESS_MODE_WHEN_PAUSED`，否则按钮按不动。结算页也能暂停，那正是最想跑路的时候。
 
 BGM 是一段 60 秒的海浪垫底 + A 小调五声拨弦，由 `tools/gen_bgm.py` 用 numpy 合成，首尾做过交叉淡化，循环点听不出接缝。
 
@@ -270,6 +278,7 @@ BGM 是一段 60 秒的海浪垫底 + A 小调五声拨弦，由 `tools/gen_bgm.
 ```text
 project.godot                 工程设置；主场景为 res://menu.tscn
 menu.tscn                    主菜单根节点，挂 menu_root.gd
+settings.tscn                设置根节点（难度 + 音量），挂 settings_root.gd
 gallery.tscn                 图鉴根节点，挂 gallery_root.gd
 about.tscn                   关于页根节点，挂 about_root.gd
 main.tscn                    钓鱼场景根节点，挂 game_root.gd
@@ -286,7 +295,8 @@ scripts/
 │   ├── fishing_session.gd     一局状态机与结局统计
 │   └── config_loader.gd       data/*.json 的唯一读取入口
 └── ui/                      表现层，不判断输赢
-    ├── menu_root.gd           主菜单、难度选择、音量开关，写入设置
+    ├── menu_root.gd           主菜单，只负责开始与四个入口
+├── settings_root.gd       设置页：难度选择、音量开关，写入设置
     ├── gallery_root.gd        图鉴网格与预览层
     ├── game_root.gd           装配、输入转发、阶段切换
     ├── palette.gd             颜色与字号
@@ -433,7 +443,8 @@ theme/custom_font="res://assets/fonts/game_sc.otf"
 - 语音奖励只剩豆包一条：三条语音齐 → `doubao_good`。Claude 两条改走剧情线。
 - 远洋陷阱按难度掷骰：`easy`/`normal`/`hard` 各有 85%/75%/60% 是假的，假的那个走三段 meme 翻页结局。
 - 近岸有低权重豆包带，一次命中捞起，返还 2 碗白饭（含抛出的那碗），撞上限就只补 1 碗。它也会脱钩 —— 抱着肚子笑你，白饭不退。
-- 声音：主菜单可开关与调音量，BGM 走 autoload 循环，14 条台词按角色分三种音色，豆包上鱼与脱钩用两条外来素材。
+- 声音：设置页可开关与调音量，BGM 走 autoload 循环，14 条台词按角色分三种音色，豆包上鱼与脱钩用两条外来素材。
+- 暂停：Esc 或右上角那颗 Ⅱ，整棵树冻住，给继续 / 重新开始 / 返回菜单。
 - claude的meme打错了，应为“Your account is on hold”
 - **上鱼动画未达标**：`LandingView` 目前只移动、缩放、旋转整张立绘。
 - **文档截图待更新**：`docs/images/` 仍有旧界面图，应在代码收尾后统一重拍。

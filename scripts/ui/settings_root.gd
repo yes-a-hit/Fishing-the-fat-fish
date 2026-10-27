@@ -1,0 +1,257 @@
+extends Control
+
+## 设置页：难度 + 声音。
+##
+## 主菜单只放「开始」，需要调的东西全收进这里 —— 一张卡上同时摆难度按钮和
+## 两个音量滑块，玩家进来一次就能改完，不用来回跳。
+##
+## 每改一项立刻写盘（GameSettings.save）并同时推给 Audio，
+## 所以从这里退出去打一局，改动已经生效了，没有「保存」按钮。
+
+const MENU_SCENE := "res://menu.tscn"
+
+var _settings: GameSettings = null
+var _tuning: GameTuning = null
+var _options: Array = []
+var _buttons: Dictionary = {}
+var _blurb: Label = null
+var _audio_rows: Dictionary = {}
+
+
+func _ready() -> void:
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	_settings = GameSettings.load_settings()
+	_tuning = ConfigLoader.load_tuning()
+	_options = _tuning.difficulty_options()
+
+	_build_background()
+	_build_card()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel"):
+		_back()
+
+
+# ---------- 背景 ----------
+
+func _build_background() -> void:
+	var bg := Control.new()
+	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bg.draw.connect(_draw_background.bind(bg))
+	add_child(bg)
+
+
+func _draw_background(canvas: Control) -> void:
+	var w := canvas.size.x
+	var h := canvas.size.y
+	if w <= 1.0 or h <= 1.0:
+		return
+	var horizon := h * 0.62
+
+	canvas.draw_polygon(
+		PackedVector2Array([Vector2(0, 0), Vector2(w, 0), Vector2(w, horizon), Vector2(0, horizon)]),
+		PackedColorArray([Palette.SKY_TOP, Palette.SKY_TOP, Palette.SKY_LOW, Palette.SKY_LOW])
+	)
+	canvas.draw_polygon(
+		PackedVector2Array([Vector2(0, horizon), Vector2(w, horizon), Vector2(w, h), Vector2(0, h)]),
+		PackedColorArray([Palette.WATER_DEEP, Palette.WATER_DEEP, Palette.WATER_SHALLOW, Palette.WATER_SHALLOW])
+	)
+	canvas.draw_colored_polygon(PackedVector2Array([
+		Vector2(-w * 0.1, horizon),
+		Vector2(w * 0.18, horizon - h * 0.11),
+		Vector2(w * 0.44, horizon - h * 0.04),
+		Vector2(w * 0.62, horizon - h * 0.13),
+		Vector2(w * 1.1, horizon),
+	]), Palette.HILL_FAR)
+	canvas.draw_colored_polygon(PackedVector2Array([
+		Vector2(-w * 0.1, horizon),
+		Vector2(w * 0.30, horizon - h * 0.06),
+		Vector2(w * 0.55, horizon - h * 0.02),
+		Vector2(w * 0.78, horizon - h * 0.08),
+		Vector2(w * 1.1, horizon),
+	]), Palette.HILL_NEAR)
+	canvas.draw_rect(Rect2(0, horizon - 1.0, w, 2.0), Palette.WATER_LINE)
+
+
+# ---------- 卡片 ----------
+
+func _build_card() -> void:
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(center)
+
+	var card := UIKit.card(Color(1, 1, 1, 0.95), Palette.RADIUS, 30)
+	card.custom_minimum_size = Vector2(430, 0)
+	center.add_child(card)
+
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 14)
+	card.add_child(col)
+
+	col.add_child(UIKit.title("设 置", Palette.F_TITLE))
+
+	col.add_child(UIKit.spacer(2))
+	col.add_child(UIKit.label("难度", Palette.F_SMALL, Palette.INK_SOFT))
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	col.add_child(row)
+	for opt in _options:
+		var b := UIKit.button(String(opt["label"]), false)
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		b.add_theme_font_size_override("font_size", Palette.F_BODY)
+		b.pressed.connect(_on_pick.bind(String(opt["key"])))
+		row.add_child(b)
+		_buttons[String(opt["key"])] = b
+
+	_blurb = UIKit.wrap_label("", Palette.F_SMALL, Palette.INK_SOFT)
+	_blurb.custom_minimum_size = Vector2(0, 36)
+	col.add_child(_blurb)
+
+	col.add_child(UIKit.spacer(2))
+	col.add_child(UIKit.divider())
+	col.add_child(UIKit.label("声音", Palette.F_SMALL, Palette.INK_SOFT))
+	_audio_rows["bgm"] = _build_audio_row(col, "背景音乐", _settings.bgm_on, _settings.bgm_volume)
+	_audio_rows["voice"] = _build_audio_row(col, "语音", _settings.voice_on, _settings.voice_volume)
+
+	col.add_child(UIKit.divider())
+
+	var back := UIKit.button("返 回", true)
+	back.pressed.connect(_back)
+	col.add_child(back)
+
+	_refresh_selection()
+	_wire_audio_rows()
+
+
+## 一行 = 名字 + 开关 + 滑块 + 百分比。
+func _build_audio_row(col: VBoxContainer, caption: String, on: bool, vol: float) -> Dictionary:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	col.add_child(row)
+
+	var name_label := UIKit.label(caption, Palette.F_SMALL, Palette.INK)
+	name_label.custom_minimum_size = Vector2(70, 0)
+	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	row.add_child(name_label)
+
+	var toggle := Button.new()
+	toggle.toggle_mode = true
+	toggle.button_pressed = on
+	toggle.custom_minimum_size = Vector2(52, 0)
+	toggle.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	toggle.add_theme_font_size_override("font_size", Palette.F_SMALL)
+	toggle.text = "开" if on else "关"
+	row.add_child(toggle)
+
+	var slider := HSlider.new()
+	slider.min_value = 0.0
+	slider.max_value = 1.0
+	slider.step = 0.05
+	slider.value = vol
+	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	slider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(slider)
+
+	var pct := UIKit.label("%d%%" % roundi(vol * 100.0), Palette.F_SMALL, Palette.INK_SOFT)
+	pct.custom_minimum_size = Vector2(42, 0)
+	pct.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	pct.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	row.add_child(pct)
+
+	return {"toggle": toggle, "slider": slider, "pct": pct, "name": caption}
+
+
+func _wire_audio_rows() -> void:
+	for channel in _audio_rows.keys():
+		var ui: Dictionary = _audio_rows[channel]
+		var toggle: Button = ui["toggle"]
+		var slider: HSlider = ui["slider"]
+		toggle.toggled.connect(_on_audio_toggle.bind(String(channel)))
+		slider.value_changed.connect(_on_audio_slider.bind(String(channel)))
+		_style_toggle(toggle)
+
+
+func _on_audio_toggle(pressed: bool, channel: String) -> void:
+	if channel == "bgm":
+		_settings.bgm_on = pressed
+	else:
+		_settings.voice_on = pressed
+	var ui: Dictionary = _audio_rows[channel]
+	var toggle: Button = ui["toggle"]
+	toggle.text = "开" if pressed else "关"
+	_style_toggle(toggle)
+	_settings.save()
+	Audio.apply_settings(_settings)
+
+
+func _on_audio_slider(value: float, channel: String) -> void:
+	if channel == "bgm":
+		_settings.bgm_volume = value
+	else:
+		_settings.voice_volume = value
+	var ui: Dictionary = _audio_rows[channel]
+	var pct: Label = ui["pct"]
+	pct.text = "%d%%" % roundi(value * 100.0)
+	_settings.save()
+	Audio.apply_settings(_settings)
+
+
+func _style_toggle(toggle: Button) -> void:
+	var on := toggle.button_pressed
+	var base := Palette.ACCENT if on else Palette.CARD_SOFT
+	var hover := Palette.ACCENT_DEEP if on else Palette.CARD_EDGE
+	var fg := Palette.ON_DARK if on else Palette.INK_SOFT
+	toggle.add_theme_stylebox_override("normal", _btn_box(base))
+	toggle.add_theme_stylebox_override("hover", _btn_box(hover))
+	toggle.add_theme_stylebox_override("pressed", _btn_box(hover.darkened(0.12)))
+	toggle.add_theme_color_override("font_color", fg)
+	toggle.add_theme_color_override("font_hover_color", fg)
+	toggle.add_theme_color_override("font_pressed_color", fg)
+
+
+# ---------- 交互 ----------
+
+func _on_pick(key: String) -> void:
+	_settings.difficulty = key
+	_settings.save()
+	_refresh_selection()
+
+
+func _refresh_selection() -> void:
+	for key in _buttons.keys():
+		var b: Button = _buttons[key]
+		var active: bool = String(key) == _settings.difficulty
+		var base := Palette.ACCENT if active else Palette.CARD_SOFT
+		var hover := Palette.ACCENT_DEEP if active else Palette.CARD_EDGE
+		var fg := Palette.ON_DARK if active else Palette.INK
+		b.add_theme_stylebox_override("normal", _btn_box(base))
+		b.add_theme_stylebox_override("hover", _btn_box(hover))
+		b.add_theme_stylebox_override("pressed", _btn_box(hover.darkened(0.12)))
+		b.add_theme_color_override("font_color", fg)
+		b.add_theme_color_override("font_hover_color", fg)
+		b.add_theme_color_override("font_pressed_color", fg)
+
+	if _blurb != null:
+		_blurb.text = _blurb_of(_settings.difficulty)
+
+
+func _blurb_of(key: String) -> String:
+	for opt in _options:
+		if String(opt["key"]) == key:
+			return String(opt["blurb"])
+	return ""
+
+
+func _btn_box(bg: Color) -> StyleBoxFlat:
+	var sb := UIKit.flat(bg, Palette.RADIUS_SM + 2)
+	sb.set_content_margin_all(10)
+	return sb
+
+
+func _back() -> void:
+	get_tree().change_scene_to_file(MENU_SCENE)

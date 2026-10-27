@@ -33,6 +33,9 @@ var _doubao_pic: TextureRect = null
 var _doubao_tip: Label = null
 var _doubao_gain: Label = null
 
+## 暂停遮罩。非 null 就代表正暂停着 —— 输入、tick、QTE 全靠这一个判据让路。
+var _paused_layer: Control = null
+
 
 func _ready() -> void:
 	# 根节点自己不能拦鼠标，否则点击在 GUI 层就被吃掉，
@@ -61,11 +64,22 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	# 暂停时整局冻住：session 不推进，QTE 不转，动画不停但不影响判定。
+	if _paused_layer != null:
+		return
 	if _session != null:
 		_session.tick(delta)
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	# ESC 在任何阶段都能暂停，包括结算页 —— 结算页正是最想跑路的时候。
+	if event.is_action_pressed("ui_cancel"):
+		_toggle_pause()
+		accept_event()
+		return
+
+	if _paused_layer != null:
+		return
 	if _session == null or _session.phase == FishingSession.Phase.ENDED:
 		return
 	if _session.phase == FishingSession.Phase.LANDING:
@@ -173,6 +187,50 @@ func _build_ui() -> void:
 	# 7. 豆包图卡：钓上豆包时飘出来的一小块，2 秒后自己退
 	_doubao_card = _build_doubao_card()
 	add_child(_doubao_card)
+
+	# 8. 右上角暂停键。手机没有 ESC，只能靠这一颗；PC 上它和 ESC 等价。
+	_build_pause_button()
+
+
+## 右上角那颗「暂停」。锚在右上角，永远压在 HUD 之上、结算层之下。
+func _build_pause_button() -> void:
+	var layer := MarginContainer.new()
+	layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	layer.add_theme_constant_override("margin_right", 18)
+	layer.add_theme_constant_override("margin_top", 14)
+	layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(layer)
+
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_END
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(row)
+
+	var btn := Button.new()
+	btn.text = "Ⅱ"
+	btn.tooltip_text = "暂停（Esc）"
+	btn.custom_minimum_size = Vector2(44, 40)
+	btn.add_theme_font_size_override("font_size", Palette.F_H3)
+	btn.focus_mode = Control.FOCUS_NONE
+	_paint_ghost_button(btn)
+	btn.pressed.connect(_toggle_pause)
+	row.add_child(btn)
+
+
+## 半透明胶囊按钮，压在湖面上不抢戏。
+func _paint_ghost_button(btn: Button) -> void:
+	for state in ["normal", "hover", "pressed"]:
+		var bg := Color(1, 1, 1, 0.16)
+		if state == "hover":
+			bg = Color(1, 1, 1, 0.28)
+		elif state == "pressed":
+			bg = Color(1, 1, 1, 0.10)
+		var sb := UIKit.flat(bg, btn.custom_minimum_size.y * 0.5)
+		sb.set_content_margin_all(6)
+		btn.add_theme_stylebox_override(state, sb)
+	btn.add_theme_color_override("font_color", Palette.ON_DARK)
+	btn.add_theme_color_override("font_hover_color", Palette.ON_DARK)
+	btn.add_theme_color_override("font_pressed_color", Palette.ON_DARK)
 
 
 ## 豆包图卡。整块浮在屏幕右侧偏上，不拦鼠标，不吃输入。
@@ -496,5 +554,88 @@ func _on_finished(ending: String, summary: Dictionary) -> void:
 
 
 func _back_to_menu() -> void:
+	_resume_tree()
 	_disconnect_session()
 	get_tree().change_scene_to_file("res://menu.tscn")
+
+
+# ---------- 暂停 ----------
+
+## ESC 和右上角那颗按钮走同一条路：按一下暂停，再按一下继续。
+func _toggle_pause() -> void:
+	if _paused_layer != null:
+		_resume_game()
+	else:
+		_pause_game()
+
+
+func _pause_game() -> void:
+	if _paused_layer != null:
+		return
+	# 真暂停整棵场景树：_process 停、Tween 停、动画停，退出时不会留下半个状态。
+	get_tree().paused = true
+
+	var layer := Control.new()
+	layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	# 遮罩自己必须在暂停中照常跑，否则它的按钮按不动。
+	layer.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
+	add_child(layer)
+
+	var dim := ColorRect.new()
+	dim.color = Color(0.05, 0.08, 0.12, 0.62)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	layer.add_child(dim)
+
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(center)
+
+	var card := UIKit.card(Palette.CARD, Palette.RADIUS, 26)
+	card.custom_minimum_size = Vector2(320, 0)
+	center.add_child(card)
+
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 12)
+	card.add_child(col)
+
+	col.add_child(UIKit.title("已 暂 停", Palette.F_H2))
+	col.add_child(UIKit.divider())
+
+	var resume := UIKit.button("继 续", true)
+	resume.pressed.connect(_resume_game)
+	col.add_child(resume)
+
+	var restart := UIKit.button("重 新 开 始", false)
+	restart.pressed.connect(_restart_from_pause)
+	col.add_child(restart)
+
+	var menu := UIKit.button("返 回 菜 单", false)
+	menu.pressed.connect(_back_to_menu)
+	col.add_child(menu)
+
+	_paused_layer = layer
+
+
+func _resume_game() -> void:
+	if _paused_layer == null:
+		return
+	_paused_layer.queue_free()
+	_paused_layer = null
+	get_tree().paused = false
+
+
+func _resume_tree() -> void:
+	# 任何离开这一局的路径都必须先把树解开，否则换场景后新场景也是冻的。
+	get_tree().paused = false
+
+
+func _restart_from_pause() -> void:
+	var layer := _paused_layer
+	_paused_layer = null
+	get_tree().paused = false
+	if layer != null:
+		layer.queue_free()
+	_start_session()
+
