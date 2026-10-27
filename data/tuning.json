@@ -24,7 +24,7 @@
                         "fight.sway_period":  "摆动一个来回几秒。数字越小摆得越急。hard 1.5 秒一个来回。",
                         "doubao_refund":  "钓上豆包返还几碗饭（含抛出去的那碗）。2 = 净赚一碗。总量封在 bait_count，不会超过开局碗数。",
                         "doubao_escape_chance":  "豆包咬一口就跑的概率。它 damage_ratio = 1.0，一轮就上鱼，张力永远没机会爆表 —— 不在这里掷骰，脱钩画面就是死代码。0.35 = 三分之一的偶遇是空手。",
-                        "z_doubao":  "豆包只在近岸最前一段出没。weight 压到 0.2x 是为了让它成为偶遇而不是稳定收益，别调过 1。"
+                        "z_doubao":  "豆包只在近岸最前一段出没。weight 决定它和近岸普通鱼的相对份额：1.0 大概是两成多的偶遇，0.2 则低到几乎碰不到。"
                     },
     "bait_count":  4,
     "full_catch_threshold":  3,
@@ -92,8 +92,8 @@
                                                         "id":  "z_doubao",
                                                         "fish":  "doubao",
                                                         "from":  0,
-                                                        "to":  40,
-                                                        "weight":  0.25
+                                                        "to":  42,
+                                                        "weight":  1.0
                                                     }
                                                 ],
                                       "fight":  {
@@ -146,8 +146,8 @@
                                                           "id":  "z_doubao",
                                                           "fish":  "doubao",
                                                           "from":  0,
-                                                          "to":  20,
-                                                          "weight":  0.22
+                                                          "to":  26,
+                                                          "weight":  0.9
                                                       }
                                                   ],
                                         "fight":  {
@@ -202,8 +202,8 @@
                                                         "id":  "z_doubao",
                                                         "fish":  "doubao",
                                                         "from":  0,
-                                                        "to":  10,
-                                                        "weight":  0.18
+                                                        "to":  14,
+                                                        "weight":  0.8
                                                     }
                                                 ],
                                       "fight":  {

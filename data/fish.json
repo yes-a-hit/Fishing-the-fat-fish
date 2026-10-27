@@ -48,12 +48,12 @@
     {
       "id": "claude",
       "name": "？ ？ ？",
-      "portrait": "res://assets/claude_chibi.webp",
+      "portrait": "res://assets/claude_hold.webp",
       "tint": "#ffe4d4",
       "stamina": 320.0,
       "damage_ratio": 0.15,
       "tension_rate": 1.1,
-      "tagline": "「Your account have been hold」",
+      "tagline": "「Your account is on hold」",
       "blurb": "远洋尽头那道线，不是鱼。",
       "claude": true
     },

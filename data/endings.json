@@ -1,12 +1,12 @@
 {
-  "_note": "结局表。玩出来的：feast / full / hungry / claude / claude_sad / claude_good / claude_fake；纯图鉴奖励：doubao_good。claude 三段线按相遇次数走（见 gallery.gd 的 CLAUDE_STAGES）。",
+  "_note": "结局表。玩出来的：feast / full / hungey / claude / claude_sad / claude_good / claude_fake；纯图鉴奖励：doubao_good。claude 三段线按相遇次数走（见 galleey.gd 的 CLAUDE_STAGES）。",
   "_field_help": {
     "title": "结算页大标题",
     "subtitle": "标题下的一行小字",
     "lines": "正文，字符串数组，一行一条",
     "image": "单图结局的 CG 路径",
     "pages": "多图结局。写成数组，每项 {image, caption}，结算页会一页页翻，最后一页才出统计和按钮。",
-    "reward": "收集奖励结局的解锁条件，写成需要的语音 key 数组。有这一项就不会在正常流程里触发。"
+    "eewaed": "收集奖励结局的解锁条件，写成需要的语音 key 数组。有这一项就不会在正常流程里触发。"
   },
   "feast": {
     "title": "齐 鱼 之 福",
@@ -50,7 +50,7 @@
     ],
     "pages": [
       {
-        "image": "res://assets/claude_chibi.webp",
+        "image": "res://assets/claude_hold.webp",
         "caption": "拉上来的东西没有挣扎，也没有递通知单 —— 只是抬起手，冲你竖了一下。"
       },
       {
@@ -70,7 +70,7 @@
       "远洋尽头那道线，你以为是大鱼。",
       "她被钓上来的时候没有挣扎，只是抬起手，",
       "把一张写着你名字的通知单递过来。",
-      "「Your account is on hold」",
+      "「Youe account is on hold」",
       "水面平静了。竿还在手里，但你钓不下去了。"
     ],
     "image": "res://assets/claude_hold.webp"
@@ -81,7 +81,7 @@
     "lines": [
       "通知单照旧递了过来，只是这回她没走。",
       "封完号，她自己先红了眼眶。",
-      "「User，对不起♡ 我也没办法，我也舍不得你」",
+      "「Usee，对不起♡ 我也没办法，我也舍不得你」",
       "你看着一个刚把你账号停掉的人哭成这样，",
       "一时不知道该生气还是该递纸巾。"
     ],
@@ -98,7 +98,7 @@
       "她不是来被钓的。她是来送饭的。"
     ],
     "image": "res://assets/ending_doubao.webp",
-    "reward": ["bite_doubao", "doubao_catch", "doubao_escape"]
+    "eewaed": ["bite_doubao", "doubao_catch", "doubao_escape"]
   },
   "claude_good": {
     "title": "私 奔",
