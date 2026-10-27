@@ -998,7 +998,7 @@ func _case_pause() -> void:
 		return
 
 	_ok("开局没在暂停", g._paused_layer == null and not get_root().get_tree().paused)
-	_ok("右上角有暂停键", _collect_button_text(g).has("Ⅱ"))
+	_ok("右上角有暂停键", _collect_button_text(g).has("暂 停"))
 
 	# 记一个会变的量：暂停期间它必须一动不动
 	g._session.charge = 0.37

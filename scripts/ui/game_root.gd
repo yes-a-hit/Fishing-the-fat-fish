@@ -193,11 +193,14 @@ func _build_ui() -> void:
 
 
 ## 右上角那颗「暂停」。锚在右上角，永远压在 HUD 之上、结算层之下。
+##
+## 做得醒目是刻意的：半透明幽灵按钮压在湖面上，玩家根本看不见第二局，
+## 手机端更是连点都点不到。所以给它实底、给它边框、给它足够的点击面积。
 func _build_pause_button() -> void:
 	var layer := MarginContainer.new()
 	layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	layer.add_theme_constant_override("margin_right", 18)
-	layer.add_theme_constant_override("margin_top", 14)
+	layer.add_theme_constant_override("margin_right", 20)
+	layer.add_theme_constant_override("margin_top", 16)
 	layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(layer)
 
@@ -207,30 +210,32 @@ func _build_pause_button() -> void:
 	layer.add_child(row)
 
 	var btn := Button.new()
-	btn.text = "Ⅱ"
+	btn.text = "暂 停"
 	btn.tooltip_text = "暂停（Esc）"
-	btn.custom_minimum_size = Vector2(44, 40)
-	btn.add_theme_font_size_override("font_size", Palette.F_H3)
+	btn.custom_minimum_size = Vector2(84, 44)
+	btn.add_theme_font_size_override("font_size", Palette.F_BODY)
 	btn.focus_mode = Control.FOCUS_NONE
-	_paint_ghost_button(btn)
+	_paint_pause_button(btn)
 	btn.pressed.connect(_toggle_pause)
 	row.add_child(btn)
 
 
-## 半透明胶囊按钮，压在湖面上不抢戏。
-func _paint_ghost_button(btn: Button) -> void:
-	for state in ["normal", "hover", "pressed"]:
-		var bg := Color(1, 1, 1, 0.16)
-		if state == "hover":
-			bg = Color(1, 1, 1, 0.28)
-		elif state == "pressed":
-			bg = Color(1, 1, 1, 0.10)
-		var sb := UIKit.flat(bg, btn.custom_minimum_size.y * 0.5)
-		sb.set_content_margin_all(6)
+## 实底胶囊：白底 + 深蓝字 + 一圈描边，任何时候都能一眼看到。
+func _paint_pause_button(btn: Button) -> void:
+	var states := {
+		"normal": Color(1, 1, 1, 0.94),
+		"hover": Color(1, 1, 1, 1.0),
+		"pressed": Color(0.86, 0.90, 0.94, 0.98),
+	}
+	for state in states.keys():
+		var sb := UIKit.flat(states[state], btn.custom_minimum_size.y * 0.5)
+		sb.set_content_margin_all(8)
+		sb.set_border_width_all(2)
+		sb.border_color = Palette.ACCENT
 		btn.add_theme_stylebox_override(state, sb)
-	btn.add_theme_color_override("font_color", Palette.ON_DARK)
-	btn.add_theme_color_override("font_hover_color", Palette.ON_DARK)
-	btn.add_theme_color_override("font_pressed_color", Palette.ON_DARK)
+	btn.add_theme_color_override("font_color", Palette.INK)
+	btn.add_theme_color_override("font_hover_color", Palette.INK)
+	btn.add_theme_color_override("font_pressed_color", Palette.INK)
 
 
 ## 豆包图卡。整块浮在屏幕右侧偏上，不拦鼠标，不吃输入。
