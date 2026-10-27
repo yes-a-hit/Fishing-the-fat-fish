@@ -456,6 +456,7 @@ theme/custom_font="res://assets/fonts/game_sc.otf"
 - [设计文档](docs/design.md)：当前玩法与不可倒退的设计约束
 - [架构说明](docs/architecture.md)：分层、信号、状态流和扩展点
 - [上鱼动画设计](docs/landing-animation.md)：角色动画方案、资源接口与验收标准
+- [动画帧素材](docs/animation.md)：真要做逐帧时怎么出素材、怎么接、包体涨多少
 - [调参手册](docs/tuning.md)：当前字段、公式和调整方向
 - [开发规范](docs/contributing.md)：改动流程、测试和防回归清单
 - [待办清单](docs/TODO.md)：已知短板，按「补了玩家能立刻感觉到」排序
