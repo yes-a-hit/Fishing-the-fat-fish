@@ -167,6 +167,8 @@ static func load_texture(path: String) -> Texture2D:
 			return tex
 	if path != "":
 		push_warning("[ui] 贴图缺失: " + path)
-	var img := Image.create(8, 8, false, Image.FORMAT_RGBA8)
+	# 用 create_empty 而不是 create：后者在 4.4 起被标成 deprecated，
+	# 引擎按 deprecated=no 编译时会整个方法消失，导出的包一加载就编译失败。
+	var img := Image.create_empty(8, 8, false, Image.FORMAT_RGBA8)
 	img.fill(Palette.ZONE_GAP)
 	return ImageTexture.create_from_image(img)
