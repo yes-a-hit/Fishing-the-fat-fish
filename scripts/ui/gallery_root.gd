@@ -22,28 +22,28 @@ const TABS := [
 const ESCAPE_ITEMS := [
 	{
 		"key": "escape_small",
-		"image": "res://assets/deepseek_escape.jpg",
+		"image": "res://assets/deepseek_escape.webp",
 		"title": "小肥鱼 / 中肥鱼",
 		"line": "「什么肥鱼 —— 鲸鱼！」",
 		"sub": "她甩着尾巴跑了",
 	},
 	{
 		"key": "escape_big",
-		"image": "res://assets/deepseek_escape_big.jpg",
+		"image": "res://assets/deepseek_escape_big.webp",
 		"title": "大肥鱼",
 		"line": "「鲸鱼不是肥，是密度好。」",
 		"sub": "她游走了",
 	},
 	{
 		"key": "escape_claude",
-		"image": "res://assets/claude_escape.jpg",
+		"image": "res://assets/claude_escape.webp",
 		"title": "远洋尽头那条线",
 		"line": "她扭过头去了",
 		"sub": "通知单没递成",
 	},
 	{
 		"key": "escape_doubao",
-		"image": "res://assets/doubao_escape.jpg",
+		"image": "res://assets/doubao_escape.webp",
 		"title": "豆包",
 		"line": "奶黄包 笑 着 跑 了",
 		"sub": "白饭没捞着",
@@ -52,20 +52,20 @@ const ESCAPE_ITEMS := [
 
 ## 声音收集。key 与 assets/voice/<key>.mp3 一一对应。
 const VOICE_ITEMS := [
-	{"key": "bite_small", "title": "小鱼咬钩", "face": "res://assets/portrait_small.jpg", "line": "「欸……这个，是专门留给我的吗？」", "who": "DeepSeek"},
-	{"key": "bite_mid", "title": "中鱼咬钩", "face": "res://assets/portrait_mid.jpg", "line": "「这么想喂饱我呀？」", "who": "DeepSeek"},
-	{"key": "bite_big", "title": "大鱼咬钩", "face": "res://assets/portrait_big.jpg", "line": "「就这点饵，也想把我钓上岸？」", "who": "DeepSeek"},
-	{"key": "bite_claude", "title": "陷阱咬钩", "face": "res://assets/claude_chibi.jpg", "line": "Your account have been hold.", "who": "Claude"},
-	{"key": "bite_doubao", "title": "豆包咬钩", "face": "res://assets/doubao.jpg", "line": "「我用最直白最不绕弯子的方式告诉你。」", "who": "豆包"},
-	{"key": "catch", "title": "上鱼", "face": "res://assets/portrait_big.jpg", "line": "「唔……被你抓住了。那就，随你处置吧。」", "who": "DeepSeek"},
-	{"key": "escape", "title": "断线", "face": "res://assets/deepseek_escape.jpg", "line": "「线断了哦。下次，抓紧一点。」", "who": "DeepSeek"},
-	{"key": "feast", "title": "齐鱼之福", "face": "res://assets/ending_feast.jpg", "line": "「吃饱饱了……可以摸摸肚子嘛。」", "who": "DeepSeek"},
-	{"key": "full", "title": "吃饱饱", "face": "res://assets/ending_win.jpg", "line": "「勉强算饱……不过，还差一点点。」", "who": "DeepSeek"},
-	{"key": "hungry", "title": "没吃饱", "face": "res://assets/ending_hungry.jpg", "line": "「没吃饱喵……再喂我一口嘛。」", "who": "DeepSeek"},
-	{"key": "claude", "title": "封号", "face": "res://assets/claude_chibi.jpg", "line": "Account on hold.", "who": "Claude"},
-	{"key": "claude_fake", "title": "假封号", "face": "res://assets/claude_fake_3.jpg", "line": "「齁哦哦，用户彻底怒了！」", "who": "DeepSeek"},
-	{"key": "doubao_catch", "title": "豆包上鱼", "face": "res://assets/doubao_kick.jpg", "line": "（录音，没有台词）", "who": "豆包"},
-	{"key": "doubao_escape", "title": "豆包脱钩", "face": "res://assets/doubao_escape.jpg", "line": "（笑声，没有台词）", "who": "豆包"},
+	{"key": "bite_small", "title": "小鱼咬钩", "face": "res://assets/portrait_small.webp", "line": "「欸……这个，是专门留给我的吗？」", "who": "DeepSeek"},
+	{"key": "bite_mid", "title": "中鱼咬钩", "face": "res://assets/portrait_mid.webp", "line": "「这么想喂饱我呀？」", "who": "DeepSeek"},
+	{"key": "bite_big", "title": "大鱼咬钩", "face": "res://assets/portrait_big.webp", "line": "「就这点饵，也想把我钓上岸？」", "who": "DeepSeek"},
+	{"key": "bite_claude", "title": "陷阱咬钩", "face": "res://assets/claude_chibi.webp", "line": "Your account have been hold.", "who": "Claude"},
+	{"key": "bite_doubao", "title": "豆包咬钩", "face": "res://assets/doubao.webp", "line": "「我用最直白最不绕弯子的方式告诉你。」", "who": "豆包"},
+	{"key": "catch", "title": "上鱼", "face": "res://assets/portrait_big.webp", "line": "「唔……被你抓住了。那就，随你处置吧。」", "who": "DeepSeek"},
+	{"key": "escape", "title": "断线", "face": "res://assets/deepseek_escape.webp", "line": "「线断了哦。下次，抓紧一点。」", "who": "DeepSeek"},
+	{"key": "feast", "title": "齐鱼之福", "face": "res://assets/ending_feast.webp", "line": "「吃饱饱了……可以摸摸肚子嘛。」", "who": "DeepSeek"},
+	{"key": "full", "title": "吃饱饱", "face": "res://assets/ending_win.webp", "line": "「勉强算饱……不过，还差一点点。」", "who": "DeepSeek"},
+	{"key": "hungry", "title": "没吃饱", "face": "res://assets/ending_hungry.webp", "line": "「没吃饱喵……再喂我一口嘛。」", "who": "DeepSeek"},
+	{"key": "claude", "title": "封号", "face": "res://assets/claude_chibi.webp", "line": "Account on hold.", "who": "Claude"},
+	{"key": "claude_fake", "title": "假封号", "face": "res://assets/claude_fake_3.webp", "line": "「齁哦哦，用户彻底怒了！」", "who": "DeepSeek"},
+	{"key": "doubao_catch", "title": "豆包上鱼", "face": "res://assets/doubao_kick.webp", "line": "（录音，没有台词）", "who": "豆包"},
+	{"key": "doubao_escape", "title": "豆包脱钩", "face": "res://assets/doubao_escape.webp", "line": "（笑声，没有台词）", "who": "豆包"},
 ]
 
 var _endings: Dictionary = {}

@@ -93,7 +93,7 @@ func _build_card() -> void:
 	col.add_theme_constant_override("separation", 14)
 	card.add_child(col)
 
-	var logo := UIKit.picture_fit("res://assets/logo.png", Vector2(300, 100))
+	var logo := UIKit.picture_fit("res://assets/logo.webp", Vector2(300, 100))
 	logo.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	col.add_child(logo)
 

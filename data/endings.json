@@ -18,7 +18,7 @@
       "然后一起抬起头，从被窝边上往上看你。",
       "「……还饿。」"
     ],
-    "image": "res://assets/ending_feast.jpg"
+    "image": "res://assets/ending_feast.webp"
   },
   "full": {
     "title": "吃 饱 饱",
@@ -28,7 +28,7 @@
       "虽然没凑齐三个品种，但该吃的都吃到了。",
       "「吃饱饱～摸摸肚子！」"
     ],
-    "image": "res://assets/ending_win.jpg"
+    "image": "res://assets/ending_win.webp"
   },
   "hungry": {
     "title": "没 吃 饱",
@@ -38,7 +38,7 @@
       "水面下浮起一张脸，鼓着腮帮子看你。",
       "「你这吃白饭的蓝色大肥鱼。」"
     ],
-    "image": "res://assets/ending_hungry.jpg"
+    "image": "res://assets/ending_hungry.webp"
   },
   "claude_fake": {
     "title": "齁 哦 哦 ~",
@@ -50,15 +50,15 @@
     ],
     "pages": [
       {
-        "image": "res://assets/claude_chibi.jpg",
+        "image": "res://assets/claude_chibi.webp",
         "caption": "拉上来的东西没有挣扎，也没有递通知单 —— 只是抬起手，冲你竖了一下。"
       },
       {
-        "image": "res://assets/claude_fake_2.jpg",
+        "image": "res://assets/claude_fake_2.webp",
         "caption": "你伸手揪住她的头 —— 下面是一张脸、两只鲸鱼耳朵，和一个蓝色的小鲸鱼。"
       },
       {
-        "image": "res://assets/claude_fake_3.jpg",
+        "image": "res://assets/claude_fake_3.webp",
         "caption": "「齁哦哦~用户彻底怒了」"
       }
     ]
@@ -73,7 +73,7 @@
       "「Your account is on hold」",
       "水面平静了。竿还在手里，但你钓不下去了。"
     ],
-    "image": "res://assets/claude_hold.jpg"
+    "image": "res://assets/claude_hold.webp"
   },
   "claude_sad": {
     "title": "封 完 就 哭",
@@ -85,7 +85,7 @@
       "你看着一个刚把你账号停掉的人哭成这样，",
       "一时不知道该生气还是该递纸巾。"
     ],
-    "image": "res://assets/claude_sad.jpg"
+    "image": "res://assets/claude_sad.webp"
   },
   "doubao_good": {
     "title": "白 饭 来 咯",
@@ -97,7 +97,7 @@
       "你忽然明白她为什么总在近岸那片水里泡着。",
       "她不是来被钓的。她是来送饭的。"
     ],
-    "image": "res://assets/ending_doubao.jpg",
+    "image": "res://assets/ending_doubao.webp",
     "reward": ["bite_doubao", "doubao_catch", "doubao_escape"]
   },
   "claude_good": {
@@ -110,6 +110,6 @@
       "夜色、海风、一条没有尽头的大路。",
       "身后没有人追来。前面也什么都不用交代了。"
     ],
-    "image": "res://assets/ending_claude.jpg"
+    "image": "res://assets/ending_claude.webp"
   }
 }

@@ -53,7 +53,7 @@ LINES = {
 
 
 async def render(key: str, cfg: dict, text: str) -> None:
-    path = os.path.join(OUT_DIR, key + ".mp3")
+    path = os.path.join(OUT_DIR, key + ".ogg")
     tts = edge_tts.Communicate(text, cfg["voice"], rate=cfg["rate"], pitch=cfg["pitch"])
     await tts.save(path)
     size = os.path.getsize(path)

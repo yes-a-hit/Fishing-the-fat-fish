@@ -119,18 +119,28 @@ rate = fight.tension_passive_rate
 
 | 键 | easy | normal | hard |
 |---|---:|---:|---:|
-| `bait_count` | 6 | 5 | 4 |
-| `charge_full_seconds` | 1.9 | 1.6 | 1.3 |
-| `cast_jitter` | 2.5 | 1.5 | 1.0 |
-| `fake_claude_chance` | 0.85 | 0.75 | 0.60 |
-| `fight.miss_tension` | 10 | 16 | 18 |
-| `fight.hit_half` | 0.30（216°） | 0.22（158°） | 0.17（122°） |
-| `fight.cursor_speed` | 0.34 | 0.50 | 0.58 |
-| `fight.hit_sway` | 0 | 0.06 | 0.13 |
+| `bait_count` | 7 | 4 | 3 |
+| `charge_full_seconds` | 2.1 | 1.5 | 1.15 |
+| `cast_jitter` | 3.0 | 1.2 | 0.6 |
+| `fake_claude_chance` | 0.90 | 0.70 | 0.40 |
+| `fight.miss_tension` | 8 | 16 | 22 |
+| `fight.tension_passive_rate` | 6 | 8 | 11 |
+| `fight.round_relief` | 7 | 5 | 3 |
+| `fight.hit_half` | 0.32（230°） | 0.20（144°） | 0.14（100°） |
+| `fight.cursor_speed` | 0.30 | 0.52 | 0.70 |
+| `fight.cursor_accel` | 0.3 | 0.6 | 0.9 |
+| `fight.hit_sway` | 0 | 0.07 | 0.18 |
 
-`hit_half`、`cursor_speed`、`hit_sway` 是环上能读出难度差别的地方：黄标宽度肉眼可见，游标速度按一下就知道，爆冲则是黄标整块左右摆。
+三档的差距铺在四个维度上，任意一个单独看都不足以拉开难度，叠起来才成梯度：
 
-`normal` 开始加爆冲（±0.06，轻微晃），`hard` 摆到 ±0.13、1.9 秒一个来回。**判定和画面共用 `FightSession.hit_center()`**，所以不存在「看着在标里却判失手」。
+- **黄标宽度** 230° → 144° → 100°，肉眼可见地收窄。
+- **游标速度** 0.30 → 0.52 → 0.70 圈/秒，一圈 3.3 秒 → 1.9 秒 → 1.4 秒。
+- **张力自然上涨** 6 → 8 → 11。这是难度的主干：拖得越久越危险，不靠反应速度硬卡人。
+- **打完一轮的回血** 7 → 5 → 3。轻松档打中就能喘口气，困难档打中了也几乎压不住 —— 必须连着打中才活。
+
+`normal` 开始加爆冲（±0.07，2.4 秒一个来回），`hard` 摆到 ±0.18、1.5 秒一个来回，**黄标会整块挪出去一个半身位**，得追着标打。**判定和画面共用 `FightSession.hit_center()`**，所以不存在「看着在标里却判失手」。
+
+`hard` 的饵只有三碗，正好等于 `full_catch_threshold` —— 三次全中才够「吃饱饱」，一次失误就只能走「没吃饱」。这是有意的：困难档不留容错余量。
 
 难度是**唯一**的玩家设置，存 `user://settings.json`，由 `GameSettings` 读写。
 
@@ -208,9 +218,9 @@ rate = fight.tension_passive_rate
 | `perfect_relief` | 3.0 | 完美命中额外降低的张力 | 提高让「卡点准」更值钱 |
 | `miss_tension` | 14.0 | 每次失手立即增加的张力 | 过高会让少数失误直接断线 |
 | `rage_tension_bonus` | 0.6 | 体力接近空时最多额外增加 60% 基础速率 | 控制末段压力 |
-| `hit_half` | 0.22 | 黄标半宽（归一化） | 三档覆盖：easy 0.30 / normal 0.22 / hard 0.17。**不许低于 0.14**（约 100°），否则手机上点不准 |
+| `hit_half` | 0.22 | 黄标半宽（归一化） | 三档覆盖：easy 0.32 / normal 0.20 / hard 0.14。**不许低于 0.14**（约 100°），否则手机上点不准 |
 | `perfect_half` | 0.09 | 完美区半宽 | 必须 ≤ `hit_half`；只影响判定，不画出来 |
-| `cursor_speed` | 0.50 | 游标每秒转几圈 | 三档覆盖：easy 0.34 / normal 0.50 / hard 0.58。0.50 = 2.0 秒一圈；高于 0.7 就开始考反应 |
+| `cursor_speed` | 0.50 | 游标每秒转几圈 | 三档覆盖：easy 0.30 / normal 0.52 / hard 0.70。0.52 ≈ 1.9 秒一圈；0.70 已经开始考反应 |
 | `hit_sway` | 0 | 黄标左右摆动的幅度 | 0 = 钉在顶部。normal 0.06 轻微晃，hard 0.13 整块标挪出去一个身位 —— 这就是鱼在爆冲 |
 | `sway_period` | 2.2 | 摆动一个来回几秒 | 越小越急。hard 用 1.9 |
 | `cursor_accel` | 0.5 | 体力见底时游标额外加速的比例 | 0 = 全程匀速；0.8 以上末段会很难 |
@@ -230,9 +240,9 @@ rate = fight.tension_passive_rate
 
 | 难度 | `hit_half` | 弧长 | `cursor_speed` | 一圈用时 |
 |---|---:|---:|---:|---:|
-| `easy` | 0.30 | 216° | 0.34 | 2.9 s |
-| `normal` | 0.22 | 158° | 0.50 | 2.0 s |
-| `hard` | 0.17 | 122° | 0.58 | 1.7 s |
+| `easy` | 0.32 | 230° | 0.30 | 3.3 s |
+| `normal` | 0.20 | 144° | 0.52 | 1.9 s |
+| `hard` | 0.14 | 100° | 0.70 | 1.4 s |
 
 `hard` 的黄标只剩三分之一圆，游标还比 `easy` 快七成。
 

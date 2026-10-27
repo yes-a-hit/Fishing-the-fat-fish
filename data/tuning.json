@@ -1,11 +1,11 @@
 {
     "_note":  "一局的全局规则。改手感优先改这里。difficulties 里每一档只覆盖它想改的键，其余继承顶层。",
     "_field_help":  {
-                        "bait_count":  "白饭碗数 = 总抛竿次数。鱼数 + 余量 = 容错次数。",
+                        "bait_count":  "白饭碗数 = 总抛竿次数。鱼数 + 余量 = 容错次数。三档 7 / 4 / 3。",
                         "full_catch_threshold":  "上鱼总次数达到这个值，就判「吃饱饱」结局。重复钓同一条也算次数。",
-                        "fake_claude_chance":  "远洋尽头那条 trap 是「假的」的概率。假的就是套着 Claude 头套的鲸鱼娘，钓上来照样终结这一局，但结算换成三段 meme。真陷阱照样封号。",
-                        "charge_full_seconds":  "蓄力条转完一圈（0→100）的时间；走完从 0 继续，不结束。调大 = 抛竿更好控。",
-                        "cast_jitter":  "落点随机误差 ±。越大越考验手感。",
+                        "fake_claude_chance":  "远洋尽头那条 trap 是「假的」的概率。假的就是套着 Claude 头套的鲸鱼娘，钓上来照样终结这一局，但结算换成三段 meme。真陷阱照样封号。三档 0.90 / 0.70 / 0.40。",
+                        "charge_full_seconds":  "蓄力条转完一圈（0→100）的时间；走完从 0 继续，不结束。调大 = 抛竿更好控。三档 2.1 / 1.5 / 1.15。",
+                        "cast_jitter":  "落点随机误差 ±。越大越考验手感。三档 3.0 / 1.2 / 0.6。",
                         "bite_delay_min/max":  "抛竿后到咬钩的随机等待区间（秒）。",
                         "empty_wait":  "空竿时干等的秒数。",
                         "resolve_hold":  "失败提示在场景里停留的秒数，期间点击可跳过。",
@@ -13,22 +13,24 @@
                         "zones":  "落点区间，**允许重叠**。抛到某一点时，所有覆盖该点的鱼都是候选，按 weight 加权随机抽一条。同一条可以重复上。普通鱼之间必须无缝覆盖；陷阱带可以单独隔离在最后，那段空档抛进去就是空竿。",
                         "weight":  "同一落点上被抽中的基础权重。重叠区还会乘一个偏向带中心的系数，所以靠边缘的鱼天然更难中。",
                         "difficulties":  "难度档。key 固定 easy/normal/hard，menu 场景读这一段列出选项。",
+                        "fight.tension_passive_rate":  "张力每秒自然上涨多少。三档 6 / 8 / 11 —— 这是难度的主干，拖得越久越危险。",
+                        "fight.round_relief":  "打完一轮回落多少张力。三档 7 / 5 / 3 —— 轻松档打中就能喘口气，困难档打中了也几乎压不住。",
                         "fight.strike_lock":  "每次点完之后锁输入的秒数。锁定期按下去不算数，也不会白吃失手 —— 手机上手快的人不会因此连续误触。",
-                        "fight.hit_half":  "黄标半宽（归一化）。0.22 = 158°。三档：easy 0.30 / normal 0.22 / hard 0.17。下限 0.14（约 100°），再窄手机上按不中。",
+                        "fight.hit_half":  "黄标半宽（归一化）。三档：easy 0.32（约 230°）/ normal 0.20（约 144°）/ hard 0.14（约 100°）。0.14 是手机下限，再窄按不中。",
                         "fight.perfect_half":  "完美区半宽。只影响判定（正中命中额外减张力），故意不画出来 —— 画第二层玩家会去追窄弧。",
-                        "fight.cursor_speed":  "游标每秒转多少圈。三档：easy 0.34 / normal 0.50 / hard 0.58。",
-                        "fight.cursor_accel":  "体力见底时游标额外加速的比例。0.5 = 末段快五成。",
-                        "fight.hit_sway":  "黄标左右摆动的幅度（归一化）。0 = 钉在顶部。normal 0.06 是轻微晃，hard 0.13 是整块标挪出去一个身位 —— 这就是「鱼在爆冲」，得追着标打。",
-                        "fight.sway_period":  "摆动一个来回几秒。数字越小摆得越急。hard 1.9 秒一个来回。",
+                        "fight.cursor_speed":  "游标每秒转多少圈。三档：easy 0.30 / normal 0.52 / hard 0.70。",
+                        "fight.cursor_accel":  "体力见底时游标额外加速的比例。easy 0.3 / normal 0.6 / hard 0.9 —— 越难，鱼越到后面越疯。",
+                        "fight.hit_sway":  "黄标左右摆动的幅度（归一化）。easy 完全不动；normal 0.07 轻微晃；hard 0.18 是整块标挪出去一个半身位 —— 这就是「鱼在爆冲」，得追着标打。",
+                        "fight.sway_period":  "摆动一个来回几秒。数字越小摆得越急。hard 1.5 秒一个来回。",
                         "doubao_refund":  "钓上豆包返还几碗饭（含抛出去的那碗）。2 = 净赚一碗。总量封在 bait_count，不会超过开局碗数。",
                         "doubao_escape_chance":  "豆包咬一口就跑的概率。它 damage_ratio = 1.0，一轮就上鱼，张力永远没机会爆表 —— 不在这里掷骰，脱钩画面就是死代码。0.35 = 三分之一的偶遇是空手。",
                         "z_doubao":  "豆包只在近岸最前一段出没。weight 压到 0.2x 是为了让它成为偶遇而不是稳定收益，别调过 1。"
                     },
-    "bait_count":  5,
+    "bait_count":  4,
     "full_catch_threshold":  3,
-    "fake_claude_chance":  0.75,
-    "charge_full_seconds":  1.6,
-    "cast_jitter":  1.5,
+    "fake_claude_chance":  0.7,
+    "charge_full_seconds":  1.5,
+    "cast_jitter":  1.2,
     "bite_delay_min":  0.8,
     "bite_delay_max":  1.7,
     "empty_wait":  1.1,
@@ -36,53 +38,53 @@
     "landing_timeout":  3.2,
     "fight":  {
                   "_note":  "FightSession 直接读这一段。数值含义见 docs/tuning.md。",
-                  "_design_note":  "搏斗是单键圆环。环上只有一段黄标，那就是命中区，没有第二层。黄标多宽、游标多快，全由难度档的 hit_half 与 cursor_speed 决定：easy 216°/0.34、normal 173°/0.45、hard 122°/0.58。难度来自张力一直涨、拖不得，再加上黄标收窄与游标加速这两件事，不靠反应速度硬卡人。",
+                  "_design_note":  "搏斗是单键圆环。环上只有一段黄标，那就是命中区，没有第二层。三档的差距铺在四个维度上：黄标宽度 0.32 / 0.20 / 0.14，游标速度 0.30 / 0.52 / 0.70，张力自然上涨 6 / 8 / 11，打完一轮的回血 7 / 5 / 3。轻松档黄标几乎铺满半圈、打中就能喘；困难档黄标只剩一百度、标还在左右甩、打中了也只回三点张力。难度不是靠反应速度硬卡，是靠「拖不起」压出来的。",
                   "tension_max":  100.0,
-                  "tension_passive_rate":  7.0,
-                  "round_relief":  6.0,
+                  "tension_passive_rate":  8.0,
+                  "round_relief":  5.0,
                   "perfect_relief":  3.0,
-                  "miss_tension":  14.0,
+                  "miss_tension":  16.0,
                   "rage_tension_bonus":  0.6,
-                  "hit_half":  0.24,
-                  "perfect_half":  0.09,
-                  "cursor_speed":  0.45,
-                  "cursor_accel":  0.5,
+                  "hit_half":  0.2,
+                  "perfect_half":  0.08,
+                  "cursor_speed":  0.52,
+                  "cursor_accel":  0.6,
                   "strike_lock":  0.3
               },
     "difficulties":  {
                          "easy":  {
                                       "label":  "轻松",
-                                      "blurb":  "饵多、手抖得厉害也不怕，鱼的范围宽得能当整片湖用。",
-                                      "bait_count":  6,
-                                      "fake_claude_chance":  0.85,
-                                      "charge_full_seconds":  1.9,
-                                      "cast_jitter":  2.5,
+                                      "blurb":  "七碗饭，黄标铺满半个圈，鱼也不会乱窜。手抖也能钓上来。",
+                                      "bait_count":  7,
+                                      "fake_claude_chance":  0.9,
+                                      "charge_full_seconds":  2.1,
+                                      "cast_jitter":  3.0,
                                       "zones":  [
                                                     {
                                                         "id":  "z_small",
                                                         "fish":  "small",
                                                         "from":  0.0,
-                                                        "to":  58.0,
+                                                        "to":  62.0,
                                                         "weight":  3
                                                     },
                                                     {
                                                         "id":  "z_mid",
                                                         "fish":  "mid",
-                                                        "from":  26.0,
-                                                        "to":  80.0,
+                                                        "from":  20.0,
+                                                        "to":  86.0,
                                                         "weight":  2
                                                     },
                                                     {
                                                         "id":  "z_big",
                                                         "fish":  "big",
-                                                        "from":  50.0,
-                                                        "to":  86.0,
+                                                        "from":  44.0,
+                                                        "to":  92.0,
                                                         "weight":  2
                                                     },
                                                     {
                                                         "id":  "z_claude",
                                                         "fish":  "claude",
-                                                        "from":  94.0,
+                                                        "from":  95.0,
                                                         "to":  100.0,
                                                         "weight":  1
                                                     },
@@ -90,42 +92,46 @@
                                                         "id":  "z_doubao",
                                                         "fish":  "doubao",
                                                         "from":  0,
-                                                        "to":  32,
+                                                        "to":  40,
                                                         "weight":  0.25
                                                     }
                                                 ],
                                       "fight":  {
-                                                    "miss_tension":  10.0,
-                                                    "hit_half":  0.3,
-                                                    "cursor_speed":  0.34
+                                                    "miss_tension":  8.0,
+                                                    "tension_passive_rate":  6.0,
+                                                    "round_relief":  7.0,
+                                                    "hit_half":  0.32,
+                                                    "perfect_half":  0.12,
+                                                    "cursor_speed":  0.3,
+                                                    "cursor_accel":  0.3
                                                 }
                                   },
                          "normal":  {
                                         "label":  "普通",
-                                        "blurb":  "标准手感。想钓大的，得往前走一点。",
-                                        "bait_count":  5,
-                                        "fake_claude_chance":  0.75,
-                                        "charge_full_seconds":  1.6,
-                                        "cast_jitter":  1.5,
+                                        "blurb":  "四碗饭，黄标十四度一格，大鱼会在远洋晃起来。",
+                                        "bait_count":  4,
+                                        "fake_claude_chance":  0.7,
+                                        "charge_full_seconds":  1.5,
+                                        "cast_jitter":  1.2,
                                         "zones":  [
                                                       {
                                                           "id":  "z_small",
                                                           "fish":  "small",
                                                           "from":  0.0,
-                                                          "to":  44.0,
+                                                          "to":  40.0,
                                                           "weight":  3
                                                       },
                                                       {
                                                           "id":  "z_mid",
                                                           "fish":  "mid",
-                                                          "from":  30.0,
-                                                          "to":  70.0,
+                                                          "from":  32.0,
+                                                          "to":  68.0,
                                                           "weight":  2
                                                       },
                                                       {
                                                           "id":  "z_big",
                                                           "fish":  "big",
-                                                          "from":  58.0,
+                                                          "from":  60.0,
                                                           "to":  88.0,
                                                           "weight":  2
                                                       },
@@ -140,50 +146,55 @@
                                                           "id":  "z_doubao",
                                                           "fish":  "doubao",
                                                           "from":  0,
-                                                          "to":  24,
+                                                          "to":  20,
                                                           "weight":  0.22
                                                       }
                                                   ],
                                         "fight":  {
                                                       "miss_tension":  16.0,
-                                                      "hit_half":  0.22,
-                                                      "cursor_speed":  0.5,
-                                                      "hit_sway":  0.06
+                                                      "tension_passive_rate":  8.0,
+                                                      "round_relief":  5.0,
+                                                      "hit_half":  0.2,
+                                                      "perfect_half":  0.08,
+                                                      "cursor_speed":  0.52,
+                                                      "cursor_accel":  0.6,
+                                                      "hit_sway":  0.07,
+                                                      "sway_period":  2.4
                                                   }
                                     },
                          "hard":  {
                                       "label":  "困难",
-                                      "blurb":  "范围全都收窄，重叠只剩一点点。手一抖就钓错。",
-                                      "bait_count":  4,
-                                      "fake_claude_chance":  0.6,
-                                      "charge_full_seconds":  1.3,
-                                      "cast_jitter":  1.0,
+                                      "blurb":  "三碗饭，黄标只剩一百度，而且一直在甩。一次失误基本就废了。",
+                                      "bait_count":  3,
+                                      "fake_claude_chance":  0.4,
+                                      "charge_full_seconds":  1.15,
+                                      "cast_jitter":  0.6,
                                       "zones":  [
                                                     {
                                                         "id":  "z_small",
                                                         "fish":  "small",
                                                         "from":  0.0,
-                                                        "to":  32.0,
+                                                        "to":  24.0,
                                                         "weight":  3
                                                     },
                                                     {
                                                         "id":  "z_mid",
                                                         "fish":  "mid",
-                                                        "from":  28.0,
-                                                        "to":  60.0,
+                                                        "from":  24.0,
+                                                        "to":  55.0,
                                                         "weight":  2
                                                     },
                                                     {
                                                         "id":  "z_big",
                                                         "fish":  "big",
-                                                        "from":  56.0,
-                                                        "to":  84.0,
+                                                        "from":  54.0,
+                                                        "to":  74.0,
                                                         "weight":  2
                                                     },
                                                     {
                                                         "id":  "z_claude",
                                                         "fish":  "claude",
-                                                        "from":  92.0,
+                                                        "from":  90.0,
                                                         "to":  100.0,
                                                         "weight":  1
                                                     },
@@ -191,16 +202,20 @@
                                                         "id":  "z_doubao",
                                                         "fish":  "doubao",
                                                         "from":  0,
-                                                        "to":  16,
+                                                        "to":  10,
                                                         "weight":  0.18
                                                     }
                                                 ],
                                       "fight":  {
-                                                    "miss_tension":  18.0,
-                                                    "hit_half":  0.17,
-                                                    "cursor_speed":  0.58,
-                                                    "hit_sway":  0.13,
-                                                    "sway_period":  1.9
+                                                    "miss_tension":  22.0,
+                                                    "tension_passive_rate":  11.0,
+                                                    "round_relief":  3.0,
+                                                    "hit_half":  0.14,
+                                                    "perfect_half":  0.05,
+                                                    "cursor_speed":  0.7,
+                                                    "cursor_accel":  0.9,
+                                                    "hit_sway":  0.18,
+                                                    "sway_period":  1.5
                                                 }
                                   }
                      },

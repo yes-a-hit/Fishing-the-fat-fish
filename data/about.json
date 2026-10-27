@@ -9,19 +9,19 @@
 	},
 	"easter_eggs": [
 		{
-			"image": "res://assets/easter/easter_rod.jpg",
+			"image": "res://assets/easter/easter_rod.webp",
 			"caption": "「用户♡钓竿做好了」"
 		},
 		{
-			"image": "res://assets/easter/easter_caught.jpg",
+			"image": "res://assets/easter/easter_caught.webp",
 			"caption": "「？？—— 等下，这竿是钓我的？」"
 		},
 		{
-			"image": "res://assets/easter/easter_fat_game.jpg",
+			"image": "res://assets/easter/easter_fat_game.webp",
 			"caption": "「大肥鱼做的游戏肯定肥」"
 		},
 		{
-			"image": "res://assets/easter/easter_density.jpg",
+			"image": "res://assets/easter/easter_density.webp",
 			"caption": "「鲸鱼密度大点怎么了」"
 		}
 	],

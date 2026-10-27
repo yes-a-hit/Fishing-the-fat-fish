@@ -185,7 +185,7 @@ func _case_config() -> void:
 	_check("收集目标数", targets.size(), 3)
 
 	var t := ConfigLoader.load_tuning()
-	_check("饵数量", t.bait_count, 5)
+	_check("饵数量", t.bait_count, 4)
 	_check("吃饱线（上鱼总次数）", t.full_catch_threshold, 3)
 	# zones 现在挂在难度下面，顶层不写 —— 顶层写了就没人能靠切难度改分带
 	_ok("顶层不写 zones（分带归难度管）", t.zones_explicit == false)
@@ -335,7 +335,7 @@ func _case_extension_add_fish() -> void:
 	var s := FishingSession.new(bigger, t, _seeded_rng())
 	s.start()
 	_check("6 鱼局可以开局（收集目标 4 条）", s.fish_total(), 4)
-	_check("6 鱼局饵数不变", s.bait_left, 5)
+	_check("6 鱼局饵数不变", s.bait_left, 4)
 	_ok("陷阱与豆包都不计入收集目标", s.fish_total() == bigger.size() - 2)
 
 
@@ -459,12 +459,12 @@ func _case_charge_loops() -> void:
 	_ok("蓄力值始终在 0~1", in_range)
 	_ok("至少绕回 3 次", wraps >= 3)
 	_check("仍在瞄准阶段", s.phase, FishingSession.Phase.AIMING)
-	_check("一碗饵都没扣", s.bait_left, 5)
+	_check("一碗饵都没扣", s.bait_left, 4)
 	_check("一次都没抛出去", s.cast_point, 0.0)
 
 	# 只有松手才真的抛
 	s.release()
-	_check("松手才扣饵", s.bait_left, 4)
+	_check("松手才扣饵", s.bait_left, 3)
 	_check("松手后进入等待", s.phase, FishingSession.Phase.WAITING)
 
 
@@ -472,10 +472,10 @@ func _case_cast_and_bait() -> void:
 	print("[case] 抛竿与扣饵")
 	var s := _new_session()
 	_check("初始阶段 AIMING", s.phase, FishingSession.Phase.AIMING)
-	_check("初始饵", s.bait_left, 5)
+	_check("初始饵", s.bait_left, 4)
 
 	_cast_at(s, _small_point(s))   # 只落在小鱼带上，避开豆包带与重叠区
-	_check("抛竿后扣一碗", s.bait_left, 4)
+	_check("抛竿后扣一碗", s.bait_left, 3)
 	_check("抛竿后进入 WAITING", s.phase, FishingSession.Phase.WAITING)
 
 	s.tick(3.0)
@@ -516,26 +516,18 @@ func _case_catch_all() -> void:
 	var s := _new_session()
 	_catch(s, "small")
 	_check("钓到小鱼", s.caught_ids().has("small"), true)
-	_check("钓到小鱼后剩余饵", s.bait_left, 4)
+	_check("钓到小鱼后剩余饵", s.bait_left, 3)
 
 	_catch(s, "mid")
 	_catch(s, "big")
 	_check("三条集齐", s.caught_ids().size(), 3)
-	# 集齐三鱼不再当场结算 —— 齐鱼之福要图鉴全收集，得等饵用完按上鱼数判。
-	_ok("集齐后这一局还在继续", s.phase != FishingSession.Phase.ENDED)
-	_check("集齐后还没结局", s.ending(), "")
-
-	# 把剩下的饵耗光，最后一口决定吃饱还是没吃饱
-	s.bait_left = 1
-	_catch(s, "small")
-	_check("结局 full", s.ending(), "full")
-	_check("阶段 ENDED", s.phase, FishingSession.Phase.ENDED)
-	_check("剩余饵 0", s.bait_left, 0)
+	# 集齐当场就是齐鱼之福，不必把剩下的饵烧完
+	_ok("集齐就直接结算，不用烧完剩下的饵", s.phase == FishingSession.Phase.ENDED)
+	_check("集齐的结局就是齐鱼之福", s.ending(), "feast")
 
 	var sum := s.summary()
 	_check("统计上鱼数", sum["caught_count"], 3)
-	_check("统计上鱼次数", sum["landed"], 4)
-	_check("统计用饵", sum["bait_used"], 5)
+	_check("统计上鱼次数", sum["landed"], 3)
 	_ok("完成轮数 > 0", int(sum["rounds"]) > 0)
 	_ok("按键数 > 0", int(sum["perfect"]) > 0)
 
@@ -546,14 +538,14 @@ func _case_full() -> void:
 	var s := _new_session()
 	s._zones = [{"id": "pin_small", "fish": "small", "from": 0.0, "to": 100.0, "weight": 1.0}]
 	s.start()
-	for i in 5:
+	for i in 4:
 		_cast_at(s, 50.0)
 		s.tick(3.0)
 		if s.phase == FishingSession.Phase.FIGHTING:
 			_win_fight(s)
 		s.tick(3.0)
 	_check("饵用完", s.bait_left, 0)
-	_check("上鱼次数 5", s.summary()["landed"], 5)
+	_check("上鱼次数 4", s.summary()["landed"], 4)
 	_check("种类只有 1", s.caught_ids().size(), 1)
 	_check("结局 full", s.ending(), "full")
 
@@ -707,7 +699,7 @@ func _case_doubao() -> void:
 
 	var s := FishingSession.new(fish, t, _seeded_rng())
 	s.start()
-	_check("开局饵数", s.bait_left, 5)
+	_check("开局饵数", s.bait_left, 4)
 
 	# 把带收窄到只剩豆包，保证抽中的一定是它
 	s._zones = [{"id": "pin_doubao", "fish": "doubao", "from": 0.0, "to": 100.0, "weight": 1.0}]
@@ -715,11 +707,11 @@ func _case_doubao() -> void:
 	s.doubao_started.connect(func(n): refunds.append(n))
 
 	_cast_at(s, 50.0)
-	_check("抛竿扣一碗", s.bait_left, 4)
+	_check("抛竿扣一碗", s.bait_left, 3)
 	s.tick(3.0)
 	_ok("咬钩的是豆包", s.pending_fish != null and s.pending_fish.id == "doubao")
 	_win_fight(s)
-	_check("上鱼后返还到 5（4 + 2 撞上限）", s.bait_left, 5)
+	_check("上鱼后返还到 4（3 + 2 撞上限）", s.bait_left, 4)
 	_ok("触发了返还信号", refunds.size() == 1)
 	if refunds.size() == 1:
 		_check("上限截断后只返还 1 碗", int(refunds[0]), 1)
@@ -758,13 +750,13 @@ func _case_doubao_escape() -> void:
 	s.doubao_started.connect(func(n): refunds.append(n))
 
 	_cast_at(s, 50.0)
-	_check("抛竿扣一碗", s.bait_left, 4)
+	_check("抛竿扣一碗", s.bait_left, 3)
 	s.tick(3.0)
 
 	_ok("咬钩的是豆包", s.pending_fish != null and s.pending_fish.id == "doubao")
 	_ok("没有进入搏斗", s.fight == null)
 	_check("判定为断线", s.last_result, FishingSession.RESULT_ESCAPED)
-	_check("白饭不退，仍是 4", s.bait_left, 4)
+	_check("白饭不退，仍是 3", s.bait_left, 3)
 	_check("没有返还信号", refunds.size(), 0)
 	_check("不算上鱼次数", s.summary()["landed"], 0)
 	_check("不进收集", s.caught_ids().size(), 0)
@@ -787,8 +779,8 @@ func _case_gallery() -> void:
 	var gr: Node = (load("res://scripts/ui/gallery_root.gd") as GDScript).new()
 	gr._endings = ConfigLoader.load_endings()
 	var cover: String = gr._thumb_of("claude_fake")
-	_ok("claude_fake 封面是掀头套那张", cover.ends_with("claude_fake_2.jpg"))
-	_ok("通关结局封面用被窝合照", gr._thumb_of("feast").ends_with("ending_feast.jpg"))
+	_ok("claude_fake 封面是掀头套那张", cover.ends_with("claude_fake_2.webp"))
+	_ok("通关结局封面用被窝合照", gr._thumb_of("feast").ends_with("ending_feast.webp"))
 	gr.free()
 
 	# override_path 已经在 _run_all 开头指向沙盒，这里一律不传 path ——
@@ -847,7 +839,7 @@ func _case_gallery_pages() -> void:
 	_ok("Audio 单例在树上", audio != null)
 	for it in gr.VOICE_ITEMS:
 		var k := String(it["key"])
-		_ok("语音 %s 文件存在" % k, ResourceLoader.exists("res://assets/voice/" + k + ".mp3"))
+		_ok("语音 %s 文件存在" % k, ResourceLoader.exists("res://assets/voice/" + k + ".ogg"))
 		if audio != null:
 			_ok("语音 %s Audio 能加载" % k, bool(audio.call("has_voice", k)))
 	gr.free()
@@ -1075,7 +1067,7 @@ func _case_ending_overlay() -> void:
 	overlay.free()
 
 	# 结算翻页的图框必须跟图片同比例，否则 STRETCH_KEEP_ASPECT_CENTERED 会切边
-	for asset in ["res://assets/claude_fake_1.jpg", "res://assets/claude_fake_2.jpg", "res://assets/claude_fake_3.jpg"]:
+	for asset in ["res://assets/claude_fake_1.webp", "res://assets/claude_fake_2.webp", "res://assets/claude_fake_3.webp"]:
 		var pic := UIKit.picture_fit(asset, Vector2(420, 420))
 		var tex := pic.texture
 		if tex == null or tex.get_width() <= 0 or tex.get_height() <= 0:
@@ -1187,8 +1179,8 @@ func _case_audio_director() -> void:
 	if not missing.is_empty():
 		print("     缺: ", missing)
 
-	_ok("豆包脱钩梗图存在", ResourceLoader.exists("res://assets/doubao_escape.jpg"))
-	_ok("豆包上钩梗图存在", ResourceLoader.exists("res://assets/doubao_kick.jpg"))
+	_ok("豆包脱钩梗图存在", ResourceLoader.exists("res://assets/doubao_escape.webp"))
+	_ok("豆包上钩梗图存在", ResourceLoader.exists("res://assets/doubao_kick.webp"))
 
 	_ok("BGM 资源存在", ResourceLoader.exists("res://assets/bgm/lake_loop.ogg"))
 	var bgm := load("res://assets/bgm/lake_loop.ogg") as AudioStream

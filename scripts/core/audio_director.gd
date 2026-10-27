@@ -6,7 +6,7 @@ extends Node
 ## 为什么是 autoload 而不是挂在某张场景上 —— 换场景时 BGM 不该断，
 ## 而且音量和开关要活在整局游戏里，不该跟着 main.tscn 一起被释放。
 ##
-## 所有资源缺失都静默跳过：少一个 mp3 不该让游戏起不来。
+## 所有资源缺失都静默跳过：少一个 ogg 不该让游戏起不来。
 
 const BGM_PATH := "res://assets/bgm/lake_loop.ogg"
 const VOICE_DIR := "res://assets/voice/"
@@ -137,7 +137,7 @@ func _refresh_bgm() -> void:
 func _voice_stream(key: String) -> AudioStream:
 	if _voice_cache.has(key):
 		return _voice_cache[key]
-	var path := VOICE_DIR + key + ".mp3"
+	var path := VOICE_DIR + key + ".ogg"
 	var stream := _load_stream(path)
 	if stream == null:
 		push_warning("[audio] 语音缺失：%s" % path)

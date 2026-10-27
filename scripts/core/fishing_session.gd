@@ -371,8 +371,12 @@ func _advance_after_round() -> void:
 		_finish(staged)
 		return
 
+	# 三条鱼全钓到就是齐鱼之福，当场结算，不必把剩下的饵烧完
+	if _targets.size() > 0 and _caught_target_count() >= _targets.size():
+		_finish("feast")
+		return
+
 	# 没集齐就得把饵用完才结算：钓够三条算吃饱，不够算没吃饱。
-	# 齐鱼之福（feast）不在这里 —— 它要图鉴全收集才会解锁，见 gallery.gd。
 	if bait_left <= 0:
 		_finish("full" if _landed >= _tune.full_catch_threshold else "hungry")
 		return

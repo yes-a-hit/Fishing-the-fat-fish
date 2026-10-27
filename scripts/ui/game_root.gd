@@ -198,7 +198,7 @@ func _build_doubao_card() -> Control:
 	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(col)
 
-	var pic := UIKit.picture("res://assets/doubao_kick.jpg", Vector2(240, 172))
+	var pic := UIKit.picture("res://assets/doubao_kick.webp", Vector2(240, 172))
 	pic.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	col.add_child(pic)
 	_doubao_pic = pic
@@ -393,7 +393,7 @@ func _on_doubao(refund: int) -> void:
 	_hud.refresh_bait(_session.bait_left, _session.bait_max)
 	var gain_text := "+%d 碗白饭" % refund if refund > 0 else "碗已经满了"
 	var gain_color := Palette.GOOD if refund > 0 else Palette.INK_FAINT
-	_flash_card("res://assets/doubao_kick.jpg", "哪来的奶黄包！", gain_text, gain_color)
+	_flash_card("res://assets/doubao_kick.webp", "哪来的奶黄包！", gain_text, gain_color)
 
 
 ## 私奔之后再钓上她。不封号，不结算，只是浮上来打个照面。
@@ -423,7 +423,7 @@ func _escape_art_of(fish: FishSpec) -> Dictionary:
 		return {}
 	if fish.is_doubao:
 		return {
-			"image": "res://assets/doubao_escape.jpg",
+			"image": "res://assets/doubao_escape.webp",
 			"tip": "奶黄包 笑 着 跑 了",
 			"gain": "白饭没捞着",
 			"color": Palette.WARN,
@@ -432,7 +432,7 @@ func _escape_art_of(fish: FishSpec) -> Dictionary:
 		}
 	if fish.is_claude:
 		return {
-			"image": "res://assets/claude_escape.jpg",
+			"image": "res://assets/claude_escape.webp",
 			"tip": "她 扭 过 头 去 了",
 			"gain": "通知单没递成",
 			"color": Palette.WARN,
@@ -441,7 +441,7 @@ func _escape_art_of(fish: FishSpec) -> Dictionary:
 		}
 	if fish.id == "big":
 		return {
-			"image": "res://assets/deepseek_escape_big.jpg",
+			"image": "res://assets/deepseek_escape_big.webp",
 			"tip": "鲸鱼不是肥，是密度好",
 			"gain": "她 游 走 了",
 			"color": Palette.WARN,
@@ -450,7 +450,7 @@ func _escape_art_of(fish: FishSpec) -> Dictionary:
 		}
 	if fish.id == "small" or fish.id == "mid":
 		return {
-			"image": "res://assets/deepseek_escape.jpg",
+			"image": "res://assets/deepseek_escape.webp",
 			"tip": "什么肥鱼 —— 鲸鱼！",
 			"gain": "她 甩 尾 巴 跑 了",
 			"color": Palette.WARN,

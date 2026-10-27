@@ -15,7 +15,7 @@
     {
       "id": "small",
       "name": "小肥鱼",
-      "portrait": "res://assets/portrait_small.jpg",
+      "portrait": "res://assets/portrait_small.webp",
       "tint": "#ffffff",
       "stamina": 100.0,
       "damage_ratio": 0.25,
@@ -26,7 +26,7 @@
     {
       "id": "mid",
       "name": "中肥鱼",
-      "portrait": "res://assets/portrait_mid.jpg",
+      "portrait": "res://assets/portrait_mid.webp",
       "tint": "#ffffff",
       "stamina": 140.0,
       "damage_ratio": 0.20,
@@ -37,7 +37,7 @@
     {
       "id": "big",
       "name": "大肥鱼",
-      "portrait": "res://assets/portrait_big.jpg",
+      "portrait": "res://assets/portrait_big.webp",
       "tint": "#ffe2d2",
       "stamina": 190.0,
       "damage_ratio": 0.20,
@@ -48,7 +48,7 @@
     {
       "id": "claude",
       "name": "？ ？ ？",
-      "portrait": "res://assets/claude_chibi.jpg",
+      "portrait": "res://assets/claude_chibi.webp",
       "tint": "#ffe4d4",
       "stamina": 320.0,
       "damage_ratio": 0.15,
@@ -60,7 +60,7 @@
     {
       "id": "doubao",
       "name": "豆包",
-      "portrait": "res://assets/doubao.jpg",
+      "portrait": "res://assets/doubao.webp",
       "tint": "#ffffff",
       "stamina": 60.0,
       "damage_ratio": 1.0,
