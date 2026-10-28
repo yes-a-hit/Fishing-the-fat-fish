@@ -629,15 +629,15 @@ func _pause_game() -> void:
 	col.add_child(UIKit.title("已 暂 停", Palette.F_H2))
 	col.add_child(UIKit.divider())
 
-	var resume := UIKit.button("继 续", true)
+	var resume := UIKit.button("继 续", true, true)
 	resume.pressed.connect(_resume_game)
 	col.add_child(resume)
 
-	var restart := UIKit.button("重 新 开 始", false)
+	var restart := UIKit.button("重 新 开 始", false, true)
 	restart.pressed.connect(_restart_from_pause)
 	col.add_child(restart)
 
-	var menu := UIKit.button("返 回 菜 单", false)
+	var menu := UIKit.button("返 回 菜 单", false, true)
 	menu.pressed.connect(_back_to_menu)
 	col.add_child(menu)
 

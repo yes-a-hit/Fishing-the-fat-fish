@@ -51,21 +51,25 @@ static func wrap_label(text: String, size: int = Palette.F_BODY, color: Color = 
 
 
 ## 主按钮（金色） / 次按钮（浅底）。
-static func button(text: String, primary: bool = true) -> Button:
+## 通用按钮。compact=true 是「小一号」：给暂停菜单、退出这类次要操作用，
+## 免得一个 320 宽的卡片里塞三块 46px 高的橘色大砖头。
+static func button(text: String, primary: bool = true, compact: bool = false) -> Button:
 	var b := Button.new()
 	b.text = text
-	b.custom_minimum_size = Vector2(0, 46)
+	var h := 34 if compact else 46
+	var fs := Palette.F_BODY if compact else Palette.F_H3
+	b.custom_minimum_size = Vector2(0, h)
 	b.focus_mode = Control.FOCUS_NONE
-	b.add_theme_font_size_override("font_size", Palette.F_H3)
+	b.add_theme_font_size_override("font_size", fs)
 
 	var base := Palette.ACCENT if primary else Palette.CARD_SOFT
 	var hover := Palette.ACCENT_DEEP if primary else Palette.CARD_EDGE
 	var fg := Palette.ON_DARK if primary else Palette.INK
 
-	b.add_theme_stylebox_override("normal", _btn_style(base, fg))
-	b.add_theme_stylebox_override("hover", _btn_style(hover, fg))
-	b.add_theme_stylebox_override("pressed", _btn_style(hover.darkened(0.12), fg))
-	b.add_theme_stylebox_override("disabled", _btn_style(Palette.ZONE_GAP, Palette.INK_FAINT))
+	b.add_theme_stylebox_override("normal", _btn_style(base, fg, compact))
+	b.add_theme_stylebox_override("hover", _btn_style(hover, fg, compact))
+	b.add_theme_stylebox_override("pressed", _btn_style(hover.darkened(0.12), fg, compact))
+	b.add_theme_stylebox_override("disabled", _btn_style(Palette.ZONE_GAP, Palette.INK_FAINT, compact))
 	b.add_theme_color_override("font_color", fg)
 	b.add_theme_color_override("font_hover_color", fg)
 	b.add_theme_color_override("font_pressed_color", fg)
@@ -73,11 +77,11 @@ static func button(text: String, primary: bool = true) -> Button:
 	return b
 
 
-static func _btn_style(bg: Color, _fg: Color) -> StyleBoxFlat:
-	var sb := flat(bg, Palette.RADIUS_SM + 2)
-	sb.set_content_margin_all(10)
-	sb.content_margin_left = 26
-	sb.content_margin_right = 26
+static func _btn_style(bg: Color, _fg: Color, compact: bool = false) -> StyleBoxFlat:
+	var sb := flat(bg, Palette.RADIUS_SM + (0 if compact else 2))
+	sb.set_content_margin_all(4 if compact else 10)
+	sb.content_margin_left = 16 if compact else 26
+	sb.content_margin_right = 16 if compact else 26
 	return sb
 
 

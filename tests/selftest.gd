@@ -1035,8 +1035,10 @@ func _case_landing_sequence() -> void:
 
 	_ok("小肥鱼登记了序列", LandingView.SEQUENCES.has("small"))
 
-	var dir := String(LandingView.SEQUENCES["small"])
-	var got: Array[Texture2D] = landing._load_sequence(dir)
+	# 帧表是显式路径（导出成 pck 后扫目录会拿到空），所以直接验路径本身
+	var small_paths: Array = LandingView.SEQUENCES["small"]
+	_check("小鱼帧数", small_paths.size(), 5)
+	var got: Array[Texture2D] = landing._load_sequence(small_paths)
 	_check("序列帧数", got.size(), 5)
 	var all_ok := true
 	for t in got:
@@ -1044,19 +1046,17 @@ func _case_landing_sequence() -> void:
 			all_ok = false
 	_ok("五帧都加载成功", all_ok)
 
-	# 帧名必须按数字顺序排：01 到 05，顺序错动画就是乱的
-	var files: Array[String] = []
-	var d := DirAccess.open(dir)
-	for f in d.get_files():
-		var n := String(f)
-		if n.ends_with(".import"):
-			continue
-		if n.ends_with(".webp"):
-			files.append(n)
-	files.sort()
-	_check("目录里正好五张图", files.size(), 5)
-	_ok("帧名以 01 开头", files.size() > 0 and files[0].begins_with("01_"))
-	_ok("帧名以 05 结尾", files.size() > 0 and files[files.size() - 1].begins_with("05_"))
+	# 路径必须按数字顺序排：01 到 05，顺序错动画就是乱的
+	var first := String(small_paths[0]).get_file()
+	var last := String(small_paths[small_paths.size() - 1]).get_file()
+	_ok("帧名以 01 开头", first.begins_with("01_"))
+	_ok("帧名以 05 结尾", last.begins_with("05_"))
+	var in_order := true
+	for i in small_paths.size():
+		var nm := String(small_paths[i]).get_file()
+		if not nm.begins_with("%02d_" % (i + 1)):
+			in_order = false
+	_ok("帧名按 01..05 连续编号", in_order)
 
 	# 没有序列的鱼不能凭空有帧
 	var small: FishSpec = null
@@ -1081,7 +1081,7 @@ func _case_landing_sequence() -> void:
 	# 三条鱼的帧数都得对得上，目录里少一张就会露馅
 	for fid in ["small", "mid", "big"]:
 		_check("%s 登记了序列" % fid, LandingView.SEQUENCES.has(fid), true)
-	var mid_frames: Array[Texture2D] = landing._load_sequence("res://assets/anim/mid")
+	var mid_frames: Array[Texture2D] = landing._load_sequence(LandingView.SEQUENCES["mid"])
 	_check("中肥鱼四帧", mid_frames.size(), 4)
 	_ok("三个序列目录互不相同",
 		LandingView.SEQUENCES["small"] != LandingView.SEQUENCES["mid"]

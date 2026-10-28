@@ -106,8 +106,9 @@ func _build_card() -> void:
 		{"text": "关 于", "cb": _on_about},
 		{"text": "退 出", "cb": func(): get_tree().quit()},
 	]:
-		var b := UIKit.button(String(spec["text"]), false)
+		var b := UIKit.button(String(spec["text"]), false, true)
 		b.add_theme_font_size_override("font_size", Palette.F_SMALL)
+		b.custom_minimum_size = Vector2(0, 30)
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		b.pressed.connect(spec["cb"])
 		footer_row.add_child(b)

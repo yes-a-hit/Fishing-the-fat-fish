@@ -13,10 +13,8 @@ config_version=5
 config/name="钓肥鱼"
 run/main_scene="res://menu.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
-config/icon="res://assets/icon_app.png"
-; 手机上不锁帧就是白白烧电烧热。这个游戏是静态画面 + 一个转圈指针，
-; 60 帧完全够用，再高只是把电池当柴火烧。
 run/max_fps=60
+config/icon="res://assets/icon_app.png"
 
 [autoload]
 
@@ -31,10 +29,6 @@ window/stretch/aspect="expand"
 
 [gui]
 
-; Godot 4 内置字体不含中日韩字形。桌面端还能靠系统字体回退凑合，
-; Web 端没有可靠回退 —— 不指定这一行，网页版全部中文都会烂成方块。
-; 字体是 Noto Sans SC（OFL），用 tools/make_font.py 子集化到项目实际用到的 1047 个字，
-; 8.1 MB 压到 281 KB。改了大量文案之后重跑那个脚本。
 theme/custom_font="res://assets/fonts/game_sc.otf"
 
 [physics]

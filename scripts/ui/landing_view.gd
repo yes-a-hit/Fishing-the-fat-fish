@@ -18,11 +18,29 @@ const FISH_SIZE := 460.0
 const FLIGHT_SECONDS := 0.55
 const HOLD_SECONDS := 1.5
 
-## 谁有逐帧序列。目录里的文件名决定播放顺序，用前两位数字排序。
+## 谁有逐帧序列。**必须显式列路径**：导出成 pck 之后，`res://assets/anim/*`
+## 下的源文件不在包里（只有 `.godot/imported/*.ctex`），`DirAccess.get_files()`
+## 会返回空 —— 之前扫目录的写法在编辑器里能跑，一导出就没动画了。
 const SEQUENCES := {
-	"small": "res://assets/anim/small",
-	"mid": "res://assets/anim/mid",
-	"big": "res://assets/anim/big",
+	"small": [
+		"res://assets/anim/small/01_pull.webp",
+		"res://assets/anim/small/02_bowl.webp",
+		"res://assets/anim/small/03_hop.webp",
+		"res://assets/anim/small/04_in.webp",
+		"res://assets/anim/small/05_cover.webp",
+	],
+	"mid": [
+		"res://assets/anim/mid/01_pull.webp",
+		"res://assets/anim/mid/02_tilt.webp",
+		"res://assets/anim/mid/03_wag_left.webp",
+		"res://assets/anim/mid/04_wag_right.webp",
+	],
+	"big": [
+		"res://assets/anim/big/01_close.webp",
+		"res://assets/anim/big/02_kiss.webp",
+		"res://assets/anim/big/03_heart.webp",
+		"res://assets/anim/big/04_wink.webp",
+	],
 }
 
 ## 序列里每帧停留多久（秒）。飞行段和停留段各自均分。
@@ -90,26 +108,16 @@ func _tick_frames() -> void:
 		_fish.texture = _frames[idx]
 
 
-## 从 `<dir>/01_xxx.webp` 这样的文件里装一整套帧。
-func _load_sequence(dir_path: String) -> Array[Texture2D]:
+## 按显式路径装一整套帧。任何一帧加载失败就整段放弃，退回静态立绘。
+func _load_sequence(paths: Array) -> Array[Texture2D]:
 	var out: Array[Texture2D] = []
-	var dir := DirAccess.open(dir_path)
-	if dir == null:
-		return out
-	var names: Array[String] = []
-	for f in dir.get_files():
-		var n := String(f)
-		# .import 是 Godot 的导入元数据，不是资源本身；直接跳过，
-		# 别 trim 掉后缀再判断 —— 那样每帧会被数两遍。
-		if n.ends_with(".import"):
-			continue
-		if n.ends_with(".webp") or n.ends_with(".png"):
-			names.append(n)
-	names.sort()
-	for n in names:
-		var tex := UIKit.load_texture(dir_path + "/" + n)
-		if tex != null:
-			out.append(tex)
+	for p in paths:
+		var tex := UIKit.load_texture(String(p))
+		if tex == null:
+			push_warning("[landing] 缺帧: " + String(p))
+			out.clear()
+			return out
+		out.append(tex)
 	return out
 
 
@@ -126,7 +134,7 @@ func play(fish: FishSpec, from_pos: Vector2) -> void:
 	# 有序列就逐帧放，没有就退回静态立绘
 	_frames.clear()
 	if SEQUENCES.has(fish.id):
-		_frames = _load_sequence(String(SEQUENCES[fish.id]))
+		_frames = _load_sequence(SEQUENCES[fish.id])
 	if not _frames.is_empty():
 		# 整段演出时长固定，帧数变了就自动改每帧停留时间
 		var budget := FLIGHT_SECONDS + HOLD_SECONDS - 0.15

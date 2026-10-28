@@ -198,17 +198,17 @@ func _add_buttons(parent: Control = null) -> void:
 	if btns != _footer:
 		parent.add_child(btns)
 
-	var again := UIKit.button("再来一局")
+	var again := UIKit.button("再来一局", true, true)
 	again.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	again.pressed.connect(func(): restart_requested.emit())
 	btns.add_child(again)
 
-	var menu := UIKit.button("返回菜单", false)
+	var menu := UIKit.button("返回菜单", false, true)
 	menu.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	menu.pressed.connect(func(): menu_requested.emit())
 	btns.add_child(menu)
 
-	var quit := UIKit.button("退出", false)
+	var quit := UIKit.button("退出", false, true)
 	quit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	quit.pressed.connect(func(): get_tree().quit())
 	btns.add_child(quit)
