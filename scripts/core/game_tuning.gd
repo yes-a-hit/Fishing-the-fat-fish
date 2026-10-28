@@ -44,6 +44,11 @@ var dda_sway_gain: float = 1.6          ## 集齐时摆动幅度额外 +160%
 var dda_from_difficulty: bool = true    ## 简单难度不启用，普通以上才上劲
 var charge_full_seconds: float = 1.6    ## 蓄力条转完一圈（0→100）需要几秒；走完从 0 继续，不结束
 var cast_jitter: float = 1.5            ## 落点随机误差 ±
+## 水面上的模糊鱼影：落点压在影子里，那条鱼已经累了，打起来轻一些。
+## 影子每局随机生成，玩家只能看见一团模糊的黑影 —— 看见影子就知道这一竿值得赌。
+var shadow_count: int = 2               ## 每局生成几个影子；0 = 关掉这个机制
+var shadow_width: float = 13.0          ## 影子在距离条上占多宽（0~100 的刻度）
+var shadow_weaken: float = 0.62         ## 落进影子时，鱼的体力乘这个系数
 var bite_delay_min: float = 0.8         ## 抛竿后最短等待
 var bite_delay_max: float = 1.7         ## 抛竿后最长等待
 var empty_wait: float = 1.1             ## 空竿时的干等时长
@@ -70,6 +75,9 @@ static func from_dict(src: Dictionary) -> GameTuning:
 	t.dda_from_difficulty = bool(src.get("dda_from_difficulty", t.dda_from_difficulty))
 	t.charge_full_seconds = maxf(float(src.get("charge_full_seconds", t.charge_full_seconds)), 0.1)
 	t.cast_jitter = maxf(float(src.get("cast_jitter", t.cast_jitter)), 0.0)
+	t.shadow_count = clampi(int(src.get("shadow_count", t.shadow_count)), 0, 6)
+	t.shadow_width = clampf(float(src.get("shadow_width", t.shadow_width)), 3.0, 40.0)
+	t.shadow_weaken = clampf(float(src.get("shadow_weaken", t.shadow_weaken)), 0.2, 1.0)
 	t.bite_delay_min = maxf(float(src.get("bite_delay_min", t.bite_delay_min)), 0.05)
 	t.bite_delay_max = maxf(float(src.get("bite_delay_max", t.bite_delay_max)), t.bite_delay_min)
 	t.empty_wait = maxf(float(src.get("empty_wait", t.empty_wait)), 0.05)
@@ -115,6 +123,12 @@ func apply_difficulty(name: String) -> void:
 	if dz is Array and not (dz as Array).is_empty():
 		zones = _sanitize_zones(dz as Array)
 		zones_explicit = not zones.is_empty()
+
+	# 简单难度关掉鱼影，故事模式不该考验手气
+	if d.has("shadow_count"):
+		shadow_count = clampi(int(d["shadow_count"]), 0, 6)
+	if d.has("shadow_weaken"):
+		shadow_weaken = clampf(float(d["shadow_weaken"]), 0.2, 1.0)
 
 	var df: Variant = d.get("fight", null)
 	if df is Dictionary:

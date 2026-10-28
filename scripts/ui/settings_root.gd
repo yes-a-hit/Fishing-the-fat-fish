@@ -16,6 +16,10 @@ var _options: Array = []
 var _buttons: Dictionary = {}
 var _blurb: Label = null
 var _audio_rows: Dictionary = {}
+var _reset_btn: Button = null
+var _reset_hint: Label = null
+var _reset_armed: bool = false
+var _reset_timer: SceneTreeTimer = null
 
 
 func _ready() -> void:
@@ -117,6 +121,19 @@ func _build_card() -> void:
 	col.add_child(UIKit.label("声音", Palette.F_SMALL, Palette.INK_SOFT))
 	_audio_rows["bgm"] = _build_audio_row(col, "背景音乐", _settings.bgm_on, _settings.bgm_volume)
 	_audio_rows["voice"] = _build_audio_row(col, "语音", _settings.voice_on, _settings.voice_volume)
+
+	col.add_child(UIKit.divider())
+	col.add_child(UIKit.label("存档", Palette.F_SMALL, Palette.INK_SOFT))
+
+	_reset_btn = UIKit.button("重置进度", false)
+	_reset_btn.pressed.connect(_on_reset_progress)
+	col.add_child(_reset_btn)
+
+	_reset_hint = UIKit.wrap_label(
+		"会清空图鉴、三次封号的计数、以及「齐人之福」的解锁。难度和音量设置保留。",
+		Palette.F_SMALL, Palette.INK_FAINT)
+	_reset_hint.custom_minimum_size = Vector2(0, 34)
+	col.add_child(_reset_hint)
 
 	col.add_child(UIKit.divider())
 
@@ -251,6 +268,37 @@ func _btn_box(bg: Color) -> StyleBoxFlat:
 	var sb := UIKit.flat(bg, Palette.RADIUS_SM + 2)
 	sb.set_content_margin_all(10)
 	return sb
+
+
+## 两段式确认：第一下把按钮变成「真的清空？」，四秒内再点一下才动手。
+## 单段确认太容易误触 —— 这是不可撤销的操作。
+func _on_reset_progress() -> void:
+	if not _reset_armed:
+		_reset_armed = true
+		_reset_btn.text = "真的清空？再点一次"
+		_reset_hint.text = "图鉴、封号次数、齐人之福全部归零。这一下点下去就没了。"
+		_reset_hint.add_theme_color_override("font_color", Palette.BAD)
+		_disarm_later()
+		return
+
+	_reset_armed = false
+	_reset_btn.text = "重置进度"
+	_reset_hint.text = "已清空。档没了，可以重新开始了。"
+	_reset_hint.add_theme_color_override("font_color", Palette.GOOD)
+	Gallery.clear()
+	# clear() 删的是整个文件，图鉴与 claude_stage 一起归零
+
+
+func _disarm_later() -> void:
+	var timer := get_tree().create_timer(4.0)
+	_reset_timer = timer
+	await timer.timeout
+	# 四秒内没点第二下就撤销，按钮恢复原样
+	if _reset_armed:
+		_reset_armed = false
+		_reset_btn.text = "重置进度"
+		_reset_hint.text = "会清空图鉴、三次封号的计数、以及「齐人之福」的解锁。难度和音量设置保留。"
+		_reset_hint.add_theme_color_override("font_color", Palette.INK_FAINT)
 
 
 func _back() -> void:

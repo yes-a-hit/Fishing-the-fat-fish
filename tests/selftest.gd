@@ -68,6 +68,8 @@ func _run_all() -> void:
 	_case_audio_director()
 	_case_menu_boot()
 	_case_difficulty_affects_game()
+	_case_shadow_zones()
+	_case_reset_progress()
 
 
 func _check(label: String, actual, expected) -> void:
@@ -1446,6 +1448,72 @@ func _case_difficulty_affects_game() -> void:
 	var weird := ConfigLoader.load_tuning()
 	weird.apply_difficulty("nightmare")
 	_check("未知难度落回 normal", weird.difficulty, "normal")
+
+
+## 水面鱼影：每局撒几团，落点压进去鱼的体力就打个折。
+func _case_shadow_zones() -> void:
+	print("[case] 水面鱼影")
+	var t := _test_tuning()
+	t.shadow_count = 2
+	t.shadow_width = 13.0
+	t.shadow_weaken = 0.5
+
+	var s := _new_session()
+	s._tune = t
+	s.start()
+	var sh: Array = s.shadows()
+	_check("撒了两个影子", sh.size(), 2)
+	for one in sh:
+		_ok("影子宽度 = 配置值", absf(float(one["width"]) - 13.0) < 0.001)
+		_ok("影子不贴边", float(one["center"]) > 5.0 and float(one["center"]) < 95.0)
+
+	# 两团影子不该重叠 —— 均分段撒就是为了这个
+	if sh.size() == 2:
+		_ok("两团影子不重叠",
+			absf(float(sh[0]["center"]) - float(sh[1]["center"])) >= 13.0)
+
+	# 把影子钉死在中点，抛过去必然命中
+	s._shadows = [{"center": 50.0, "width": 13.0}]
+	s._shadow_hit = false
+	s.bait_left = 3
+	s.charge = 0.5
+	s._cast()
+	_ok("抛到影子上命中", s.shadow_hit())
+
+	# 同一份 tuning，一个不削弱一个削一半，比体力上限
+	var fish: FishSpec = s._targets[0]
+	var full := FightSession.new(fish, t, _seeded_rng(), {}, 1.0)
+	var weak := FightSession.new(fish, t, _seeded_rng(), {}, 0.5)
+	_ok("影子内体力减半",
+		absf(weak.stamina_max - full.stamina_max * 0.5) < 0.01)
+
+	# 关掉之后一条影子都不许有
+	t.shadow_count = 0
+	var s2 := _new_session()
+	s2._tune = t
+	s2.start()
+	_check("shadow_count=0 时没有影子", s2.shadows().size(), 0)
+
+
+## 重置进度：图鉴与封号次数一起归零，设置不动。
+func _case_reset_progress() -> void:
+	print("[case] 重置进度")
+	var before := Gallery.override_path
+	Gallery.override_path = "user://gallery_reset_test.json"
+	Gallery.clear()
+
+	Gallery.unlock("feast")
+	Gallery.bump_claude_stage()
+	_ok("重置前有进度", Gallery.is_unlocked("feast"))
+	_check("重置前封号次数 = 1", Gallery.claude_stage(), 1)
+
+	Gallery.clear()
+	_ok("重置后图鉴空了", not Gallery.is_unlocked("feast"))
+	_check("重置后封号次数归零", Gallery.claude_stage(), 0)
+	_check("重置后计数 = 0", Gallery.count_of(""), 0)
+
+	Gallery.clear()
+	Gallery.override_path = before
 
 
 func _find_blocking_control(node: Node) -> String:

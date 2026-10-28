@@ -20,6 +20,7 @@ const STEM := 8.0
 
 var _point: float = 0.0
 var _font: Font = null
+var _shadows: Array = []
 
 
 func _ready() -> void:
@@ -29,7 +30,10 @@ func _ready() -> void:
 
 
 ## 前两个参数保留是为了不改调用方 —— 分区已经不再画出来了。
-func configure(_zones: Array, _caught: Array, _fish_names: Dictionary = {}) -> void:
+## shadows 是 [[{center, width}]] 形式的鱼影，画成几团压暗的模糊块。
+func configure(_zones: Array, _caught: Array, _fish_names: Dictionary = {},
+		shadows: Array = []) -> void:
+	_shadows = shadows.duplicate()
 	queue_redraw()
 
 
@@ -46,6 +50,7 @@ func _draw() -> void:
 	# 轨道：一条干净的空槽，没有任何分区色块
 	var track := Rect2(0, TOP_PAD, w, TRACK_HEIGHT)
 	draw_style_box(_box(Palette.ZONE_GAP, int(TRACK_HEIGHT * 0.5), Color(0, 0, 0, 0), 0), track)
+	_draw_shadows(w)
 
 	var cx := w * _point
 	# 两端各留一点，免得牌子贴边时被裁掉
@@ -80,6 +85,31 @@ func _draw() -> void:
 		Vector2(cx - 6.0, top - 9.0),
 		Vector2(cx + 6.0, top - 9.0),
 	]), Palette.INK)
+
+
+## 水面上那几团模糊的鱼影。三层同心、越里越暗，边缘就软下去了 ——
+## 看起来像水下的东西，而不是一条画上去的色块。
+func _draw_shadows(w: float) -> void:
+	for s in _shadows:
+		var center := float(s["center"])
+		var full := float(s["width"])
+		var cx := w * center / 100.0
+		var half := w * full / 100.0 * 0.5
+		if half <= 1.0:
+			continue
+		var layers := [
+			[1.00, 0.10],
+			[0.74, 0.13],
+			[0.46, 0.17],
+		]
+		for layer in layers:
+			var lw: float = half * float(layer[0])
+			var alpha: float = float(layer[1])
+			var rect := Rect2(cx - lw, TOP_PAD - 1.0, lw * 2.0, TRACK_HEIGHT + 2.0)
+			draw_style_box(
+				_box(Color(Palette.INK, alpha), int((TRACK_HEIGHT + 2.0) * 0.5), Color(0, 0, 0, 0), 0),
+				rect
+			)
 
 
 func _box(fill: Color, radius: int, edge: Color, edge_width: int) -> StyleBoxFlat:

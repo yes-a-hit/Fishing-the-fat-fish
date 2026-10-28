@@ -51,14 +51,15 @@ var _elapsed: float = 0.0      ## 搏斗累计时间，摆动相位靠它推
 
 
 func _init(fish: FishSpec, tuning: GameTuning, rng_source: RandomNumberGenerator = null,
-		dda: Dictionary = {}) -> void:
+		dda: Dictionary = {}, stamina_scale: float = 1.0) -> void:
 	spec = fish
 	_tune = tuning
 	rng = rng_source if rng_source != null else RandomNumberGenerator.new()
 	if rng_source == null:
 		rng.randomize()
 
-	stamina_max = maxf(fish.stamina, 1.0)
+	# 落点压在鱼影上：这条鱼已经没劲了，体力打个折
+	stamina_max = maxf(fish.stamina * clampf(stamina_scale, 0.2, 1.0), 1.0)
 	stamina = stamina_max
 	tension_max = maxf(float(tuning.fight_value("tension_max", 100.0)), 1.0)
 	tension = 0.0

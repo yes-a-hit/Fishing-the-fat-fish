@@ -57,6 +57,10 @@ var _empty_reason: String = ""
 var _ending: String = ""
 var _pending_claude_fake: bool = false   ## 这次抛向陷阱带，钓上来的会不会是假的
 var _totals: Dictionary = {"rounds": 0, "perfect": 0, "miss": 0}
+## 水面上的模糊鱼影：[{center: float, width: float}]。落点压进去，那条鱼会弱一截。
+## 每局重新生成 —— 记不住位置，只能看见影子再决定要不要赌。
+var _shadows: Array = []
+var _shadow_hit: bool = false
 
 
 func _init(fish_list: Array, tuning: GameTuning, rng_source: RandomNumberGenerator = null) -> void:
@@ -92,8 +96,35 @@ func start() -> void:
 	_empty_reason = ""
 	last_result = ""
 	_ending = ""
+	_shadow_hit = false
+	_roll_shadows()
 	bait_changed.emit(bait_left, bait_max)
 	_set_phase(Phase.AIMING)
+
+
+## 撒几团影子在水面上。刻意避开两端 —— 贴着 0 或 100 的影子玩家根本瞄不准。
+func _roll_shadows() -> void:
+	_shadows = []
+	var n := _tune.shadow_count
+	if n <= 0:
+		return
+	var width := _tune.shadow_width
+	for i in n:
+		# 均分成 n 段，每段里随机撒一个，保证不会挤在一起
+		var span := 100.0 / float(n)
+		var lo := span * float(i) + width * 0.75
+		var hi := span * float(i + 1) - width * 0.75
+		if hi <= lo:
+			continue
+		_shadows.append({"center": rng.randf_range(lo, hi), "width": width})
+
+
+func shadows() -> Array:
+	return _shadows.duplicate()
+
+
+func shadow_hit() -> bool:
+	return _shadow_hit
 
 
 func is_charging() -> bool:
@@ -230,6 +261,13 @@ func _cast() -> void:
 	charge = 0.0
 	charge_changed.emit(0.0)
 
+	# 落点压在鱼影上：这一竿的鱼已经累了，搏斗时体力打折
+	_shadow_hit = false
+	for s in _shadows:
+		if absf(cast_point - float(s["center"])) <= float(s["width"]) * 0.5:
+			_shadow_hit = true
+			break
+
 	# 距离带是重叠的：覆盖该点且**没被隔离**的鱼全部进池子，按 weight 抽一条。
 	# 注意不过滤已钓到的鱼 —— 同一条可以反复上，只是不再计入收集。
 	var pool := GameTuning.candidates_at(_zones, cast_point)
@@ -294,7 +332,8 @@ func _tick_waiting(delta: float) -> void:
 func _start_fight() -> void:
 	# 钓到的鱼越多，这一场转得越快、黄标摆得越凶
 	var dda := _tune.dda_scale(_caught_target_count(), _targets.size())
-	fight = FightSession.new(pending_fish, _tune, rng, dda)
+	var scale := _tune.shadow_weaken if _shadow_hit else 1.0
+	fight = FightSession.new(pending_fish, _tune, rng, dda, scale)
 	fight.finished.connect(_on_fight_finished)
 	_set_phase(Phase.FIGHTING)
 	bite_started.emit(pending_fish, fight)

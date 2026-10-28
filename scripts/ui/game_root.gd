@@ -352,6 +352,8 @@ func _start_session() -> void:
 	_hud.refresh_caught([])
 
 	_session.start()
+	# 新的一局，水面上的影子重新撒；交给距离条去画
+	_cast_panel.set_shadows(_session.shadows())
 
 
 func _disconnect_session() -> void:

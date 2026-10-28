@@ -11,6 +11,7 @@ extends PanelContainer
 
 var _bar: CastBar = null
 var _aim_label: Label = null
+var _shadows: Array = []
 
 
 ## 两个参数都保留是为了不改调用方 —— 分区已经不再参与显示。
@@ -43,7 +44,7 @@ func setup(_fish_list: Array, _zones: Array) -> void:
 	head.add_child(_aim_label)
 
 	_bar = CastBar.new()
-	_bar.configure([], [])
+	_bar.configure([], [], {}, _shadows)
 	col.add_child(_bar)
 
 	var tip := UIKit.label("按住蓄力，牌子会一直往前走。松手才抛 —— 转多少圈都不算输，看准了再放。",
@@ -64,7 +65,13 @@ func set_charge(value: float) -> void:
 
 
 func refresh_caught(_caught: Array) -> void:
-	_bar.configure([], [])
+	_bar.configure([], [], {}, _shadows)
+
+
+## 每局开始时调用一次：把这一局的鱼影交给距离条去画。
+func set_shadows(list: Array) -> void:
+	_shadows = list.duplicate()
+	_bar.configure([], [], {}, _shadows)
 
 
 ## 阶段切换时把游标归零，避免上一局的残影。

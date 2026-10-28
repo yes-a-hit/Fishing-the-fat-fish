@@ -6,6 +6,9 @@
                         "fake_claude_chance":  "远洋尽头那条 trap 是「假的」的概率。假的就是套着 Claude 头套的鲸鱼娘，钓上来照样终结这一局，但结算换成三段 meme。真陷阱照样封号。三档 0.90 / 0.70 / 0.40。",
                         "charge_full_seconds":  "蓄力条转完一圈（0→100）的时间；走完从 0 继续，不结束。调大 = 抛竿更好控。三档 2.1 / 1.5 / 1.15。",
                         "cast_jitter":  "落点随机误差 ±。越大越考验手感。三档 3.0 / 1.2 / 0.6。",
+                        "shadow_count":  "水面鱼影的团数。每局重新撒，落点压进去那条鱼的体力就打折。0 = 关掉。轻松档默认 0（故事模式不考验手气）。",
+                        "shadow_width":  "每团鱼影在距离刻度（0~100）上占多宽。13 大约是一个牌子的宽度。",
+                        "shadow_weaken":  "落进鱼影时鱼的体力乘这个系数。0.62 = 打六折，一轮能少打一两下。",
                         "bite_delay_min/max":  "抛竿后到咬钩的随机等待区间（秒）。",
                         "empty_wait":  "空竿时干等的秒数。",
                         "resolve_hold":  "失败提示在场景里停留的秒数，期间点击可跳过。",
@@ -31,6 +34,9 @@
     "fake_claude_chance":  0.7,
     "charge_full_seconds":  1.5,
     "cast_jitter":  1.2,
+    "shadow_count":  2,
+    "shadow_width":  13.0,
+    "shadow_weaken":  0.62,
     "bite_delay_min":  0.8,
     "bite_delay_max":  1.7,
     "empty_wait":  1.1,
@@ -59,6 +65,7 @@
                                       "fake_claude_chance":  0.9,
                                       "charge_full_seconds":  2.1,
                                       "cast_jitter":  3.0,
+                                      "shadow_count":  0,
                                       "dda_from_difficulty":  false,
                                       "zones":  [
                                                     {
