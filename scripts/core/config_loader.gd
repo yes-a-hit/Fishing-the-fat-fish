@@ -13,6 +13,7 @@ extends RefCounted
 const PATH_FISH := "res://data/fish.json"
 const PATH_TUNING := "res://data/tuning.json"
 const PATH_ENDINGS := "res://data/endings.json"
+const PATH_STORY := "res://data/story.json"
 
 ## 连 fish.json 都读不到时的兜底，保证游戏还能跑起来。
 const FALLBACK_FISH := [
@@ -84,10 +85,11 @@ static func load_endings(path: String = PATH_ENDINGS) -> Dictionary:
 	return data
 
 
-## 一次性把三份配置读齐。game_root 只调这个。
+## 一次性把配置读齐。game_root 只调这个。
 static func load_all() -> Dictionary:
 	return {
 		"fish": load_fish(),
 		"tuning": load_tuning(),
 		"endings": load_endings(),
+		"story": read_json(PATH_STORY),
 	}

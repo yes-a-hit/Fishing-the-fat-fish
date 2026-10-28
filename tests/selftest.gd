@@ -70,6 +70,9 @@ func _run_all() -> void:
 	_case_difficulty_affects_game()
 	_case_shadow_zones()
 	_case_reset_progress()
+	_case_story_queue()
+	_case_doubao_second()
+	_case_grand_gate()
 
 
 func _check(label: String, actual, expected) -> void:
@@ -1511,6 +1514,71 @@ func _case_reset_progress() -> void:
 	_ok("重置后图鉴空了", not Gallery.is_unlocked("feast"))
 	_check("重置后封号次数归零", Gallery.claude_stage(), 0)
 	_check("重置后计数 = 0", Gallery.count_of(""), 0)
+
+	Gallery.clear()
+	Gallery.override_path = before
+
+
+func _case_story_queue() -> void:
+	print("[case] 剧情队列")
+	var before := Gallery.override_path
+	Gallery.override_path = "user://gallery_story_test.json"
+	Gallery.clear()
+
+	_ok("开局队列是空的", Gallery.pending_stories().is_empty())
+	_ok("排一段进去", Gallery.queue_story("doubao_second"))
+	_ok("同一段不重复排", not Gallery.queue_story("doubao_second"))
+	_ok("再排一段", Gallery.queue_story("claude_after_elope"))
+	_check("队列里两段", Gallery.pending_stories().size(), 2)
+
+	_check("先取出第一段", Gallery.pop_story(), "doubao_second")
+	_ok("取出的记进已播", Gallery.story_done("doubao_second"))
+	_ok("播过的不再排", not Gallery.queue_story("doubao_second"))
+	_check("队列剩一段", Gallery.pending_stories().size(), 1)
+	_check("再取第二段", Gallery.pop_story(), "claude_after_elope")
+	_ok("取空之后返回空串", Gallery.pop_story() == "")
+
+	Gallery.clear()
+	Gallery.override_path = before
+
+
+func _case_doubao_second() -> void:
+	print("[case] 豆包第二次")
+	var before := Gallery.override_path
+	Gallery.override_path = "user://gallery_doubao_test.json"
+	Gallery.clear()
+
+	_check("初始没遇上过", Gallery.doubao_seen(), 0)
+	_check("第一次", Gallery.bump_doubao_seen(), 1)
+	_ok("第一次不该欠剧情", Gallery.pending_stories().is_empty())
+	_check("第二次", Gallery.bump_doubao_seen(), 2)
+	_check("第三次", Gallery.bump_doubao_seen(), 3)
+
+	Gallery.clear()
+	Gallery.override_path = before
+
+
+func _case_grand_gate() -> void:
+	print("[case] 齐人之福的门槛")
+	var before := Gallery.override_path
+	Gallery.override_path = "user://gallery_grand_test.json"
+	Gallery.clear()
+
+	var need: Array = Gallery.GRAND_REQUIRED
+	_ok("门槛里必须有豆包那条", need.has("doubao_good"))
+	_ok("门槛里必须有私奔", need.has("claude_good"))
+
+	# 只差豆包那一条，不许放行
+	for k in need:
+		if String(k) != "doubao_good":
+			Gallery.unlock(String(k))
+	_ok("差一条时不解锁", not Gallery.try_grand())
+	_ok("真结局还没亮", not Gallery.is_unlocked(Gallery.GRAND_ENDING))
+
+	Gallery.unlock("doubao_good")
+	_ok("凑齐后解锁", Gallery.try_grand())
+	_ok("真结局亮了", Gallery.is_unlocked(Gallery.GRAND_ENDING))
+	_ok("解锁是幂等的", not Gallery.try_grand())
 
 	Gallery.clear()
 	Gallery.override_path = before

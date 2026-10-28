@@ -355,6 +355,12 @@ func _on_fight_finished(success: bool, _reason: String) -> void:
 		if bait_left != before:
 			bait_changed.emit(bait_left, bait_max)
 		doubao_started.emit(bait_left - before)
+		# 第二次逮到她，她会端着一碗饭冲你脸上来。
+		# 「白饭来咯」不是通关条件，是碰上第二次才有的东西 ——
+		# 靠语音收集来锁这个结局，等于把运气当门槛。
+		if Gallery.bump_doubao_seen() >= 2:
+			Gallery.queue_story("doubao_second")
+			Gallery.unlock("doubao_good")
 	elif pending_fish != null:
 		_landed += 1
 		if not _caught.has(pending_fish.id):
@@ -410,6 +416,8 @@ func _advance_after_round() -> void:
 		var staged := Gallery.bump_claude_stage()
 		if staged == "":
 			# 已经私奔过了。她只是浮上来看你一眼，然后自己游回去。
+			# 再逮到她的时候她会亲上来，然后朝远方竖一根中指 —— 这段只演一次。
+			Gallery.queue_story("claude_after_elope")
 			claude_spared.emit()
 			pending_fish = null
 			fight = null
@@ -418,9 +426,10 @@ func _advance_after_round() -> void:
 			_set_phase(Phase.AIMING)
 			return
 		_finish(staged)
-		# 私奔过之后，她就不再是「远洋尽头那条线」了 —— 齐人之福这时候才成立。
+		# 私奔之后才轮到齐人之福 —— 但还得其他结局也齐了。
+		# 早先这里是直接 unlock()，等于跳过了门槛：只要私奔就白送真结局。
 		if staged == "claude_good":
-			Gallery.unlock(Gallery.GRAND_ENDING)
+			Gallery.try_grand()
 		return
 
 	# 三条鱼全钓到就是齐鱼之福，当场结算，不必把剩下的饵烧完

@@ -18,6 +18,7 @@ var _fish: Array = []
 var _targets: Array = []      ## 收集目标，不含 is_claude 的陷阱
 var _tuning: GameTuning = null
 var _endings: Dictionary = {}
+var _stories: Dictionary = {}
 var _session: FishingSession = null
 
 var _lake: LakeView = null
@@ -27,6 +28,7 @@ var _qte: QteOverlay = null
 var _feedback: SceneFeedback = null
 var _landing: LandingView = null
 var _ending: EndingOverlay = null
+var _story: StoryOverlay = null
 var _doubao_card: Control = null
 var _doubao_tween: Tween = null
 var _doubao_pic: TextureRect = null
@@ -46,6 +48,7 @@ func _ready() -> void:
 	_fish = cfg["fish"]
 	_tuning = cfg["tuning"]
 	_endings = cfg["endings"]
+	_stories = cfg.get("story", {})
 
 	# 难度只改数值，不改结构：先套难度再解析距离带，顺序不能反
 	var settings := GameSettings.load_settings()
@@ -180,7 +183,9 @@ func _build_ui() -> void:
 
 	# 6. 结算层（最顶）
 	_ending = EndingOverlay.new()
+	_story = StoryOverlay.new()
 	add_child(_ending)
+	add_child(_story)
 	_ending.restart_requested.connect(_start_session)
 	_ending.menu_requested.connect(_back_to_menu)
 
@@ -579,7 +584,25 @@ func _on_finished(ending: String, summary: Dictionary) -> void:
 		print("[gallery] 新解锁结局: " + ending)
 	var data: Dictionary = _endings.get(ending, {})
 	Audio.play_voice(ending)
-	_ending.show_ending(ending, data, summary, _targets)
+	# 这一局欠下的剧情先播完，再摆结算。
+	# 顺序反了的话，第二次钓上豆包那一竿恰好也是集齐三条鱼的那一竿，
+	# 结算卡片一盖上来，「白饭来咯」就永远看不到了。
+	_play_story_queue(func(): _ending.show_ending(ending, data, summary, _targets))
+
+
+## 把队列里的剧情一段段播完，最后调 done。
+## 队列空就直接 done —— 多数对局根本没剧情。
+func _play_story_queue(done: Callable) -> void:
+	var id := Gallery.pop_story()
+	if id.is_empty():
+		done.call()
+		return
+	var story: Dictionary = _stories.get(id, {})
+	if story.is_empty() or (story.get("pages", []) as Array).is_empty():
+		_play_story_queue(done)
+		return
+	_story.finished.connect(_play_story_queue.bind(done), CONNECT_ONE_SHOT)
+	_story.play(story)
 
 
 func _back_to_menu() -> void:

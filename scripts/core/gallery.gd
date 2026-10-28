@@ -20,6 +20,9 @@ extends RefCounted
 const PATH := "user://gallery.json"
 const KEY_UNLOCKED := "unlocked"
 const KEY_CLAUDE_STAGE := "claude_stage"
+const KEY_DOUBAO_SEEN := "doubao_seen"
+const KEY_STORY_QUEUE := "story_queue"
+const KEY_STORY_DONE := "story_done"
 
 ## 语音收集奖励：把某人的语音听全了，就解锁一个只属于她的结局。
 ## 这些结局不在正常流程里触发 —— 它们是「你把她听完了」这件事本身的回报，
@@ -91,9 +94,23 @@ static func unlock(key: String, path: String = "") -> bool:
 ## 所有落盘都走这里。之前 unlock() 自己拼一份 json，只写 unlocked，
 ## 把 claude_stage 抹掉了 —— 结果真 claude 永远停在第 1 段，
 ## claude_sad 和 claude_good 再也见不到。
+##
+## 现在改成「读出来 → 只改自己那几个键 → 写回去」，
+## 谁往里加新字段都不会被隔壁的写入顺手抹掉。
+static func _save_patch(resolved: String, patch: Dictionary) -> void:
+	var raw: Variant = _read_json(resolved)
+	var data: Dictionary = {}
+	if typeof(raw) == TYPE_DICTIONARY:
+		data = (raw as Dictionary).duplicate(true)
+	if not data.has("_note"):
+		data["_note"] = "已解锁的 key、claude 相遇次数、待播剧情。删掉这个文件等于重置进度。"
+	for k in patch.keys():
+		data[k] = patch[k]
+	_write_json(resolved, data)
+
+
 static func _save(resolved: String, unlocked: PackedStringArray) -> void:
-	_write_json(resolved, {
-		"_note": "已解锁的 key 与 claude 相遇次数。删掉这个文件等于重置图鉴。",
+	_save_patch(resolved, {
 		KEY_UNLOCKED: Array(unlocked),
 		KEY_CLAUDE_STAGE: claude_stage(resolved),
 	})
@@ -133,21 +150,39 @@ static func check_rewards(path: String = "") -> PackedStringArray:
 	return fresh
 
 
-## 终极结局的门槛：除它自己以外的结局全解锁，且语音一条不落。
-## 排除自己是为了避免循环 —— 它不可能在解锁之前算作「已解锁」。
+## 齐人之福的门槛：这八条一条不落。豆包那条是硬要求 ——
+## 这个结局的画面是四个人挤在一张床上，豆包缺席说不过去。
+## 刻意写成显式清单，不用「数量够不够」判：数数会把新增结局悄悄漏掉，
+## 也不会因为日后加一条新结局就把门槛意外抬高。
+const GRAND_REQUIRED := [
+	"feast",        # 三条鱼齐
+	"full",         # 吃饱饱
+	"hungry",       # 没吃饱
+	"doubao_good",  # 白饭来咯
+	"claude_good",  # 私奔
+	"claude",       # 第一次封号
+	"claude_sad",   # 第二次封完就哭
+	"claude_fake",  # 掀开头套
+]
+
+
+## 终极结局的门槛：上面那张清单全解锁。
+## 早期版本还要求「所有语音都听过」，但那份清单是扫 res://assets/voice 目录得来的 ——
+## 导出成 pck 之后 DirAccess 拿不到目录内容，永远返回空，真结局永远不解锁。
+## 语音不是通关条件，听不听是玩家自己的事。
 static func _grand_ready(path: String = "") -> bool:
 	var unlocked := load_unlocked(path)
-	var endings := 0
-	for k in unlocked:
-		var key := String(k)
-		if key.begins_with("voice_") or key.begins_with("escape_"):
-			continue
-		if key == GRAND_ENDING:
-			continue
-		endings += 1
-	if endings < CLAUDE_STAGES.size() + 3:  # claude 三段 + full / hungry + claude_fake
+	for k in GRAND_REQUIRED:
+		if not unlocked.has(String(k)):
+			return false
+	return true
+
+
+## 外部唯一该调的真结局入口。门槛齐了才解锁，返回 true 表示这次刚解锁。
+static func try_grand(path: String = "") -> bool:
+	if not _grand_ready(path):
 		return false
-	return _all_voice_ready(path)
+	return unlock(GRAND_ENDING, path)
 
 
 static func _all_voice_ready(path: String = "") -> bool:
@@ -163,6 +198,89 @@ static func _all_voice_ready(path: String = "") -> bool:
 		if not unlocked.has("voice_" + name.get_basename()):
 			return false
 	return true
+
+
+## 豆包被钓上来过几次。第二次会触发一段剧情，所以得记着。
+static func doubao_seen(path: String = "") -> int:
+	var raw: Variant = _read_json(_resolve(path))
+	if typeof(raw) != TYPE_DICTIONARY:
+		return 0
+	return maxi(int((raw as Dictionary).get(KEY_DOUBAO_SEEN, 0)), 0)
+
+
+static func bump_doubao_seen(path: String = "") -> int:
+	var next := doubao_seen(path) + 1
+	_save_patch(_resolve(path), { KEY_DOUBAO_SEEN: next })
+	return next
+
+
+## 待播剧情队列。一局里可能同时欠下好几段，都排进来，一段都不许漏。
+static func pending_stories(path: String = "") -> PackedStringArray:
+	var out := PackedStringArray()
+	var raw: Variant = _read_json(_resolve(path))
+	if typeof(raw) != TYPE_DICTIONARY:
+		return out
+	var list: Variant = (raw as Dictionary).get(KEY_STORY_QUEUE, [])
+	if typeof(list) != TYPE_ARRAY:
+		return out
+	for item in (list as Array):
+		var key := String(item)
+		if key != "" and not out.has(key):
+			out.append(key)
+	return out
+
+
+## 排队。已经在队里或已经播过的不重复排 —— 同一段剧情只播一次。
+static func queue_story(id: String, path: String = "") -> bool:
+	if id == "":
+		return false
+	var done := PackedStringArray()
+	var raw: Variant = _read_json(_resolve(path))
+	if typeof(raw) == TYPE_DICTIONARY:
+		var list: Variant = (raw as Dictionary).get(KEY_STORY_DONE, [])
+		if typeof(list) == TYPE_ARRAY:
+			for item in (list as Array):
+				done.append(String(item))
+	if done.has(id) or pending_stories(path).has(id):
+		return false
+	var queue := pending_stories(path)
+	queue.append(id)
+	_save_patch(_resolve(path), { KEY_STORY_QUEUE: Array(queue) })
+	return true
+
+
+## 取下一段。取出来的同时记进「已播」，不会再排第二次。
+static func pop_story(path: String = "") -> String:
+	var queue := pending_stories(path)
+	if queue.is_empty():
+		return ""
+	var id := queue[0]
+	var rest: Array = []
+	for i in range(1, queue.size()):
+		rest.append(queue[i])
+	var done := PackedStringArray()
+	var raw: Variant = _read_json(_resolve(path))
+	if typeof(raw) == TYPE_DICTIONARY:
+		var list: Variant = (raw as Dictionary).get(KEY_STORY_DONE, [])
+		if typeof(list) == TYPE_ARRAY:
+			for item in (list as Array):
+				done.append(String(item))
+	done.append(id)
+	_save_patch(_resolve(path), {
+		KEY_STORY_QUEUE: rest,
+		KEY_STORY_DONE: Array(done),
+	})
+	return id
+
+
+static func story_done(id: String, path: String = "") -> bool:
+	var raw: Variant = _read_json(_resolve(path))
+	if typeof(raw) != TYPE_DICTIONARY:
+		return false
+	var list: Variant = (raw as Dictionary).get(KEY_STORY_DONE, [])
+	if typeof(list) != TYPE_ARRAY:
+		return false
+	return (list as Array).has(id)
 
 
 ## 上过几次真 claude。跨局持久化，用来推三段线。
