@@ -30,8 +30,8 @@ Godot 4.7 · GDScript · 1280×800 · 单场景小游戏
 
 | 平台 | 直接下载 | 大小 |
 |---|---|---|
-| **Windows** | [`钓肥鱼-v1.3.8-windows-x64.zip`](docs/download/钓肥鱼-v1.3.8-windows-x64.zip) — 解压后双击 `钓肥鱼.exe`，单文件 | 23 MB |
-| **Android** | [`钓肥鱼-v1.3.8.apk`](docs/download/钓肥鱼-v1.3.8.apk) — 直接安装 | 34 MB |
+| **Windows** | [`钓肥鱼-v1.3.9-windows-x64.zip`](docs/download/钓肥鱼-v1.3.9-windows-x64.zip) — 解压后双击 `钓肥鱼.exe`，单文件 | 23 MB |
+| **Android** | [`钓肥鱼-v1.3.9.apk`](docs/download/钓肥鱼-v1.3.9.apk) — 直接安装 | 34 MB |
 | **网页版** | [在线玩](https://yes-a-hit.github.io/Fishing-the-fat-fish/) | — |
 
 如果链接点了没反应，右键 →「链接另存为」，或者把地址里的 `github.com/.../raw/main/...` 换成 `raw.githubusercontent.com/...`。
@@ -171,7 +171,7 @@ Godot 4.7 · GDScript · 1280×800 · 单场景小游戏
 
 ### 重置进度
 
-设置页最下面有个「重置进度」。点第一下按钮会变成「真的清空？再点一次」，四秒内不点第二下就自动撤销；点了就把图鉴、封号次数、「齐人之福」的解锁一起归零。
+设置页最下面有个「从头再来」。点第一下按钮会变成「真的清空？再点一次」，四秒内不点第二下就自动撤销；点了就把图鉴、封号次数、「齐人之福」的解锁一起归零。
 
 **难度和音量不动** —— 那是偏好，不是进度，清掉只会让人重新拖一遍滑块。
 

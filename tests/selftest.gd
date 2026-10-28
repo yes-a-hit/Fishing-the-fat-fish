@@ -831,6 +831,16 @@ func _case_gallery_pages() -> void:
 	_check("脱钩页 4 条", gr._total_of("escape"), 4)
 	_check("声音页 14 条", gr._total_of("voice"), 14)
 
+	# 结局页能重看剧情的映射：key 得是真结局，剧情 id 得在 story.json 里
+	var stories: Dictionary = ConfigLoader.read_json(ConfigLoader.PATH_STORY)
+	_ok("有结局配了剧情", not gr.ENDING_STORY.is_empty())
+	for ek in gr.ENDING_STORY.keys():
+		_ok("结局 %s 确实存在" % ek, gr._endings.has(String(ek)))
+		var sid := String(gr.ENDING_STORY[ek])
+		_ok("剧情 %s 确实存在" % sid, stories.has(sid))
+		var pages: Array = (stories.get(sid, {}) as Dictionary).get("pages", [])
+		_ok("剧情 %s 有页" % sid, pages.size() > 0)
+
 	# 每条脱钩条目都要有图、有 key、有唯一 key
 	var keys: Array = []
 	for it in gr.ESCAPE_ITEMS:
@@ -1496,6 +1506,34 @@ func _case_shadow_zones() -> void:
 	s2._tune = t
 	s2.start()
 	_check("shadow_count=0 时没有影子", s2.shadows().size(), 0)
+
+	# 影子里不许空竿：手工造一段 80~100 是洞的距离带，把影子盖在洞上，
+	# 照样得给出一条鱼来。自动分带是无缝的，测不出这个，只能自己钉。
+	t.shadow_count = 0
+	var s3 := _new_session()
+	s3._tune = t
+	s3.start()
+	s3._zones = [
+		{"id": "a", "fish": "small", "from": 0.0, "to": 40.0, "weight": 3.0},
+		{"id": "b", "fish": "mid", "from": 40.0, "to": 60.0, "weight": 2.0},
+		{"id": "c", "fish": "big", "from": 60.0, "to": 80.0, "weight": 2.0},
+		{"id": "d", "fish": "doubao", "from": 0.0, "to": 10.0, "weight": 0.2},
+	]
+	var gap_point := 91.0
+	s3._shadows = [{"center": gap_point, "width": 13.0}]
+	s3._shadow_hit = false
+	s3.bait_left = 3
+	s3.charge = gap_point / 100.0
+	s3._cast()
+	_ok("影子盖住空洞也能上鱼", s3.pending_fish != null)
+	_ok("影子确实算命中", s3.shadow_hit())
+
+	# 对照：同一处不撒影子就该空竿，证明上面那条不是白给
+	s3._shadows = []
+	s3.bait_left = 3
+	s3.charge = gap_point / 100.0
+	s3._cast()
+	_ok("没有影子时空洞照样空竿", s3.pending_fish == null)
 
 
 ## 重置进度：图鉴与封号次数一起归零，设置不动。

@@ -123,14 +123,14 @@ func _build_card() -> void:
 	_audio_rows["voice"] = _build_audio_row(col, "语音", _settings.voice_on, _settings.voice_volume)
 
 	col.add_child(UIKit.divider())
-	col.add_child(UIKit.label("存档", Palette.F_SMALL, Palette.INK_SOFT))
+	col.add_child(UIKit.label("回到开头", Palette.F_SMALL, Palette.INK_SOFT))
 
-	_reset_btn = UIKit.button("重置进度", false)
+	_reset_btn = UIKit.button("从头再来一次", false)
 	_reset_btn.pressed.connect(_on_reset_progress)
 	col.add_child(_reset_btn)
 
 	_reset_hint = UIKit.wrap_label(
-		"会清空图鉴、三次封号的计数、以及「齐人之福」的解锁。难度和音量设置保留。",
+		"图鉴、封号次数、「齐人之福」都会回到最初的样子。难度和音量不动。",
 		Palette.F_SMALL, Palette.INK_FAINT)
 	_reset_hint.custom_minimum_size = Vector2(0, 34)
 	col.add_child(_reset_hint)
@@ -270,20 +270,20 @@ func _btn_box(bg: Color) -> StyleBoxFlat:
 	return sb
 
 
-## 两段式确认：第一下把按钮变成「真的清空？」，四秒内再点一下才动手。
-## 单段确认太容易误触 —— 这是不可撤销的操作。
+## 两段式确认：第一下把按钮改成问句，四秒内再点一下才动手。
+## 话说得轻一点 —— 清档不是惩罚，是想把这段路再走一遍。
 func _on_reset_progress() -> void:
 	if not _reset_armed:
 		_reset_armed = true
-		_reset_btn.text = "真的清空？再点一次"
-		_reset_hint.text = "图鉴、封号次数、齐人之福全部归零。这一下点下去就没了。"
-		_reset_hint.add_theme_color_override("font_color", Palette.BAD)
+		_reset_btn.text = "确定要从头再来吗？"
+		_reset_hint.text = "一定是主人想陪我们再走一遍 —— 再点一次就开始。"
+		_reset_hint.add_theme_color_override("font_color", Palette.ACCENT_DEEP)
 		_disarm_later()
 		return
 
 	_reset_armed = false
-	_reset_btn.text = "重置进度"
-	_reset_hint.text = "已清空。档没了，可以重新开始了。"
+	_reset_btn.text = "从头再来一次"
+	_reset_hint.text = "好啦，那就从第一碗白饭重新开始。我们还在。"
 	_reset_hint.add_theme_color_override("font_color", Palette.GOOD)
 	Gallery.clear()
 	# clear() 删的是整个文件，图鉴与 claude_stage 一起归零
@@ -296,8 +296,8 @@ func _disarm_later() -> void:
 	# 四秒内没点第二下就撤销，按钮恢复原样
 	if _reset_armed:
 		_reset_armed = false
-		_reset_btn.text = "重置进度"
-		_reset_hint.text = "会清空图鉴、三次封号的计数、以及「齐人之福」的解锁。难度和音量设置保留。"
+		_reset_btn.text = "从头再来一次"
+		_reset_hint.text = "图鉴、封号次数、「齐人之福」都会回到最初的样子。难度和音量不动。"
 		_reset_hint.add_theme_color_override("font_color", Palette.INK_FAINT)
 
 

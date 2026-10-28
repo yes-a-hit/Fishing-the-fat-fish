@@ -272,6 +272,23 @@ func _cast() -> void:
 	# 注意不过滤已钓到的鱼 —— 同一条可以反复上，只是不再计入收集。
 	var pool := GameTuning.candidates_at(_zones, cast_point)
 
+	# 影子是鱼群在水下的位置。压在影子上还空竿，等于骗人。
+	# 落点落在隔离区里就顺着最近的方向挪到有鱼的地方 ——
+	# 影子照样算命中（体力还是打折），只是保证底下真有东西。
+	if pool.is_empty() and _shadow_hit:
+		var best := 1e9
+		var nearest := -1.0
+		for p in 101:
+			if GameTuning.candidates_at(_zones, float(p)).is_empty():
+				continue
+			var d := absf(float(p) - cast_point)
+			if d < best:
+				best = d
+				nearest = float(p)
+		if nearest >= 0.0:
+			cast_point = nearest
+			pool = GameTuning.candidates_at(_zones, cast_point)
+
 	# 豆包是救济不是常规鱼：饵快见底又还没集齐的时候它才更愿意冒头，
 	# 集齐之后直接归零，别在该结算的时候跑出来搅局。
 	var doubao_mul := _tune.doubao_weight_scale(bait_left, _caught_target_count(), _targets.size())

@@ -18,6 +18,12 @@ const TABS := [
 	{"id": "voice", "label": "声 音"},
 ]
 
+## 哪个结局配哪段剧情。图鉴里点开结局时，有对应剧情的给一个「再看一遍这段」。
+const ENDING_STORY := {
+	"doubao_good": "doubao_second",
+	"claude_good": "claude_after_elope",
+}
+
 ## 脱钩收集。小肥鱼和中肥鱼共用一张图，合成一格 —— 图一样还拆成两格是凑数。
 const ESCAPE_ITEMS := [
 	{
@@ -70,18 +76,21 @@ const VOICE_ITEMS := [
 ]
 
 var _endings: Dictionary = {}
+var _stories: Dictionary = {}
 var _unlocked: PackedStringArray = PackedStringArray()
 var _tab: String = "ending"
 var _grid: GridContainer = null
 var _counter: Label = null
 var _tab_buttons: Dictionary = {}
 var _preview: Control = null
+var _story: StoryOverlay = null
 
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	_endings = ConfigLoader.load_endings()
+	_stories = ConfigLoader.read_json(ConfigLoader.PATH_STORY)
 	_unlocked = Gallery.load_unlocked()
 
 	_build_background()
@@ -409,7 +418,8 @@ func _open_ending(key: String) -> void:
 		_thumb_of(key),
 		String(data.get("subtitle", "")),
 		String(data.get("title", key)),
-		"\n".join(lines))
+		"\n".join(lines),
+		String(ENDING_STORY.get(key, "")))
 
 
 func _open_art(_key: String, image: String, title: String, line: String, sub: String) -> void:
@@ -428,7 +438,7 @@ func _play_voice(key: String) -> void:
 			return
 
 
-func _open_preview(image: String, subtitle: String, title: String, body: String) -> void:
+func _open_preview(image: String, subtitle: String, title: String, body: String, story_id: String = "") -> void:
 	_close_preview()
 
 	var layer := Control.new()
@@ -475,6 +485,12 @@ func _open_preview(image: String, subtitle: String, title: String, body: String)
 	if body != "":
 		col.add_child(UIKit.wrap_label(body, Palette.F_BODY, Palette.INK_SOFT))
 
+	if story_id != "" and _stories.has(story_id):
+		var again := UIKit.button("再看一遍这段", true)
+		again.add_theme_font_size_override("font_size", Palette.F_BODY)
+		again.pressed.connect(_replay_story.bind(story_id))
+		col.add_child(again)
+
 	var close := UIKit.button("关 闭", false)
 	close.add_theme_font_size_override("font_size", Palette.F_BODY)
 	close.pressed.connect(_close_preview)
@@ -485,6 +501,20 @@ func _close_preview() -> void:
 	if _preview != null and is_instance_valid(_preview):
 		_preview.queue_free()
 	_preview = null
+
+
+## 结局页里那个「再看一遍这段」：关掉预览、把剧情盖上来重播。
+## 这里走的是独立的 StoryOverlay 实例，不碰 Gallery 的排队状态 ——
+## 回看是回看，不该被记成「还没播过」，更不该把已看过的剧情塞回队列。
+func _replay_story(story_id: String) -> void:
+	var story: Variant = _stories.get(story_id, null)
+	if not (story is Dictionary):
+		return
+	_close_preview()
+	if _story == null or not is_instance_valid(_story):
+		_story = StoryOverlay.new()
+		add_child(_story)
+	_story.play(story as Dictionary)
 
 
 func _unhandled_input(event: InputEvent) -> void:
