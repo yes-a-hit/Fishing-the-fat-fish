@@ -1007,14 +1007,14 @@ func _case_landing_sequence() -> void:
 
 	var dir := String(LandingView.SEQUENCES["small"])
 	var got: Array[Texture2D] = landing._load_sequence(dir)
-	_check("序列帧数", got.size(), 6)
+	_check("序列帧数", got.size(), 5)
 	var all_ok := true
 	for t in got:
 		if t == null:
 			all_ok = false
-	_ok("六帧都加载成功", all_ok)
+	_ok("五帧都加载成功", all_ok)
 
-	# 帧名必须按数字顺序排：01 到 06，顺序错动画就是乱的
+	# 帧名必须按数字顺序排：01 到 05，顺序错动画就是乱的
 	var files: Array[String] = []
 	var d := DirAccess.open(dir)
 	for f in d.get_files():
@@ -1024,9 +1024,9 @@ func _case_landing_sequence() -> void:
 		if n.ends_with(".webp"):
 			files.append(n)
 	files.sort()
-	_check("目录里正好六张图", files.size(), 6)
+	_check("目录里正好五张图", files.size(), 5)
 	_ok("帧名以 01 开头", files.size() > 0 and files[0].begins_with("01_"))
-	_ok("帧名以 06 结尾", files.size() > 0 and files[files.size() - 1].begins_with("06_"))
+	_ok("帧名以 05 结尾", files.size() > 0 and files[files.size() - 1].begins_with("05_"))
 
 	# 没有序列的鱼不能凭空有帧
 	var small: FishSpec = null
@@ -1039,7 +1039,7 @@ func _case_landing_sequence() -> void:
 	_ok("配置里能找到小肥鱼与大肥鱼", small != null and big != null)
 	if small != null:
 		landing.play(small, Vector2(100, 100))
-		_check("小肥鱼走序列", landing._frames.size(), 6)
+		_check("小肥鱼走序列", landing._frames.size(), 5)
 		_ok("每帧时长按帧数均分", landing._frame_seconds > 0.08 and landing._frame_seconds < 0.5)
 		landing._finish()
 	if big != null:

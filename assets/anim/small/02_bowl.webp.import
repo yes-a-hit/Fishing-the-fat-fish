@@ -2,22 +2,22 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://drml87h6ux42u"
-path="res://.godot/imported/04_bowl_slip.webp-ceb35ca8cc8392b1f69d0d561bdcf9d5.ctex"
+uid="uid://bsf5v2xysj66v"
+path="res://.godot/imported/02_bowl.webp-0c98c58d92b0a5a8e7c8ca340bb4273f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/anim/small/04_bowl_slip.webp"
-dest_files=["res://.godot/imported/04_bowl_slip.webp-ceb35ca8cc8392b1f69d0d561bdcf9d5.ctex"]
+source_file="res://assets/anim/small/02_bowl.webp"
+dest_files=["res://.godot/imported/02_bowl.webp-0c98c58d92b0a5a8e7c8ca340bb4273f.ctex"]
 
 [params]
 
-compress/mode=1
+compress/mode=0
 compress/high_quality=false
-compress/lossy_quality=0.85
+compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1

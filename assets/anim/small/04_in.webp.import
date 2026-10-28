@@ -2,22 +2,22 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d1sr1xd0iarj5"
-path="res://.godot/imported/03_bowl_hit.webp-b9d9b88c03995033bc245bcda8d7ae43.ctex"
+uid="uid://crric5gufuc76"
+path="res://.godot/imported/04_in.webp-93be1b2929125ffa79559cea88d1dfa3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/anim/small/03_bowl_hit.webp"
-dest_files=["res://.godot/imported/03_bowl_hit.webp-b9d9b88c03995033bc245bcda8d7ae43.ctex"]
+source_file="res://assets/anim/small/04_in.webp"
+dest_files=["res://.godot/imported/04_in.webp-93be1b2929125ffa79559cea88d1dfa3.ctex"]
 
 [params]
 
-compress/mode=1
+compress/mode=0
 compress/high_quality=false
-compress/lossy_quality=0.85
+compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1

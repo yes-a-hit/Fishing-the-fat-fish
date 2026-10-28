@@ -2,22 +2,22 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cfcwtnap6hrl3"
-path="res://.godot/imported/06_ricefish.webp-ecfee76d546cb582c6691e73c011482e.ctex"
+uid="uid://bnygm2m4ibs25"
+path="res://.godot/imported/03_hop.webp-743fa9e94e9f2b5f35f022994b68b94a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/anim/small/06_ricefish.webp"
-dest_files=["res://.godot/imported/06_ricefish.webp-ecfee76d546cb582c6691e73c011482e.ctex"]
+source_file="res://assets/anim/small/03_hop.webp"
+dest_files=["res://.godot/imported/03_hop.webp-743fa9e94e9f2b5f35f022994b68b94a.ctex"]
 
 [params]
 
-compress/mode=1
+compress/mode=0
 compress/high_quality=false
-compress/lossy_quality=0.85
+compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
