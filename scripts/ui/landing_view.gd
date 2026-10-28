@@ -21,6 +21,8 @@ const HOLD_SECONDS := 1.5
 ## 谁有逐帧序列。目录里的文件名决定播放顺序，用前两位数字排序。
 const SEQUENCES := {
 	"small": "res://assets/anim/small",
+	"mid": "res://assets/anim/mid",
+	"big": "res://assets/anim/big",
 }
 
 ## 序列里每帧停留多久（秒）。飞行段和停留段各自均分。

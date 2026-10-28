@@ -50,7 +50,8 @@ var _sway_period: float = 2.2  ## 摆动一个来回要几秒
 var _elapsed: float = 0.0      ## 搏斗累计时间，摆动相位靠它推
 
 
-func _init(fish: FishSpec, tuning: GameTuning, rng_source: RandomNumberGenerator = null) -> void:
+func _init(fish: FishSpec, tuning: GameTuning, rng_source: RandomNumberGenerator = null,
+		dda: Dictionary = {}) -> void:
 	spec = fish
 	_tune = tuning
 	rng = rng_source if rng_source != null else RandomNumberGenerator.new()
@@ -62,12 +63,16 @@ func _init(fish: FishSpec, tuning: GameTuning, rng_source: RandomNumberGenerator
 	tension_max = maxf(float(tuning.fight_value("tension_max", 100.0)), 1.0)
 	tension = 0.0
 
+	# 动态难度：钓到的鱼越多，这一场转得越快、黄标摆得越凶
+	var speed_mul := maxf(float(dda.get("speed", 1.0)), 0.1)
+	var sway_mul := maxf(float(dda.get("sway", 1.0)), 0.1)
+
 	_hit_half = clampf(float(tuning.fight_value("hit_half", 0.33)), 0.02, 0.49)
 	_perfect_half = clampf(float(tuning.fight_value("perfect_half", 0.15)), 0.01, _hit_half)
-	_speed_base = maxf(float(tuning.fight_value("cursor_speed", 0.45)), 0.02)
+	_speed_base = maxf(float(tuning.fight_value("cursor_speed", 0.45)), 0.02) * speed_mul
 	_speed_accel = maxf(float(tuning.fight_value("cursor_accel", 0.5)), 0.0)
 	# 爆冲：困难难度起，黄标会左右摆。振幅按圈宽算，0.12 大约是两个标位。
-	_sway_amp = clampf(float(tuning.fight_value("hit_sway", 0.0)), 0.0, 0.35)
+	_sway_amp = clampf(float(tuning.fight_value("hit_sway", 0.0)) * sway_mul, 0.0, 0.42)
 	_sway_period = maxf(float(tuning.fight_value("sway_period", 2.2)), 0.4)
 
 

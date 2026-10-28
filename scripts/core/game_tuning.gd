@@ -35,6 +35,13 @@ var doubao_refund: int = 2              ## 钓上豆包返还几碗饭（含抛�
 var doubao_escape_chance: float = 0.35  ## 豆包咬一口就跑的概率。它 damage_ratio = 1.0，
                                         ## 一轮就上鱼，张力永远没机会爆表 —— 不在这里掷骰，
                                         ## 脱钩画面就是死代码。
+## 雪中送炭：饵快见底又还没集齐时，豆包更愿意冒头
+var doubao_mercy_bait: int = 2          ## 剩这么多饵以内开始加成
+var doubao_mercy_gain: float = 2.0      ## 加成倍数
+## 动态难度：钓上来的鱼越多，AI 越上劲 —— 游标转得更快，黄标摆得更凶
+var dda_speed_gain: float = 0.45        ## 集齐时游标速度额外 +45%
+var dda_sway_gain: float = 1.6          ## 集齐时摆动幅度额外 +160%
+var dda_from_difficulty: bool = true    ## 简单难度不启用，普通以上才上劲
 var charge_full_seconds: float = 1.6    ## 蓄力条转完一圈（0→100）需要几秒；走完从 0 继续，不结束
 var cast_jitter: float = 1.5            ## 落点随机误差 ±
 var bite_delay_min: float = 0.8         ## 抛竿后最短等待
@@ -56,6 +63,11 @@ static func from_dict(src: Dictionary) -> GameTuning:
 	t.fake_claude_chance = clampf(float(src.get("fake_claude_chance", t.fake_claude_chance)), 0.0, 1.0)
 	t.doubao_refund = maxi(int(src.get("doubao_refund", t.doubao_refund)), 1)
 	t.doubao_escape_chance = clampf(float(src.get("doubao_escape_chance", t.doubao_escape_chance)), 0.0, 1.0)
+	t.doubao_mercy_bait = maxi(int(src.get("doubao_mercy_bait", t.doubao_mercy_bait)), 0)
+	t.doubao_mercy_gain = maxf(float(src.get("doubao_mercy_gain", t.doubao_mercy_gain)), 1.0)
+	t.dda_speed_gain = maxf(float(src.get("dda_speed_gain", t.dda_speed_gain)), 0.0)
+	t.dda_sway_gain = maxf(float(src.get("dda_sway_gain", t.dda_sway_gain)), 0.0)
+	t.dda_from_difficulty = bool(src.get("dda_from_difficulty", t.dda_from_difficulty))
 	t.charge_full_seconds = maxf(float(src.get("charge_full_seconds", t.charge_full_seconds)), 0.1)
 	t.cast_jitter = maxf(float(src.get("cast_jitter", t.cast_jitter)), 0.0)
 	t.bite_delay_min = maxf(float(src.get("bite_delay_min", t.bite_delay_min)), 0.05)
@@ -91,6 +103,11 @@ func apply_difficulty(name: String) -> void:
 	fake_claude_chance = clampf(float(d.get("fake_claude_chance", fake_claude_chance)), 0.0, 1.0)
 	doubao_refund = maxi(int(d.get("doubao_refund", doubao_refund)), 1)
 	doubao_escape_chance = clampf(float(d.get("doubao_escape_chance", doubao_escape_chance)), 0.0, 1.0)
+	# 简单难度整档关掉动态难度，普通以上才上劲
+	if d.has("dda_from_difficulty"):
+		dda_from_difficulty = bool(d["dda_from_difficulty"])
+	if d.has("doubao_mercy_gain"):
+		doubao_mercy_gain = maxf(float(d["doubao_mercy_gain"]), 1.0)
 	charge_full_seconds = maxf(float(d.get("charge_full_seconds", charge_full_seconds)), 0.1)
 	cast_jitter = maxf(float(d.get("cast_jitter", cast_jitter)), 0.0)
 
@@ -285,3 +302,25 @@ static func water_label(point: float) -> String:
 ## 战斗配置的浅取值，带默认值。FightSession 用同一套 key。
 func fight_value(key: String, fallback: Variant) -> Variant:
 	return fight.get(key, fallback)
+
+
+## 动态难度倍率。越接近集齐，返的倍率越大；简单难度整档关掉。
+func dda_scale(caught: int, total: int) -> Dictionary:
+	if not dda_from_difficulty or total <= 0:
+		return {"speed": 1.0, "sway": 1.0}
+	var progress := clampf(float(caught) / float(total), 0.0, 1.0)
+	return {
+		"speed": 1.0 + progress * dda_speed_gain,
+		"sway": 1.0 + progress * dda_sway_gain,
+	}
+
+
+## 豆包的出现权重倍率。剩下的饵越少、离集齐越远，它越愿意冒头。
+## 已经集齐就直接归零 —— 那时候玩家要的是结局，不是救济。
+func doubao_weight_scale(bait_left: int, caught: int, total: int) -> float:
+	if total > 0 and caught >= total:
+		return 0.0
+	if bait_left > doubao_mercy_bait:
+		return 1.0
+	return maxf(doubao_mercy_gain, 1.0)
+

@@ -59,6 +59,7 @@
                                       "fake_claude_chance":  0.9,
                                       "charge_full_seconds":  2.1,
                                       "cast_jitter":  3.0,
+                                      "dda_from_difficulty":  false,
                                       "zones":  [
                                                     {
                                                         "id":  "z_small",
@@ -220,5 +221,10 @@
                                   }
                      },
     "doubao_refund":  2,
-    "doubao_escape_chance":  0.35
+    "doubao_escape_chance":  0.35,
+    "doubao_mercy_bait":  2,
+    "doubao_mercy_gain":  2.4,
+    "dda_speed_gain":  0.45,
+    "dda_sway_gain":  1.6,
+    "dda_from_difficulty":  true
 }

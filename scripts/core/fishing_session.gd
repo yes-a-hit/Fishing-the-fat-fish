@@ -234,6 +234,14 @@ func _cast() -> void:
 	# 注意不过滤已钓到的鱼 —— 同一条可以反复上，只是不再计入收集。
 	var pool := GameTuning.candidates_at(_zones, cast_point)
 
+	# 豆包是救济不是常规鱼：饵快见底又还没集齐的时候它才更愿意冒头，
+	# 集齐之后直接归零，别在该结算的时候跑出来搅局。
+	var doubao_mul := _tune.doubao_weight_scale(bait_left, _caught_target_count(), _targets.size())
+	if not is_equal_approx(doubao_mul, 1.0):
+		for c in pool:
+			if String(c["fish"]) == "doubao":
+				c["weight"] = float(c["weight"]) * doubao_mul
+
 	if pool.is_empty():
 		pending_fish = null
 		# 一条鱼都不覆盖该点 = 空竿。当前只有陷阱带与前一条鱼之间的隔离区会走到这里。
@@ -284,7 +292,9 @@ func _tick_waiting(delta: float) -> void:
 
 
 func _start_fight() -> void:
-	fight = FightSession.new(pending_fish, _tune, rng)
+	# 钓到的鱼越多，这一场转得越快、黄标摆得越凶
+	var dda := _tune.dda_scale(_caught_target_count(), _targets.size())
+	fight = FightSession.new(pending_fish, _tune, rng, dda)
 	fight.finished.connect(_on_fight_finished)
 	_set_phase(Phase.FIGHTING)
 	bite_started.emit(pending_fish, fight)

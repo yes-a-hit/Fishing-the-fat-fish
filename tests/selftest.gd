@@ -1044,9 +1044,18 @@ func _case_landing_sequence() -> void:
 		landing._finish()
 	if big != null:
 		landing.play(big, Vector2(100, 100))
-		_check("大肥鱼没有序列，用静态图", landing._frames.size(), 0)
-		_ok("静态图已挂上", landing._fish.texture != null)
+		_check("大肥鱼走序列", landing._frames.size(), 4)
+		_ok("大肥鱼序列图正常", landing._frames[0] != null)
 		landing._finish()
+
+	# 三条鱼的帧数都得对得上，目录里少一张就会露馅
+	for fid in ["small", "mid", "big"]:
+		_check("%s 登记了序列" % fid, LandingView.SEQUENCES.has(fid), true)
+	var mid_frames: Array[Texture2D] = landing._load_sequence("res://assets/anim/mid")
+	_check("中肥鱼四帧", mid_frames.size(), 4)
+	_ok("三个序列目录互不相同",
+		LandingView.SEQUENCES["small"] != LandingView.SEQUENCES["mid"]
+		and LandingView.SEQUENCES["mid"] != LandingView.SEQUENCES["big"])
 
 	g.free()
 

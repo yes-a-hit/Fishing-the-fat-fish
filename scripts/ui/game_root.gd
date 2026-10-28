@@ -437,20 +437,24 @@ func _on_cast_made(point: float, _fish_id: String) -> void:
 func _on_bite_started(fish: FishSpec, fight: FightSession) -> void:
 	_qte.bind(fight)
 	_lake.set_bite(true)
-	# 咬钩不开口：鱼在水下咬着钩，这时候说话就露馅了。声音留到真的捞上来那一下。
+	# 咬钩那一刻各说一句（bite_*），捞上来再说另一句（catch_*）。
+	# 两句分开是两套资源，图鉴里的语音收集也按这两个 key 各记一条。
+	if Audio.has_voice("bite_" + fish.id):
+		Audio.play_voice("bite_" + fish.id)
 
 
 func _on_landing_started(fish: FishSpec) -> void:
 	_hud.refresh_caught(_session.caught_ids())
 	_cast_panel.refresh_caught(_session.caught_ids())
 	_landing.play(fish, _lake.bobber_screen_pos())
-	# 捞上来的瞬间才出声，每条鱼说自己的那句；豆包用主人录的那条
+	# 上鱼那句和咬钩那句是两回事：咬钩时鱼还在水里说话（bite_*），
+	# 被捞出水面的瞬间说的是另一句（catch_*）。豆包用主人录的那条。
 	if fish.is_doubao:
 		Audio.play_voice("doubao_catch")
-	elif Audio.has_voice("bite_" + fish.id):
-		Audio.play_voice("bite_" + fish.id)
+	elif Audio.has_voice("catch_" + fish.id):
+		Audio.play_voice("catch_" + fish.id)
 	else:
-		Audio.play_voice("catch")
+		Audio.play_voice("catch_mid")
 
 
 func _on_landing_finished() -> void:
