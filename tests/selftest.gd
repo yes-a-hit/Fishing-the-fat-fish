@@ -59,6 +59,7 @@ func _run_all() -> void:
 	_case_line_break()
 	_case_scene_boot()
 	_case_pause()
+	_case_landing_sequence()
 	_case_mouse_policy()
 	_case_ending_overlay()
 	_case_settings_roundtrip()
@@ -987,6 +988,66 @@ func _case_scene_boot() -> void:
 	_ok("场景提示已建", g._feedback != null)
 	_ok("结算层已建", g._ending != null)
 	_check("开局阶段", g._session.phase, FishingSession.Phase.AIMING)
+	g.free()
+
+
+## 上鱼演出：小肥鱼有逐帧序列，别的鱼退回静态立绘。
+func _case_landing_sequence() -> void:
+	print("[case] 上鱼逐帧序列")
+	var g = _spawn_game()
+	if g == null:
+		return
+	var landing = g._landing
+	_ok("上鱼层已建", landing != null)
+	if landing == null:
+		g.free()
+		return
+
+	_ok("小肥鱼登记了序列", LandingView.SEQUENCES.has("small"))
+
+	var dir := String(LandingView.SEQUENCES["small"])
+	var got: Array[Texture2D] = landing._load_sequence(dir)
+	_check("序列帧数", got.size(), 6)
+	var all_ok := true
+	for t in got:
+		if t == null:
+			all_ok = false
+	_ok("六帧都加载成功", all_ok)
+
+	# 帧名必须按数字顺序排：01 到 06，顺序错动画就是乱的
+	var files: Array[String] = []
+	var d := DirAccess.open(dir)
+	for f in d.get_files():
+		var n := String(f)
+		if n.ends_with(".import"):
+			continue
+		if n.ends_with(".webp"):
+			files.append(n)
+	files.sort()
+	_check("目录里正好六张图", files.size(), 6)
+	_ok("帧名以 01 开头", files.size() > 0 and files[0].begins_with("01_"))
+	_ok("帧名以 06 结尾", files.size() > 0 and files[files.size() - 1].begins_with("06_"))
+
+	# 没有序列的鱼不能凭空有帧
+	var small: FishSpec = null
+	var big: FishSpec = null
+	for f in g._fish:
+		if f.id == "small":
+			small = f
+		elif f.id == "big":
+			big = f
+	_ok("配置里能找到小肥鱼与大肥鱼", small != null and big != null)
+	if small != null:
+		landing.play(small, Vector2(100, 100))
+		_check("小肥鱼走序列", landing._frames.size(), 6)
+		_ok("每帧时长按帧数均分", landing._frame_seconds > 0.08 and landing._frame_seconds < 0.5)
+		landing._finish()
+	if big != null:
+		landing.play(big, Vector2(100, 100))
+		_check("大肥鱼没有序列，用静态图", landing._frames.size(), 0)
+		_ok("静态图已挂上", landing._fish.texture != null)
+		landing._finish()
+
 	g.free()
 
 

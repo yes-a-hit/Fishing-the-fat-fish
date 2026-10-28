@@ -10,10 +10,21 @@ extends Control
 ## 值得让玩家看完；但又不能长到打断节奏。
 ##
 ## 这里只播动画，判定「是否上鱼」已经在 FishingSession 里做完了。
+##
+## 有专属逐帧序列的鱼走序列（`SEQ_DIR` 目录下按 `01_xxx.webp` 顺次命名），
+## 没有的就用 `fish.portrait` 那张静态图 —— 加动画是纯加法，不改别的鱼的路径。
 
 const FISH_SIZE := 460.0
 const FLIGHT_SECONDS := 0.55
 const HOLD_SECONDS := 1.5
+
+## 谁有逐帧序列。目录里的文件名决定播放顺序，用前两位数字排序。
+const SEQUENCES := {
+	"small": "res://assets/anim/small",
+}
+
+## 序列里每帧停留多久（秒）。飞行段和停留段各自均分。
+const FRAME_SECONDS := 0.28
 
 signal finished
 
@@ -22,6 +33,8 @@ var _fish: TextureRect = null
 var _line: Label = null
 var _playing: bool = false
 var _elapsed: float = 0.0
+var _frames: Array[Texture2D] = []
+var _frame_seconds: float = FRAME_SECONDS
 
 
 func _ready() -> void:
@@ -58,8 +71,44 @@ func _process(delta: float) -> void:
 	if not _playing:
 		return
 	_elapsed += delta
+	_tick_frames()
 	if _elapsed >= FLIGHT_SECONDS + HOLD_SECONDS:
 		_finish()
+
+
+## 逐帧推进。序列播完就停在最后一帧，不循环 —— 上鱼是「一次性事件」，
+## 让它循环会变成节拍器，反而出戏。
+func _tick_frames() -> void:
+	if _frames.size() < 2:
+		return
+	var idx := int(_elapsed / _frame_seconds)
+	if idx >= _frames.size():
+		idx = _frames.size() - 1
+	if _fish.texture != _frames[idx]:
+		_fish.texture = _frames[idx]
+
+
+## 从 `<dir>/01_xxx.webp` 这样的文件里装一整套帧。
+func _load_sequence(dir_path: String) -> Array[Texture2D]:
+	var out: Array[Texture2D] = []
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return out
+	var names: Array[String] = []
+	for f in dir.get_files():
+		var n := String(f)
+		# .import 是 Godot 的导入元数据，不是资源本身；直接跳过，
+		# 别 trim 掉后缀再判断 —— 那样每帧会被数两遍。
+		if n.ends_with(".import"):
+			continue
+		if n.ends_with(".webp") or n.ends_with(".png"):
+			names.append(n)
+	names.sort()
+	for n in names:
+		var tex := UIKit.load_texture(dir_path + "/" + n)
+		if tex != null:
+			out.append(tex)
+	return out
 
 
 ## 播一次。from_pos 是浮标在屏幕上的位置，鱼从那里飞出来。
@@ -72,7 +121,18 @@ func play(fish: FishSpec, from_pos: Vector2) -> void:
 	_elapsed = 0.0
 	visible = true
 
-	_fish.texture = UIKit.load_texture(fish.portrait)
+	# 有序列就逐帧放，没有就退回静态立绘
+	_frames.clear()
+	if SEQUENCES.has(fish.id):
+		_frames = _load_sequence(String(SEQUENCES[fish.id]))
+	if not _frames.is_empty():
+		# 整段演出时长固定，帧数变了就自动改每帧停留时间
+		var budget := FLIGHT_SECONDS + HOLD_SECONDS - 0.15
+		_frame_seconds = maxf(budget / float(_frames.size()), 0.08)
+		_fish.texture = _frames[0]
+	else:
+		_fish.texture = UIKit.load_texture(fish.portrait)
+
 	var tint := fish.tint
 	_fish.modulate = Color(tint.r, tint.g, tint.b, 0.0)
 	_fish.pivot_offset = _fish.size * 0.5
@@ -119,4 +179,5 @@ func _finish() -> void:
 func _on_fade_done() -> void:
 	visible = false
 	_fish.texture = null
+	_frames.clear()
 	finished.emit()
