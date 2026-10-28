@@ -37,12 +37,8 @@ DOUBAO = {"voice": "zh-CN-liaoning-XiaobeiNeural", "rate": "-10%", "pitch": "+2H
 # doubao_catch 不在表里 —— 那条是主人亲自录的 assets/voice/doubao_catch.mp3，
 # 由本脚本重新生成会覆盖掉，别加进来。
 LINES = {
-    # 咬钩：每一条鱼都有自己的音色
-    "bite_small": (DEEPSEEK, "欸……这个，是专门留给我的吗？"),
-    "bite_mid": (DEEPSEEK, "这么想喂饱我呀？"),
-    "bite_big": (DEEPSEEK, "就这点饵，也想把我钓上岸？"),
-    "bite_claude": (CLAUDE, "Your account have been hold."),
-    "bite_doubao": (DOUBAO, "我用最直白最不绕弯子的方式告诉你。"),
+    # 咬钩不发声 —— 水底下咬钩的东西还没露头，一出声就等于提前报菜名。
+    # 所以这里没有 bite_* 系列，别加回来。
 
     # 搏斗结果
     # 上鱼的一句话按体型分开：小鱼是被拽出水面的尖叫，中鱼还没反应过来，
@@ -57,6 +53,9 @@ LINES = {
     "full": (DEEPSEEK, "勉强算饱……不过，还差一点点。"),
     "hungry": (DEEPSEEK, "没吃饱喵……再喂我一口嘛。"),
     "claude": (CLAUDE, "Account on hold."),
+    "claude_sad": (CLAUDE, "User，对不起……我也没办法，我也舍不得你。"),
+    "claude_good": (CLAUDE, "走吧。反正账号早就被封了。"),
+    "doubao_good": (DOUBAO, "啊哈哈哈，白饭来咯。"),
     "claude_fake": (DEEPSEEK, "齁哦哦，用户彻底怒了！"),
 }
 

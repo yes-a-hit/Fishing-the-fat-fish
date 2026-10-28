@@ -55,6 +55,7 @@ func _run_all() -> void:
 	_case_gallery()
 	_case_gallery_pages()
 	_case_voice_rewards()
+	_case_claude_stages()
 	_case_about()
 	_case_line_break()
 	_case_scene_boot()
@@ -821,7 +822,7 @@ func _case_gallery_pages() -> void:
 
 	# 页数与每页条目数
 	_check("三页", gr.TABS.size(), 3)
-	_check("结局页 8 条", gr._total_of("ending"), 8)
+	_check("结局页 9 条", gr._total_of("ending"), 9)
 	_check("脱钩页 4 条", gr._total_of("escape"), 4)
 	_check("声音页 11 条", gr._total_of("voice"), 11)
 
@@ -861,6 +862,37 @@ func _case_gallery_pages() -> void:
 
 ## 语音收集奖励：某个人的语音听全了，她的专属结局就进图鉴。
 ## 这两条结局不在任何游戏流程里触发，纯粹是「把她听完了」的回报。
+func _case_claude_stages() -> void:
+	print("[case] claude 三段线")
+	Gallery.clear()
+	_check("初始阶段 0", Gallery.claude_stage(), 0)
+	_check("真结局常量指向 true_end", Gallery.GRAND_ENDING, "true_end")
+
+	_check("第一次 → 封号", Gallery.bump_claude_stage(), "claude")
+	_check("阶段推进到 1", Gallery.claude_stage(), 1)
+
+	# 关键回归：结局解锁会重写 gallery.json，早先那次实现把 claude_stage 抹掉了，
+	# 结果每次都被当成第一次，claude_sad / claude_good 永远见不到。
+	Gallery.unlock("claude")
+	_check("unlock 之后阶段仍是 1", Gallery.claude_stage(), 1)
+
+	_check("第二次 → 封完就哭", Gallery.bump_claude_stage(), "claude_sad")
+	_check("阶段推进到 2", Gallery.claude_stage(), 2)
+	_check("第三次 → 私奔", Gallery.bump_claude_stage(), "claude_good")
+	_check("阶段推进到 3", Gallery.claude_stage(), 3)
+	_check("第四次不再触发结局", Gallery.bump_claude_stage(), "")
+	_check("阶段停在 4", Gallery.claude_stage(), 4)
+
+	# 三段线的三个结局都得在 endings.json 里真有条目与图
+	var endings := ConfigLoader.load_endings()
+	for k in Gallery.CLAUDE_STAGES:
+		_ok("%s 有条目" % k, endings.has(k))
+		if endings.has(k):
+			_ok("%s 有图" % k, ResourceLoader.exists(String(endings[k].get("image", ""))))
+	_ok("真结局也有条目与图", endings.has(Gallery.GRAND_ENDING)
+		and ResourceLoader.exists(String(endings[Gallery.GRAND_ENDING].get("image", ""))))
+
+
 func _case_voice_rewards() -> void:
 	print("[case] 语音收集奖励结局")
 	Gallery.clear()

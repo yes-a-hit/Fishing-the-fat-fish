@@ -122,7 +122,7 @@ func _got_of(tab: String) -> int:
 ## 剩下的按 json 里出现的顺序补。
 func _ordered_keys() -> Array:
 	var out: Array = []
-	for k in ["feast", "full", "hungry", "doubao_good", "claude_good", "claude", "claude_fake"]:
+	for k in ["feast", "full", "hungry", "doubao_good", "claude_good", "true_end", "claude", "claude_fake"]:
 		if _endings.has(k):
 			out.append(k)
 	for k in _endings.keys():

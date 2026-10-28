@@ -379,6 +379,9 @@ func _advance_after_round() -> void:
 			_set_phase(Phase.AIMING)
 			return
 		_finish(staged)
+		# 私奔过之后，她就不再是「远洋尽头那条线」了 —— 齐人之福这时候才成立。
+		if staged == "claude_good":
+			Gallery.unlock(Gallery.GRAND_ENDING)
 		return
 
 	# 三条鱼全钓到就是齐鱼之福，当场结算，不必把剩下的饵烧完

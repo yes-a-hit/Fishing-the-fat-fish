@@ -42,7 +42,7 @@ const VOICE_REWARDS := {
 const CLAUDE_STAGES := ["claude", "claude_sad", "claude_good"]
 
 ## 集齐全套（所有结局 + 所有语音）之后解锁的终极结局。
-const GRAND_ENDING := "feast"
+const GRAND_ENDING := "true_end"
 
 ## 测试用：非空时所有读写都走这里，不碰玩家的真实存档。
 ## 自测要跑 play_voice()，而 play_voice() 会解锁 —— 不隔离就把玩家进度写脏了。
@@ -84,11 +84,19 @@ static func unlock(key: String, path: String = "") -> bool:
 	if unlocked.has(key):
 		return false
 	unlocked.append(key)
-	_write_json(resolved, {
-		"_note": "已解锁的 key。删掉这个文件等于重置图鉴。",
-		KEY_UNLOCKED: Array(unlocked),
-	})
+	_save(resolved, unlocked)
 	return true
+
+
+## 所有落盘都走这里。之前 unlock() 自己拼一份 json，只写 unlocked，
+## 把 claude_stage 抹掉了 —— 结果真 claude 永远停在第 1 段，
+## claude_sad 和 claude_good 再也见不到。
+static func _save(resolved: String, unlocked: PackedStringArray) -> void:
+	_write_json(resolved, {
+		"_note": "已解锁的 key 与 claude 相遇次数。删掉这个文件等于重置图鉴。",
+		KEY_UNLOCKED: Array(unlocked),
+		KEY_CLAUDE_STAGE: claude_stage(resolved),
+	})
 
 
 static func clear(path: String = "") -> void:
@@ -172,6 +180,7 @@ static func claude_stage(path: String = "") -> int:
 static func bump_claude_stage(path: String = "") -> String:
 	var resolved := _resolve(path)
 	var stage := claude_stage(path)
+	# 先把新阶段写进去，再读回来时 unlocked 不会丢
 	_write_json(resolved, {
 		"_note": "已解锁的 key 与 claude 相遇次数。删掉这个文件等于重置图鉴。",
 		KEY_UNLOCKED: Array(load_unlocked(path)),
