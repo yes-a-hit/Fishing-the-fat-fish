@@ -199,21 +199,22 @@ func _build_ui() -> void:
 ## 靠实白底 + 描边保证醒目度，靠图标保证不占地。图标用 ASCII 的 || 画，
 ## 不走字体子集（子集里没有 ⏸ 这类符号会变成方块）。
 func _build_pause_button() -> void:
-	var layer := MarginContainer.new()
-	layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	layer.add_theme_constant_override("margin_right", 18)
-	layer.add_theme_constant_override("margin_top", 16)
-	layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(layer)
-
+	# 不套 MarginContainer：它会把里面唯一的孩子纵向拉满整屏，
+	# 按钮因此变成一根贴右边缘、从上贯到下的白条。
+	# 直接用 HBox + 右上角偏移 + 顶端对齐，按钮永远只有 44×44。
 	var row := HBoxContainer.new()
+	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	row.alignment = BoxContainer.ALIGNMENT_END
+	row.offset_top = 16
+	row.offset_bottom = 60
+	row.offset_right = -18
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	layer.add_child(row)
+	add_child(row)
 
 	var btn := Button.new()
 	btn.tooltip_text = "暂停（Esc）"
 	btn.custom_minimum_size = Vector2(44, 44)
+	btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	btn.focus_mode = Control.FOCUS_NONE
 	_paint_pause_button(btn)
 
