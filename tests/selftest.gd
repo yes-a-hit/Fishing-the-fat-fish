@@ -824,7 +824,7 @@ func _case_gallery_pages() -> void:
 	_check("三页", gr.TABS.size(), 3)
 	_check("结局页 9 条", gr._total_of("ending"), 9)
 	_check("脱钩页 4 条", gr._total_of("escape"), 4)
-	_check("声音页 11 条", gr._total_of("voice"), 11)
+	_check("声音页 14 条", gr._total_of("voice"), 14)
 
 	# 每条脱钩条目都要有图、有 key、有唯一 key
 	var keys: Array = []
@@ -1315,14 +1315,15 @@ func _case_audio_director() -> void:
 
 	var keys := [
 		"catch_small", "catch_mid", "catch_big",
-		"escape", "feast", "full", "hungry", "claude", "claude_fake",
+		"escape", "feast", "full", "hungry",
+		"claude", "claude_sad", "claude_good", "doubao_good", "claude_fake",
 		"doubao_catch", "doubao_escape",
 	]
 	var missing: Array = []
 	for k in keys:
 		if not bool(audio.call("has_voice", k)):
 			missing.append(k)
-	_check("11 条台词全部可加载", missing.size(), 0)
+	_check("14 条台词全部可加载", missing.size(), 0)
 	if not missing.is_empty():
 		print("     缺: ", missing)
 

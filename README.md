@@ -30,8 +30,8 @@ Godot 4.7 · GDScript · 1280×800 · 单场景小游戏
 
 | 平台 | 直接下载 | 大小 |
 |---|---|---|
-| **Windows** | [`钓肥鱼-v1.3.3-windows-x64.zip`](docs/download/钓肥鱼-v1.3.3-windows-x64.zip) — 解压后双击 `钓肥鱼.exe`，单文件 | 20 MB |
-| **Android** | [`钓肥鱼-v1.3.3.apk`](docs/download/钓肥鱼-v1.3.3.apk) — 直接安装 | 29 MB |
+| **Windows** | [`钓肥鱼-v1.3.4-windows-x64.zip`](docs/download/钓肥鱼-v1.3.4-windows-x64.zip) — 解压后双击 `钓肥鱼.exe`，单文件 | 23 MB |
+| **Android** | [`钓肥鱼-v1.3.4.apk`](docs/download/钓肥鱼-v1.3.4.apk) — 直接安装 | 31 MB |
 | **网页版** | [在线玩](https://yes-a-hit.github.io/Fishing-the-fat-fish/) | — |
 
 如果链接点了没反应，右键 →「链接另存为」，或者把地址里的 `github.com/.../raw/main/...` 换成 `raw.githubusercontent.com/...`。
@@ -94,15 +94,19 @@ Godot 4.7 · GDScript · 1280×800 · 单场景小游戏
 
 | 结局 | 条件 |
 |---|---|
-| `feast` 齐鱼之福 | 三种鱼全部集齐，**唯一的通关结局** |
+| `true_end` 齐人之福 | **真结局**。跑完私奔那一段之后才解锁 —— 她游过来跟你走了，被窝里挤四个人 |
+| `feast` 齐鱼之福 | 三种鱼全部集齐，本轮通关 |
 | `full` 吃饱饱 | 饵用完时，上鱼次数 ≥ 3（但没集齐三种） |
 | `hungry` 没吃饱 | 饵用完时，上鱼次数 < 3 |
-| `claude` | 钓上真陷阱，本局立即终止 |
-| `claude_fake` | 钓上假陷阱（套头套的鲸鱼娘），同样终止，但结算是三段 meme |
-| `doubao_good` 白饭来咯 | **图鉴专属**。豆包的三条语音全听过 |
-| `claude_good` 私奔 | **图鉴专属**。Claude 的两条语音全听过 |
+| `claude` 封号 | 第一次钓上真陷阱，她只递通知单，不解释 |
+| `claude_sad` 封完就哭 | 第二次。还是照封，但自己先红了眼 |
+| `claude_good` 私奔 | 第三次。她决定不递了，从远洋游过来找你 |
+| `claude_fake` 假封号 | 钓上假陷阱（套头套的鲸鱼娘），终止本局，结算是三段 meme |
+| `doubao_good` 白饭来咯 | **图鉴专属**。豆包的两条语音全听过 |
 
-后两条不在任何游戏流程里触发，只在图鉴里出现 —— 它们是「把这个人听完了」本身的回报，所以挂 `Gallery` 而不是 `FishingSession`。判定写在 `scripts/core/gallery.gd` 的 `VOICE_REWARDS`，`play_voice()` 解锁完一条语音就顺手 `check_rewards()` 一次。
+`claude` / `claude_sad` / `claude_good` 是一条三段线：次数跨局累计，存在 `user://gallery.json` 的 `claude_stage` 里 —— 她记得你见过她几回。第四次起她不再封号，只浮上来看你一眼就自己游回去。
+
+`doubao_good` 不在任何游戏流程里触发，只在图鉴里出现 —— 它是「把这个人听完了」本身的回报，所以挂 `Gallery` 而不是 `FishingSession`。判定写在 `scripts/core/gallery.gd` 的 `VOICE_REWARDS`，`play_voice()` 解锁完一条语音就顺手 `check_rewards()` 一次。
 
 ### 藏起来的那条
 
@@ -145,7 +149,7 @@ Godot 4.7 · GDScript · 1280×800 · 单场景小游戏
 
 | 页 | 内容 | 解锁条件 |
 |---|---|---|
-| 结 局 | 7 个结局 | 玩到那个结局，或把某个人的语音听全 |
+| 结 局 | 9 个结局 | 玩到那个结局，或把某个人的语音听全 |
 | 脱 钩 | 4 张脱钩梗图 | 那条鱼从你手里跑掉 |
 | 声 音 | 14 条台词 | 那一句在游戏里触发过 |
 
@@ -186,6 +190,8 @@ BGM 是一段 60 秒的海浪垫底 + A 小调五声拨弦，由 `tools/gen_bgm.
 | 角色 | edge-tts 音色 | 参数 | 听感 |
 |---|---|---|---|
 | DeepSeek | `zh-CN-XiaoyiNeural` | `rate +10%` `pitch +14Hz` | 跳脱的少女音 |
+| DeepSeek（小鱼上鱼） | `zh-CN-XiaoyiNeural` | `rate +26%` `pitch +38Hz` | 被扯出水面的那声尖叫 |
+| DeepSeek（大鱼上鱼） | `zh-CN-XiaoyiNeural` | `rate -8%` `pitch +2Hz` | 压低下来逗你的那种 |
 | Claude | `zh-CN-XiaoxiaoNeural` | `rate -6%` `pitch -6Hz` | 新闻播报式的暖女声，念通知一样平 |
 | 豆包 | `zh-CN-liaoning-XiaobeiNeural` | `rate -10%` `pitch +2Hz` | 东北方言的憨感 |
 
@@ -193,7 +199,13 @@ BGM 是一段 60 秒的海浪垫底 + A 小调五声拨弦，由 `tools/gen_bgm.
 
 **`doubao_catch.mp3` 是主人自己录的**，捞上豆包那一下播它，不走脚本。`tools/gen_voice.py` 的 `LINES` 表刻意不包含这个 key —— 加进去重跑一次就把录音覆盖了。`doubao_escape.mp3`（「奶龙大笑」，豆包脱钩时播）同样是外来素材，也不在表内。
 
-播放全部由 autoload `Audio`（`scripts/core/audio_director.gd`）管：一条循环 BGM、一条随时可被打断的语音。台词按角色分：咬钩时播 `bite_<fish_id>`，上鱼播 `catch`（豆包换成 `doubao_catch`），断线播 `escape`（豆包换成 `doubao_escape`），结算播结局 key。
+**edge-tts 吐出来的是 MP3 流，只是名字随便叫。** 直接存成 `.ogg`，Godot 会按扩展名挑解码器然后报 `Failed loading resource`。所以 `gen_voice.py` 先落成 mp3 再用 ffmpeg 真转 ogg（本机没有系统 ffmpeg，用 `imageio-ffmpeg` 自带的那个二进制）。
+
+播放全部由 autoload `Audio`（`scripts/core/audio_director.gd`）管：一条循环 BGM、一条随时可被打断的语音。
+
+**咬钩那一刻不发声。** 水底下有东西咬钩，但它是什么得等真捞上来才知道 —— 一出声就等于提前报菜名，惊喜全没了。所以 `LINES` 表里没有 `bite_*` 系列，别加回去。声音一律留到 landing 那一下，按体型分：`catch_small`（「鲸鲸！」）/ `catch_mid`（「诶？」）/ `catch_big`（「啵～」）。断线播 `escape`（豆包换成 `doubao_escape`），结算播结局 key。
+
+资源缺失只会 `push_warning`，不会让游戏起不来。
 
 资源缺失只会 `push_warning`，不会让游戏起不来。
 
@@ -314,7 +326,7 @@ scripts/
 data/
 ├── fish.json                角色数值、立绘与文案
 ├── tuning.json              抛竿、等待、搏斗、演出时长，以及三档难度
-└── endings.json             七种结局文案与图片
+└── endings.json             九种结局文案与图片
 
 docs/
 ├── design.md                玩法、状态机与表现目标
@@ -405,32 +417,32 @@ theme/custom_font="res://assets/fonts/game_sc.otf"
 
 | 文件 | 用途 | 状态 |
 |---|---|---|
-| `portrait_small.jpg` | 小肥鱼立绘 | 已有 |
-| `portrait_mid.jpg` | 中肥鱼立绘 | 已有 |
-| `portrait_big.jpg` | 大肥鱼独立立绘 | 已补充，不再与中肥鱼共用 |
-| `claude_chibi.jpg` | 陷阱鱼立绘、`claude` 结局图、主菜单装饰 | 已有 |
-| `ending_feast.jpg` | `feast` 齐鱼之福结局图 | 已有（被窝里三条大中小，第一人称看向镜头） |
-| `ending_doubao.jpg` | `doubao_good` 白饭来咯结局图 | 已有（豆包举着一座米饭山） |
-| `ending_claude.jpg` | `claude_good` 私奔结局图 | 已有（夜色海边，她拉着你的手回头笑） |
-| `ending_win.jpg` | `full` 吃饱饱结局图 | 已有（梗图：吃饱了拍肚子） |
-| `ending_hungry.jpg` | `hungry` 没吃饱结局图 | 已有（梗图：抱着空碗「没吃饱喵！」） |
-| `claude_fake_1.png` | 假陷阱结算第 1 页 | 已有（橘发竖中指「Your ar account have been hold」） |
-| `claude_fake_2.png` | 假陷阱结算第 2 页 | 已有（Scooby-Doo 揭头套改图：Claude 头套掀开是鲸鱼娘） |
-| `claude_fake_3.png` | 假陷阱结算第 3 页 | 已有（趴床翻白眼 + 竖排「深度思考中...」） |
-| `doubao.png` | 豆包立绘（未接入上鱼动画，留给后续） | 已有 |
-| `doubao_kick.jpg` | 捞到豆包时右上角飘出的卡片 | 已有（「哪来的奶黄包！」） |
-| `doubao_escape.jpg` | 豆包脱钩时右上角飘出的卡片 | 已有（抱着肚子大笑） |
-| `deepseek_escape.webp` | 小/中肥鱼脱钩的卡片 | 已有 |
-| `deepseek_escape_big.webp` | 大肥鱼脱钩的卡片 | 已有 |
-| `claude_escape.png` | Claude 脱钩的卡片（真假通用） | 已有 |
-| `voice/*.mp3` | 13 条台词，其中 `doubao_catch.mp3` 是主人录的 | 已有，`tools/gen_voice.py` 可重生成另外 12 条 |
+| `portrait_small.webp` | 小肥鱼立绘 | 已有 |
+| `portrait_mid.webp` | 中肥鱼立绘 | 已有 |
+| `portrait_big.webp` | 大肥鱼独立立绘 | 已补充，不再与中肥鱼共用 |
+| `claude_hold.webp` | 陷阱鱼立绘、`claude` / `claude_sad` 结局图 | 已有（「Your account is on hold」+ 竖中指） |
+| `ending_true.webp` | `true_end` 齐人之福（真结局） | 已有（四个人挤在被窝里） |
+| `ending_feast.webp` | `feast` 齐鱼之福结局图 | 已有（被窝里三条大中小，第一人称看向镜头） |
+| `ending_doubao.webp` | `doubao_good` 白饭来咯结局图 | 已有（豆包举着一座米饭山） |
+| `ending_claude.webp` | `claude_good` 私奔结局图 | 已有（夜色海边，她拉着你的手回头笑） |
+| `ending_win.webp` | `full` 吃饱饱结局图 | 已有（梗图：吃饱了拍肚子） |
+| `ending_hungry.webp` | `hungry` 没吃饱结局图 | 已有（梗图：抱着空碗「没吃饱喵！」） |
+| `claude_fake_1.png` | 假陷阱结算第 1 页 | 已有（橘发竖中指「Your account is on hold」） |
+| `claude_fake_2.webp` | 假陷阱结算第 2 页 | 已有（Scooby-Doo 揭头套改图：Claude 头套掀开是鲸鱼娘） |
+| `claude_fake_3.webp` | 假陷阱结算第 3 页 | 已有（趴床翻白眼 + 竖排「深度思考中...」） |
+| `doubao.webp` | 豆包立绘 | 已有 |
+| `doubao_kick.webp` | 捞到豆包时右上角飘出的卡片 | 已有（「哪来的奶黄包！」） |
+| `doubao_escape.webp` | 豆包脱钩时右上角飘出的卡片 | 已有（抱着肚子大笑） |
+| `deepseek_escape.webp` | 小/中肥鱼脱钩的卡片 | 已有（「哦鲸鲸...」） |
+| `deepseek_escape_big.webp` | 大肥鱼脱钩的卡片 | 已有（「鲸鱼不是肥，是密度好」） |
+| `claude_escape.webp` | 陷阱脱钩的卡片 | 已有（鼓腮帮子扭过头） |
+| `anim/small/*.webp` | 小肥鱼上鱼五帧 | 已有（吊出水面 → 不锈钢盆出现 → 跳过去 → 泡进盆里 → 盆扣住只露头） |
+| `anim/mid/*.webp` | 中肥鱼上鱼四帧 | 已有（被拎着懵 → 歪头 → 尾巴甩左 → 尾巴甩右） |
+| `anim/big/*.webp` | 大肥鱼上鱼四帧 | 已有（被托着脸 → 亲上来 → 比心 → 眨眼比心） |
+| `voice/*.ogg` | 14 条台词，其中 `doubao_catch.mp3` 是主人录的 | 已有，`tools/gen_voice.py` 可重生成另外 12 条 |
 | `bgm/lake_loop.wav` | 60 秒循环 BGM | 已有，`tools/gen_bgm.py` 可重生成 |
 
-`feast` 那张用 **ZipZipPipe 风格 LoRA**（`DeepSeek_ZipZipPipe_style_anima2b`，Anima 2B 基座）生成：强度 0.85、32 步、CFG 5、1216² 一次成图，三组触发词整段写进 prompt（身份组 `deepseek_whale_girl_zipzippipe` + 女仆装组 `deepseek_maid_outfit_zipzippipe` + 细节词）。`full` 与 `hungry` 保留梗图，画风与 `feast` 不一致是刻意的 —— 通关给正稿，没通给梗图。
-
-图集统一压成 JPEG q88 并用有损 webp 导入（`compress/mode=1`），这是 pck 从 19 MB 掉到 3.8 MB 的主因。原始 PNG 只在 `素材/` 留档，不进包。
-
-当前 JPG 立绘可用于占位和结算，但不满足“透明背景、角色姿态变化”的上鱼动画目标。正式动画需要单独的透明序列帧或等效角色部件资源，不能只把 JPG 去框后继续做整体 Tween。
+图集统一压成 webp 并用**有损** webp 导入（`compress/mode=1` + `lossy_quality=0.85`），这是 pck 从 19 MB 掉到 5.9 MB 的主因。原始 PNG 只在 `素材/` 留档，不进包。
 
 ---
 
