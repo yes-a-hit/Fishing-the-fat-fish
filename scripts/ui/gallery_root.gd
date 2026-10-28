@@ -52,12 +52,10 @@ const ESCAPE_ITEMS := [
 
 ## 声音收集。key 与 assets/voice/<key>.mp3 一一对应。
 const VOICE_ITEMS := [
-	{"key": "bite_small", "title": "小鱼咬钩", "face": "res://assets/portrait_small.webp", "line": "「欸……这个，是专门留给我的吗？」", "who": "DeepSeek"},
-	{"key": "bite_mid", "title": "中鱼咬钩", "face": "res://assets/portrait_mid.webp", "line": "「这么想喂饱我呀？」", "who": "DeepSeek"},
-	{"key": "bite_big", "title": "大鱼咬钩", "face": "res://assets/portrait_big.webp", "line": "「就这点饵，也想把我钓上岸？」", "who": "DeepSeek"},
-	{"key": "bite_claude", "title": "陷阱咬钩", "face": "res://assets/claude_hold.webp", "line": "Your account is on hold.", "who": "Claude"},
-	{"key": "bite_doubao", "title": "豆包咬钩", "face": "res://assets/doubao.webp", "line": "「我用最直白最不绕弯子的方式告诉你。」", "who": "豆包"},
-	{"key": "catch", "title": "上鱼", "face": "res://assets/portrait_big.webp", "line": "「唔……被你抓住了。那就，随你处置吧。」", "who": "DeepSeek"},
+	# 咬钩那一刻不发声（会剧透钓上什么），所以这里只列真正会响的那几句
+	{"key": "catch_small", "title": "小鱼上鱼", "face": "res://assets/portrait_small.webp", "line": "「鲸鲸！」", "who": "DeepSeek"},
+	{"key": "catch_mid", "title": "中鱼上鱼", "face": "res://assets/portrait_mid.webp", "line": "「诶？」", "who": "DeepSeek"},
+	{"key": "catch_big", "title": "大鱼上鱼", "face": "res://assets/portrait_big.webp", "line": "「啵～」", "who": "DeepSeek"},
 	{"key": "escape", "title": "断线", "face": "res://assets/deepseek_escape.webp", "line": "「线断了哦。下次，抓紧一点。」", "who": "DeepSeek"},
 	{"key": "feast", "title": "齐鱼之福", "face": "res://assets/ending_feast.webp", "line": "「吃饱饱了……可以摸摸肚子嘛。」", "who": "DeepSeek"},
 	{"key": "full", "title": "吃饱饱", "face": "res://assets/ending_win.webp", "line": "「勉强算饱……不过，还差一点点。」", "who": "DeepSeek"},

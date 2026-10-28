@@ -437,10 +437,8 @@ func _on_cast_made(point: float, _fish_id: String) -> void:
 func _on_bite_started(fish: FishSpec, fight: FightSession) -> void:
 	_qte.bind(fight)
 	_lake.set_bite(true)
-	# 咬钩那一刻各说一句（bite_*），捞上来再说另一句（catch_*）。
-	# 两句分开是两套资源，图鉴里的语音收集也按这两个 key 各记一条。
-	if Audio.has_voice("bite_" + fish.id):
-		Audio.play_voice("bite_" + fish.id)
+	# 咬钩这一刻不开口。水底下有东西咬钩，但它是什么得等真捞上来才知道 ——
+	# 一出声就等于提前报菜名，惊喜全没了。声音一律留到 landing 那一下。
 
 
 func _on_landing_started(fish: FishSpec) -> void:

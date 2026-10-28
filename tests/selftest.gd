@@ -823,7 +823,7 @@ func _case_gallery_pages() -> void:
 	_check("三页", gr.TABS.size(), 3)
 	_check("结局页 8 条", gr._total_of("ending"), 8)
 	_check("脱钩页 4 条", gr._total_of("escape"), 4)
-	_check("声音页 14 条", gr._total_of("voice"), 14)
+	_check("声音页 11 条", gr._total_of("voice"), 11)
 
 	# 每条脱钩条目都要有图、有 key、有唯一 key
 	var keys: Array = []
@@ -866,21 +866,19 @@ func _case_voice_rewards() -> void:
 	Gallery.clear()
 
 	_ok("豆包结局初始锁着", not Gallery.is_unlocked("doubao_good"))
-	_check("豆包还差 3 条", Gallery.missing_voice_for("doubao_good").size(), 3)
+	_check("豆包还差 2 条", Gallery.missing_voice_for("doubao_good").size(), 2)
 	_ok("普通结局没有收集条件", Gallery.missing_voice_for("feast").is_empty())
 
-	# 豆包：一条一条听，前两条不该解锁
-	Gallery.unlock("voice_bite_doubao")
-	_check("听了 1 条还差 2", Gallery.missing_voice_for("doubao_good").size(), 2)
+	# 豆包：一条一条听，第一条不该解锁
+	Gallery.unlock("voice_doubao_catch")
+	_check("听了 1 条还差 1", Gallery.missing_voice_for("doubao_good").size(), 1)
 	_ok("听了 1 条仍锁着", not Gallery.is_unlocked("doubao_good"))
 	_ok("check_rewards 此时不给东西", Gallery.check_rewards().is_empty())
 
-	Gallery.unlock("voice_doubao_catch")
-	_ok("听了 2 条仍锁着", not Gallery.is_unlocked("doubao_good"))
 	Gallery.unlock("voice_doubao_escape")
 
 	var fresh := Gallery.check_rewards()
-	_ok("三条齐了会返回新解锁", fresh.has("doubao_good"))
+	_ok("两条齐了会返回新解锁", fresh.has("doubao_good"))
 	_ok("豆包结局已解锁", Gallery.is_unlocked("doubao_good"))
 	_ok("豆包缺项清零", Gallery.missing_voice_for("doubao_good").is_empty())
 	_ok("重复检查不再返回", Gallery.check_rewards().is_empty())
@@ -1284,15 +1282,15 @@ func _case_audio_director() -> void:
 		return
 
 	var keys := [
-		"bite_small", "bite_mid", "bite_big", "bite_claude", "bite_doubao",
-		"catch", "escape", "feast", "full", "hungry", "claude", "claude_fake",
+		"catch_small", "catch_mid", "catch_big",
+		"escape", "feast", "full", "hungry", "claude", "claude_fake",
 		"doubao_catch", "doubao_escape",
 	]
 	var missing: Array = []
 	for k in keys:
 		if not bool(audio.call("has_voice", k)):
 			missing.append(k)
-	_check("14 条台词全部可加载", missing.size(), 0)
+	_check("11 条台词全部可加载", missing.size(), 0)
 	if not missing.is_empty():
 		print("     缺: ", missing)
 

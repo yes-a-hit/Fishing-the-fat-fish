@@ -27,7 +27,8 @@ const KEY_CLAUDE_STAGE := "claude_stage"
 ##
 ## claude_good（私奔）不在这张表里：它走剧情三段线，见下面的 CLAUDE_STAGES。
 const VOICE_REWARDS := {
-	"doubao_good": ["bite_doubao", "doubao_catch", "doubao_escape"],
+	# 咬钩不发声，所以豆包只剩上鱼与脱钩这两条能收
+	"doubao_good": ["doubao_catch", "doubao_escape"],
 }
 
 ## claude 三段线：按「上过几次真 claude」推进，跨局持久化。
