@@ -7,7 +7,7 @@ Godot 4.7 · GDScript · 1280×800 · 单场景小游戏
 当前玩法是：**主菜单选难度 → 循环滚动条抛竿 → 等待咬钩 → 圆环搏斗 → 上鱼演出 / 失败提示 → 结算**。
 搏斗是单键点击，不用方向键 —— 手机上也能玩。
 
-> 开发状态：核心规则可玩。当前上鱼演出仍是静态立绘整体移动的占位效果，**不等于已经完成的角色动画**；目标与验收标准见 [上鱼动画设计](docs/landing-animation.md)。
+> 开发状态：完工，作为meme游戏，动画偏简陋和魔性
 
 **授权**：[CC BY-NC-SA 4.0](LICENSE) —— 免费、非商业、必须署名、改动同协议共享。
 **这个游戏里的角色形象不是我画的**，画风来自 ZipZipPipe，素材来源逐条列在 [CREDITS.md](CREDITS.md)。二次创作前请先读那两份文件。
@@ -30,8 +30,8 @@ Godot 4.7 · GDScript · 1280×800 · 单场景小游戏
 
 | 平台 | 直接下载 | 大小 |
 |---|---|---|
-| **Windows** | [`钓肥鱼-v1.3.4-windows-x64.zip`](docs/download/钓肥鱼-v1.3.4-windows-x64.zip) — 解压后双击 `钓肥鱼.exe`，单文件 | 23 MB |
-| **Android** | [`钓肥鱼-v1.3.4.apk`](docs/download/钓肥鱼-v1.3.4.apk) — 直接安装 | 31 MB |
+| **Windows** | [release](https://github.com/yes-a-hit/Fishing-the-fat-fish/releases) — 直接双击 `钓肥鱼.exe` | 51.3 MB |
+| **Android** | [release](https://github.com/yes-a-hit/Fishing-the-fat-fish/releases) — 直接安装 | 31.6 MB |
 | **网页版** | [在线玩](https://yes-a-hit.github.io/Fishing-the-fat-fish/) | — |
 
 如果链接点了没反应，右键 →「链接另存为」，或者把地址里的 `github.com/.../raw/main/...` 换成 `raw.githubusercontent.com/...`。
@@ -69,7 +69,7 @@ Godot 4.7 · GDScript · 1280×800 · 单场景小游戏
 
 低难度黄标铺满半个圆、游标还慢；高难度只剩三分之一圆、游标比 easy 快七成。最窄也不许低于 100° —— 手机上手指点下去总有偏差，判定区太窄就变成考反应而不是考节奏。
 
-**爆冲**是 hard 才有的：鱼在水里使劲，整块黄标会左右摆。判定和画面用的是同一个 `hit_center()`，所以「看着在标里却判失手」不会发生 —— 但游标不会再乖乖等你，得追着标打。
+**爆冲**是 normal 和 hard 才有的：鱼在水里使劲，整块黄标会左右摆。判定和画面用的是同一个 `hit_center()`，所以「看着在标里却判失手」不会发生 —— 但游标不会再乖乖等你，得追着标打。
 
 每次点完有 0.3 秒冷却，冷却里按下去不算数也不吃失手，手快的人不会连点误触。体力见底时游标再快五成，最后一段最紧。
 
@@ -101,7 +101,7 @@ Godot 4.7 · GDScript · 1280×800 · 单场景小游戏
 | `claude` 封号 | 第一次钓上真陷阱，她只递通知单，不解释 |
 | `claude_sad` 封完就哭 | 第二次。还是照封，但自己先红了眼 |
 | `claude_good` 私奔 | 第三次。她决定不递了，从远洋游过来找你 |
-| `claude_fake` 假封号 | 钓上假陷阱（套头套的鲸鱼娘），终止本局，结算是三段 meme |
+| `claude_fake` 假封号 | 钓上中转站用deepseek冒充的假claude，终止本局，结算是三段 meme |
 | `doubao_good` 白饭来咯 | **图鉴专属**。豆包的两条语音全听过 |
 
 `claude` / `claude_sad` / `claude_good` 是一条三段线：次数跨局累计，存在 `user://gallery.json` 的 `claude_stage` 里 —— 她记得你见过她几回。第四次起她不再封号，只浮上来看你一眼就自己游回去。
