@@ -967,17 +967,11 @@ func _case_about() -> void:
 		_ok("小节「%s」有标题" % String(s.get("title", "")), String(s.get("title", "")) != "")
 		_ok("小节「%s」有正文" % String(s.get("title", "")), String(s.get("body", "")) != "")
 
+	# 关于页不再放外链。留这条断言盯着，免得哪天又被加回来。
 	var links: Array = data.get("links", [])
-	_ok("至少两条外链", links.size() >= 2)
-	var seen: Array = []
-	for l in links:
-		var url := String(l.get("url", ""))
-		_ok("链接「%s」以 http 开头" % String(l.get("label", "")), url.begins_with("http"))
-		_ok("链接「%s」不重复" % String(l.get("label", "")), not seen.has(url))
-		seen.append(url)
-	_ok("含 B 站主页", seen.has("https://space.bilibili.com/zh-Hans/4168597"))
+	_check("关于页没有外链", links.size(), 0)
 
-	# 长链接会被截断，不能截成空串
+	# _pretty_url 本身还在，单测一下别让它坏掉
 	_ok("短链接原样显示", String(ab._pretty_url("https://a.cn/x")) == "a.cn/x")
 	var long: String = ab._pretty_url("https://space.bilibili.com/zh-Hans/4168597")
 	_ok("长链接非空", long != "" and long != "—")
