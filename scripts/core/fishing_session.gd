@@ -289,21 +289,34 @@ func _cast() -> void:
 			cast_point = nearest
 			pool = GameTuning.candidates_at(_zones, cast_point)
 
-	# 豆包是救济不是常规鱼：饵快见底又还没集齐的时候它才更愿意冒头，
-	# 集齐之后直接归零，别在该结算的时候跑出来搅局。
-	var doubao_mul := _tune.doubao_weight_scale(bait_left, _caught_target_count(), _targets.size())
-	if not is_equal_approx(doubao_mul, 1.0):
-		for c in pool:
-			if String(c["fish"]) == "doubao":
-				c["weight"] = float(c["weight"]) * doubao_mul
+	# 豆包不吃距离带那套加权。它是一条正态曲线压在整根竿上：
+	# 越靠近近岸偏中段越容易撞见，往两头衰减。
+	# 所以先从池子里把它挑出来，单独掷一次骰。
+	var plain: Array = []
+	var doubao_here := false
+	for c in pool:
+		if String(c["fish"]) == "doubao":
+			doubao_here = true
+		else:
+			plain.append(c)
 
-	if pool.is_empty():
+	var doubao_p := 0.0
+	if doubao_here:
+		# 饵越少、离集齐越远，它越愿意来送饭；集齐之后直接归零。
+		doubao_p = _tune.doubao_chance_at(cast_point) \
+			* _tune.doubao_weight_scale(bait_left, _caught_target_count(), _targets.size())
+
+	if doubao_here and rng.randf() < doubao_p:
+		pending_fish = _find_fish("doubao")
+		_empty_reason = ""
+		_wait_left = rng.randf_range(_tune.bite_delay_min, _tune.bite_delay_max)
+	elif plain.is_empty():
 		pending_fish = null
 		# 一条鱼都不覆盖该点 = 空竿。当前只有陷阱带与前一条鱼之间的隔离区会走到这里。
 		_empty_reason = RESULT_EMPTY
 		_wait_left = _tune.empty_wait
 	else:
-		pending_fish = _find_fish(_weighted_pick(pool))
+		pending_fish = _find_fish(_weighted_pick(plain))
 		_empty_reason = ""
 		_wait_left = rng.randf_range(_tune.bite_delay_min, _tune.bite_delay_max)
 		# 远洋尽头那条到底是陷阱还是套着头套的鲸鱼娘，抛下去的那一刻就定了。

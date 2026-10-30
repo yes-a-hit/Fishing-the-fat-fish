@@ -52,6 +52,7 @@ func _run_all() -> void:
 	_case_claude_fake()
 	_case_doubao()
 	_case_doubao_escape()
+	_case_doubao_curve()
 	_case_gallery()
 	_case_gallery_pages()
 	_case_voice_rewards()
@@ -704,6 +705,10 @@ func _case_doubao() -> void:
 	_check("返还碗数配置", t.doubao_refund, 2)
 	# 这个用例只测返还，把脱钩概率关掉，否则三分之一的机会它咬一口就跑
 	t.doubao_escape_chance = 0.0
+	# 豆包现在是正态概率而不是必中，把曲线拉平到全条都满概率，
+	# 才好在固定坐标上复现
+	t.doubao_peak_chance = 1.0
+	t.doubao_peak_sigma = 500.0
 
 	var s := FishingSession.new(fish, t, _seeded_rng())
 	s.start()
@@ -751,6 +756,8 @@ func _case_doubao_escape() -> void:
 
 	# 概率拉到 1，保证每次都跑
 	t.doubao_escape_chance = 1.0
+	t.doubao_peak_chance = 1.0
+	t.doubao_peak_sigma = 500.0
 	var s := FishingSession.new(fish, t, _seeded_rng())
 	s.start()
 	s._zones = [{"id": "pin_doubao", "fish": "doubao", "from": 0.0, "to": 100.0, "weight": 1.0}]
@@ -778,6 +785,36 @@ func _case_doubao_escape() -> void:
 	_cast_at(s2, 50.0)
 	s2.tick(3.0)
 	_ok("概率归零后进入搏斗", s2.fight != null)
+
+
+## 豆包的正态曲线：峰值在近岸偏中段，两侧递减，峰高按难度覆盖。
+func _case_doubao_curve() -> void:
+	print("[case] 豆包的正态曲线")
+	var t := _test_tuning()
+	_check("峰值位置", t.doubao_peak_center, 28.0)
+	_check("标准差", t.doubao_peak_sigma, 18.0)
+
+	# 峰顶就是配置值本身
+	_ok("峰顶等于 peak_chance", absf(t.doubao_chance_at(28.0) - 0.4) < 0.001)
+	# 两侧必须单调递减
+	_ok("往近岸掉", t.doubao_chance_at(0.0) < t.doubao_chance_at(28.0))
+	_ok("往中段掉", t.doubao_chance_at(50.0) < t.doubao_chance_at(28.0))
+	_ok("远洋几乎为零", t.doubao_chance_at(100.0) < 0.01)
+	# 对称
+	_ok("峰两侧对称", absf(t.doubao_chance_at(10.0) - t.doubao_chance_at(46.0)) < 0.001)
+
+	# 三档的峰高
+	var t2 := ConfigLoader.load_tuning()
+	for pair in [["easy", 0.3], ["normal", 0.4], ["hard", 0.5]]:
+		var dd: String = pair[0]
+		var want: float = pair[1]
+		t2.apply_difficulty(dd)
+		_check("%s 峰高" % dd, t2.doubao_peak_chance, want)
+		_ok("%s 峰顶概率" % dd, absf(t2.doubao_chance_at(28.0) - want) < 0.001)
+		_ok("%s 两侧递减" % dd, t2.doubao_chance_at(5.0) < t2.doubao_chance_at(28.0))
+
+	# 集齐之后归零，别在该结算的时候跳出来
+	_ok("集齐后概率归零", is_zero_approx(t.doubao_weight_scale(3, 3, 3)))
 
 
 ## 图鉴：解锁是幂等的，坏文件不崩，清理能清空。

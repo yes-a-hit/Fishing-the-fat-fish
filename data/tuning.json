@@ -27,7 +27,13 @@
                         "fight.sway_period":  "摆动一个来回几秒。数字越小摆得越急。hard 1.5 秒一个来回。",
                         "doubao_refund":  "钓上豆包返还几碗饭（含抛出去的那碗）。2 = 净赚一碗。总量封在 bait_count，不会超过开局碗数。",
                         "doubao_escape_chance":  "豆包咬一口就跑的概率。它 damage_ratio = 1.0，一轮就上鱼，张力永远没机会爆表 —— 不在这里掷骰，脱钩画面就是死代码。0.35 = 三分之一的偶遇是空手。",
-                        "z_doubao":  "豆包只在近岸最前一段出没。weight 决定它和近岸普通鱼的相对份额：1.0 大概是两成多的偶遇，0.2 则低到几乎碰不到。"
+                        "doubao_peak_center":  "正态曲线的峰值落在 0~100 的哪一格。28 = 近岸偏中段。",
+                        "doubao_peak_chance":  "峰值处的出现概率。轻松 0.3 / 普通 0.4 / 困难 0.5 —— 越难越缺饭，它来得越勤。往两侧按 sigma 衰减。",
+                        "doubao_peak_sigma":  "正态曲线的标准差。18 = 离峰 18 格时掉到峰值的 61%，离峰 36 格掉到 13%。越小越尖、越好抓。",
+                        "z_doubao":  "豆包出现在哪一段距离带上。weight 已经不参与抽签了 —— 它的真实概率是 doubao_peak_center / doubao_peak_chance / doubao_peak_sigma 那条正态曲线，这里的 from/to 只划定「它可能在哪一段被撞见」。",
+                        "dda_speed_gain":  "动态难度：玩家连中时给游标加速。0 = 关。",
+                        "dda_sway_gain":  "动态难度：玩家连中时把黄标晃动的幅度放大。0 = 关。",
+                        "dda_from_difficulty":  "true = 只有普通与困难开动态难度；轻松档永远不甩。"
                     },
     "bait_count":  4,
     "full_catch_threshold":  3,
@@ -66,6 +72,7 @@
                                       "charge_full_seconds":  2.1,
                                       "cast_jitter":  3.0,
                                       "shadow_count":  0,
+                                      "doubao_peak_chance":  0.3,
                                       "dda_from_difficulty":  false,
                                       "zones":  [
                                                     {
@@ -100,8 +107,8 @@
                                                         "id":  "z_doubao",
                                                         "fish":  "doubao",
                                                         "from":  0,
-                                                        "to":  20,
-                                                        "weight":  0.35
+                                                        "to":  70,
+                                                        "weight":  1.0
                                                     }
                                                 ],
                                       "fight":  {
@@ -121,6 +128,7 @@
                                         "fake_claude_chance":  0.7,
                                         "charge_full_seconds":  1.5,
                                         "cast_jitter":  1.2,
+                                        "doubao_peak_chance":  0.4,
                                         "zones":  [
                                                       {
                                                           "id":  "z_small",
@@ -154,8 +162,8 @@
                                                           "id":  "z_doubao",
                                                           "fish":  "doubao",
                                                           "from":  0,
-                                                          "to":  16,
-                                                          "weight":  0.3
+                                                          "to":  70,
+                                                          "weight":  1.0
                                                       }
                                                   ],
                                         "fight":  {
@@ -177,6 +185,7 @@
                                       "fake_claude_chance":  0.4,
                                       "charge_full_seconds":  1.15,
                                       "cast_jitter":  0.6,
+                                      "doubao_peak_chance":  0.5,
                                       "zones":  [
                                                     {
                                                         "id":  "z_small",
@@ -210,8 +219,8 @@
                                                         "id":  "z_doubao",
                                                         "fish":  "doubao",
                                                         "from":  0,
-                                                        "to":  10,
-                                                        "weight":  0.25
+                                                        "to":  70,
+                                                        "weight":  1.0
                                                     }
                                                 ],
                                       "fight":  {
@@ -231,6 +240,9 @@
     "doubao_escape_chance":  0.35,
     "doubao_mercy_bait":  2,
     "doubao_mercy_gain":  2.4,
+    "doubao_peak_center":  28.0,
+    "doubao_peak_chance":  0.4,
+    "doubao_peak_sigma":  18.0,
     "dda_speed_gain":  0.45,
     "dda_sway_gain":  1.6,
     "dda_from_difficulty":  true

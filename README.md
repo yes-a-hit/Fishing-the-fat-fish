@@ -30,8 +30,8 @@ Godot 4.7 · GDScript · 1280×800 · 单场景小游戏
 
 | 平台 | 直接下载 | 大小 |
 |---|---|---|
-| **Windows** | [`钓肥鱼-v1.4.0-windows-x64.zip`](docs/download/钓肥鱼-v1.4.0-windows-x64.zip) — 解压后双击 `钓肥鱼.exe`，单文件 | 23 MB |
-| **Android** | [`钓肥鱼-v1.4.0.apk`](docs/download/钓肥鱼-v1.4.0.apk) — 直接安装 | 34 MB |
+| **Windows** | [`钓肥鱼-v1.4.1-windows-x64.zip`](docs/download/钓肥鱼-v1.4.1-windows-x64.zip) — 解压后双击 `钓肥鱼.exe`，单文件 | 23 MB |
+| **Android** | [`钓肥鱼-v1.4.1.apk`](docs/download/钓肥鱼-v1.4.1.apk) — 直接安装 | 34 MB |
 | **网页版** | [在线玩](https://yes-a-hit.github.io/Fishing-the-fat-fish/) | — |
 
 如果链接点了没反应，右键 →「链接另存为」，或者把地址里的 `github.com/.../raw/main/...` 换成 `raw.githubusercontent.com/...`。
@@ -128,7 +128,7 @@ Godot 4.7 · GDScript · 1280×800 · 单场景小游戏
 
 ### 豆包
 
-近岸水里偶尔浮着一个黄豆包。它不在收集目标里，也不占自动分带的名额 —— 只有 `tuning.json` 的三档 `difficulties.*.zones` 里给它留的那一小条窄带才会捞到它，权重压得很低：`easy` 0~40（权重 0.25）、`normal` 0~20（0.22）、`hard` 0~10（0.18）。近岸 0 点大约两成，带中心一成出头。
+近岸到中段的水里浮着一个黄豆包。它不在收集目标里，也不占自动分带的名额。它的出现概率不靠距离带的权重抽 —— 是一条**正态曲线**压在整根竿上：峰值落在 28 格（近岸偏中段），往两头递减。峰高按难度走，`easy` 30%、`normal` 40%、`hard` 50%，越难越缺饭它来得越勤。实际撞见还要乘上饥荒加成：饵够多就是裸概率，剩到两碗以内会翻倍，集齐三条之后直接归零。
 
 一次命中就捞上来，不消耗体力也不用打完；它**不算上鱼次数、不进收集、不触发任何结局**，只做一件事：返还白饭。
 
@@ -416,7 +416,7 @@ theme/custom_font="res://assets/fonts/game_sc.otf"
 
 想做成陷阱鱼，在 fish 项里加 `"claude": true`，并给它一条与普通鱼重叠的窄带。它不会计入收集，钓上即结束本局。
 
-想做成豆包这种「非收集、只给好处」的鱼，加 `"doubao": true`。它不会被 `auto_zones` 自动分带，必须在三档 `difficulties.*.zones` 里显式给它一条窄带；`damage_ratio: 1.0` 就是一次命中上鱼，返还碗数由 `tuning.json` 顶层的 `doubao_refund` 决定。
+想做成豆包这种「非收集、只给好处」的鱼，加 `"doubao": true`。它不会被 `auto_zones` 自动分带，必须在三档 `difficulties.*.zones` 里显式给它一条带（范围要罩住正态曲线的有效区，0~70 就够）；`damage_ratio: 1.0` 就是一次命中上鱼，返还碗数由 `tuning.json` 顶层的 `doubao_refund` 决定，出现概率由 `doubao_peak_*` 三个键决定。
 
 ---
 
@@ -477,7 +477,7 @@ theme/custom_font="res://assets/fonts/game_sc.otf"
 - claude 线三段走：第一次真陷阱封号、第二次「封完就哭」、第三次私奔，之后不再封号，按相遇次数跨局累计。
 - 语音奖励只剩豆包一条：三条语音齐 → `doubao_good`。Claude 两条改走剧情线。
 - 远洋陷阱按难度掷骰：`easy`/`normal`/`hard` 各有 85%/75%/60% 是假的，假的那个走三段 meme 翻页结局。
-- 近岸有低权重豆包带，一次命中捞起，返还 2 碗白饭（含抛出的那碗），撞上限就只补 1 碗。它也会脱钩 —— 抱着肚子笑你，白饭不退。
+- 豆包按正态曲线出没：峰值 28 格，峰高 30%/40%/50% 逐档递增，往两头衰减；一次命中捞起，返还 2 碗白饭（含抛出的那碗），撞上限就只补 1 碗。它也会脱钩 —— 抱着肚子笑你，白饭不退。
 - 声音：设置页可开关与调音量，BGM 走 autoload 循环，14 条台词按角色分三种音色，豆包上鱼与脱钩用两条外来素材。
 - 暂停：Esc 或右上角那个小圆钮，整棵树冻住，给继续 / 重新开始 / 返回菜单。
 - claude的meme打错了，应为“Your account is on hold”

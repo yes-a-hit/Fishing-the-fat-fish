@@ -176,13 +176,21 @@ rate = fight.tension_passive_rate
   { "id": "z_mid",    "fish": "mid",    "from": 30, "to": 70,  "weight": 2 },
   { "id": "z_big",    "fish": "big",    "from": 58, "to": 92,  "weight": 2 },
   { "id": "z_claude", "fish": "claude", "from": 84, "to": 100, "weight": 1 },
-  { "id": "z_doubao", "fish": "doubao", "from": 0,  "to": 24,  "weight": 0.22 }
+  { "id": "z_doubao", "fish": "doubao", "from": 0,  "to": 70,  "weight": 1.0 }
 ]
 ```
 
 30~44 是 small 与 mid 的重叠，58~70 是 mid 与 big 的，84~92 是 big 与 claude 的。`weight` 是同一落点上被抽中的相对权重。
 
-`z_doubao` 是全表最窄、权重最低的一条：0~24 与 small 的 0~44 重叠，靠 weight 0.22 压住，落点在带中心时约一成出头能抽到豆包。它**不在 `_covers_all` 的必需清单里**（豆包不参与收集），但一旦显式写进 zones 就必须给它一条带，否则自动分带的兜底会把它弄丢。`auto_zones` 本身也只给非豆包鱼分带。
+`z_doubao` 的 `weight` **已经不参与抽签了**，写多少都行。豆包的真实概率来自顶层的正态曲线：
+
+| 键 | 默认 | 含义 |
+|---|---|---|
+| `doubao_peak_center` | 28 | 峰值落在 0~100 的哪一格 |
+| `doubao_peak_chance` | 0.4 | 峰值处的基础概率；三档难度各自覆盖（`easy` 0.3 / `normal` 0.4 / `hard` 0.5） |
+| `doubao_peak_sigma` | 18 | 标准差。离峰 18 格掉到 61%，36 格掉到 13% |
+
+`z_doubao` 的 `from` / `to` 现在只划定「它可能在哪一段被撞见」，所以给到 0~70 把整条曲线的有效区间都罩住。它**不在 `_covers_all` 的必需清单里**（豆包不参与收集），但一旦显式写进 zones 就必须给它一条带，否则自动分带的兜底会把它弄丢。`auto_zones` 本身也只给非豆包鱼分带。
 
 ### 陷阱鱼怎么藏
 
@@ -204,7 +212,9 @@ rate = fight.tension_passive_rate
 - 捞上来后 `_landed` 不加、`_caught` 不追加，所以**不算上鱼次数、不进收集、不触发任何结局**。
 - 只做一件事：`bait_left = min(bait_left + doubao_refund, bait_max)`，然后发 `doubao_started(refund)` 给 UI 飘卡片。
 
-因为要撞上限，饵满时捞到它等于「把刚花掉的那碗还回来」，饵见底时才是两碗的真实收益。想让救命感更强就调高 `doubao_refund`（比如 3），想让它纯粹是运气彩蛋就调低 `weight`（0.1 以下几乎只会在带中心出现）。
+因为要撞上限，饵满时捞到它等于「把刚花掉的那碗还回来」，饵见底时才是两碗的真实收益。想让救命感更强就调高 `doubao_refund`（比如 3）；想让它更少见就压低 `doubao_peak_chance`，想让它只在中段出没就收窄 `doubao_peak_sigma`。
+
+它还有个饥荒加成：饵剩到 `doubao_mercy_bait`（默认 2）碗以内、且还没集齐，概率乘 `doubao_mercy_gain`（默认 2.4）；集齐三条之后归零。
 
 ---
 

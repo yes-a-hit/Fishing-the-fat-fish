@@ -38,6 +38,13 @@ var doubao_escape_chance: float = 0.35  ## 豆包咬一口就跑的概率。它 
 ## 雪中送炭：饵快见底又还没集齐时，豆包更愿意冒头
 var doubao_mercy_bait: int = 2          ## 剩这么多饵以内开始加成
 var doubao_mercy_gain: float = 2.0      ## 加成倍数
+
+## 豆包不是靠距离带权重抽的，而是一条正态曲线压在抛竿条上。
+## 峰值在近岸偏中段，往两侧衰减 —— 玩家能感觉到「中间比较热闹」，
+## 但没法靠记某个刻度刷它。
+var doubao_peak_center: float = 28.0    ## 峰值落在 0~100 的哪个位置
+var doubao_peak_chance: float = 0.40    ## 峰值处的概率，按难度覆盖
+var doubao_peak_sigma: float = 18.0     ## 标准差，越小越尖
 ## 动态难度：钓上来的鱼越多，AI 越上劲 —— 游标转得更快，黄标摆得更凶
 var dda_speed_gain: float = 0.45        ## 集齐时游标速度额外 +45%
 var dda_sway_gain: float = 1.6          ## 集齐时摆动幅度额外 +160%
@@ -70,6 +77,9 @@ static func from_dict(src: Dictionary) -> GameTuning:
 	t.doubao_escape_chance = clampf(float(src.get("doubao_escape_chance", t.doubao_escape_chance)), 0.0, 1.0)
 	t.doubao_mercy_bait = maxi(int(src.get("doubao_mercy_bait", t.doubao_mercy_bait)), 0)
 	t.doubao_mercy_gain = maxf(float(src.get("doubao_mercy_gain", t.doubao_mercy_gain)), 1.0)
+	t.doubao_peak_center = clampf(float(src.get("doubao_peak_center", t.doubao_peak_center)), 0.0, 100.0)
+	t.doubao_peak_chance = clampf(float(src.get("doubao_peak_chance", t.doubao_peak_chance)), 0.0, 1.0)
+	t.doubao_peak_sigma = maxf(float(src.get("doubao_peak_sigma", t.doubao_peak_sigma)), 1.0)
 	t.dda_speed_gain = maxf(float(src.get("dda_speed_gain", t.dda_speed_gain)), 0.0)
 	t.dda_sway_gain = maxf(float(src.get("dda_sway_gain", t.dda_sway_gain)), 0.0)
 	t.dda_from_difficulty = bool(src.get("dda_from_difficulty", t.dda_from_difficulty))
@@ -116,6 +126,8 @@ func apply_difficulty(name: String) -> void:
 		dda_from_difficulty = bool(d["dda_from_difficulty"])
 	if d.has("doubao_mercy_gain"):
 		doubao_mercy_gain = maxf(float(d["doubao_mercy_gain"]), 1.0)
+	# 豆包峰值：简单 30% / 普通 40% / 困难 50%。越难越常撞见，因为越难越缺饭。
+	doubao_peak_chance = clampf(float(d.get("doubao_peak_chance", doubao_peak_chance)), 0.0, 1.0)
 	charge_full_seconds = maxf(float(d.get("charge_full_seconds", charge_full_seconds)), 0.1)
 	cast_jitter = maxf(float(d.get("cast_jitter", cast_jitter)), 0.0)
 
@@ -329,7 +341,7 @@ func dda_scale(caught: int, total: int) -> Dictionary:
 	}
 
 
-## 豆包的出现权重倍率。剩下的饵越少、离集齐越远，它越愿意冒头。
+## 豆包的出现倍率。剩下的饵越少、离集齐越远，它越愿意冒头。
 ## 已经集齐就直接归零 —— 那时候玩家要的是结局，不是救济。
 func doubao_weight_scale(bait_left: int, caught: int, total: int) -> float:
 	if total > 0 and caught >= total:
@@ -337,4 +349,14 @@ func doubao_weight_scale(bait_left: int, caught: int, total: int) -> float:
 	if bait_left > doubao_mercy_bait:
 		return 1.0
 	return maxf(doubao_mercy_gain, 1.0)
+
+
+## 落在 point 上撞见豆包的概率。正态分布，峰值 doubao_peak_chance 在
+## doubao_peak_center，往两侧按 doubao_peak_sigma 衰减。
+## 返回的是「裸概率」，还没乘饥荒加成 —— 那一层由调用方自己决定。
+func doubao_chance_at(point: float) -> float:
+	if doubao_peak_chance <= 0.0:
+		return 0.0
+	var d := point - doubao_peak_center
+	return doubao_peak_chance * exp(-(d * d) / (2.0 * doubao_peak_sigma * doubao_peak_sigma))
 
