@@ -495,3 +495,4 @@ theme/custom_font="res://assets/fonts/game_sc.otf"
 - [调参手册](docs/tuning.md)：当前字段、公式和调整方向
 - [开发规范](docs/contributing.md)：改动流程、测试和防回归清单
 - [待办清单](docs/TODO.md)：已知短板，按「补了玩家能立刻感觉到」排序
+- [开发者手册](docs/DEVELOPMENT.md)：环境、设计决定背后的原因、踩过的坑、发布 checklist
