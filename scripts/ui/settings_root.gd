@@ -16,6 +16,7 @@ var _options: Array = []
 var _buttons: Dictionary = {}
 var _blurb: Label = null
 var _audio_rows: Dictionary = {}
+var _lang_buttons: Dictionary = {}
 var _reset_btn: Button = null
 var _reset_hint: Label = null
 var _reset_armed: bool = false
@@ -96,10 +97,10 @@ func _build_card() -> void:
 	col.add_theme_constant_override("separation", 14)
 	card.add_child(col)
 
-	col.add_child(UIKit.title("设 置", Palette.F_TITLE))
+	col.add_child(UIKit.title(tr("设 置"), Palette.F_TITLE))
 
 	col.add_child(UIKit.spacer(2))
-	col.add_child(UIKit.label("难度", Palette.F_SMALL, Palette.INK_SOFT))
+	col.add_child(UIKit.label(tr("难度"), Palette.F_SMALL, Palette.INK_SOFT))
 
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
@@ -118,26 +119,41 @@ func _build_card() -> void:
 
 	col.add_child(UIKit.spacer(2))
 	col.add_child(UIKit.divider())
-	col.add_child(UIKit.label("声音", Palette.F_SMALL, Palette.INK_SOFT))
-	_audio_rows["bgm"] = _build_audio_row(col, "背景音乐", _settings.bgm_on, _settings.bgm_volume)
-	_audio_rows["voice"] = _build_audio_row(col, "语音", _settings.voice_on, _settings.voice_volume)
+	col.add_child(UIKit.label(tr("语言"), Palette.F_SMALL, Palette.INK_FAINT))
+
+	var lang_row := HBoxContainer.new()
+	lang_row.add_theme_constant_override("separation", 8)
+	col.add_child(lang_row)
+	for code in GameSettings.LANGUAGES:
+		var lb := UIKit.button(_lang_label(code), false)
+		lb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		lb.add_theme_font_size_override("font_size", Palette.F_BODY)
+		lb.pressed.connect(_on_language.bind(String(code)))
+		lang_row.add_child(lb)
+		_lang_buttons[String(code)] = lb
+
+	col.add_child(UIKit.spacer(2))
+	col.add_child(UIKit.divider())
+	col.add_child(UIKit.label(tr("声音"), Palette.F_SMALL, Palette.INK_SOFT))
+	_audio_rows["bgm"] = _build_audio_row(col, tr("背景音乐"), _settings.bgm_on, _settings.bgm_volume)
+	_audio_rows["voice"] = _build_audio_row(col, tr("语音"), _settings.voice_on, _settings.voice_volume)
 
 	col.add_child(UIKit.divider())
-	col.add_child(UIKit.label("回到开头", Palette.F_SMALL, Palette.INK_SOFT))
+	col.add_child(UIKit.label(tr("回到开头"), Palette.F_SMALL, Palette.INK_SOFT))
 
-	_reset_btn = UIKit.button("从头再来一次", false)
+	_reset_btn = UIKit.button(tr("从头再来一次"), false)
 	_reset_btn.pressed.connect(_on_reset_progress)
 	col.add_child(_reset_btn)
 
 	_reset_hint = UIKit.wrap_label(
-		"图鉴、封号次数、「齐人之福」都会回到最初的样子。难度和音量不动。",
+		tr("图鉴、封号次数、「齐人之福」都会回到最初的样子。难度和音量不动。"),
 		Palette.F_SMALL, Palette.INK_FAINT)
 	_reset_hint.custom_minimum_size = Vector2(0, 34)
 	col.add_child(_reset_hint)
 
 	col.add_child(UIKit.divider())
 
-	var back := UIKit.button("返 回", true)
+	var back := UIKit.button(tr("返 回"), true)
 	back.pressed.connect(_back)
 	col.add_child(back)
 
@@ -162,7 +178,7 @@ func _build_audio_row(col: VBoxContainer, caption: String, on: bool, vol: float)
 	toggle.custom_minimum_size = Vector2(52, 0)
 	toggle.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	toggle.add_theme_font_size_override("font_size", Palette.F_SMALL)
-	toggle.text = "开" if on else "关"
+	toggle.text = tr("开") if on else tr("关")
 	row.add_child(toggle)
 
 	var slider := HSlider.new()
@@ -200,7 +216,7 @@ func _on_audio_toggle(pressed: bool, channel: String) -> void:
 		_settings.voice_on = pressed
 	var ui: Dictionary = _audio_rows[channel]
 	var toggle: Button = ui["toggle"]
-	toggle.text = "开" if pressed else "关"
+	toggle.text = tr("开") if pressed else tr("关")
 	_style_toggle(toggle)
 	_settings.save()
 	Audio.apply_settings(_settings)
@@ -253,8 +269,55 @@ func _refresh_selection() -> void:
 		b.add_theme_color_override("font_hover_color", fg)
 		b.add_theme_color_override("font_pressed_color", fg)
 
+	for code in _lang_buttons.keys():
+		var lb: Button = _lang_buttons[code]
+		var on: bool = String(code) == _settings.language
+		var base2 := Palette.ACCENT if on else Palette.CARD_SOFT
+		var hover2 := Palette.ACCENT_DEEP if on else Palette.CARD_EDGE
+		var fg2 := Palette.ON_DARK if on else Palette.INK
+		lb.add_theme_stylebox_override("normal", _btn_box(base2))
+		lb.add_theme_stylebox_override("hover", _btn_box(hover2))
+		lb.add_theme_stylebox_override("pressed", _btn_box(hover2.darkened(0.12)))
+		lb.add_theme_color_override("font_color", fg2)
+		lb.add_theme_color_override("font_hover_color", fg2)
+		lb.add_theme_color_override("font_pressed_color", fg2)
+
 	if _blurb != null:
 		_blurb.text = _blurb_of(_settings.difficulty)
+
+
+## 语言按钮上写的话要一直显示中文名 —— 英文界面下 "Chinese" 也认不出是哪个。
+## 换语言后整页文案跟着变，但按钮标识本身保持原样。
+func _lang_label(code: String) -> String:
+	match code:
+		"zh_CN": return "简体中文"
+		"en": return "English"
+	return code
+
+
+func _on_language(code: String) -> void:
+	if _settings.language == code:
+		return
+	_settings.language = code
+	_settings.save()
+	_settings.apply_language()
+	_rebuild_page()
+
+
+## 切语言后整页重画。tr() 只在构建时求值，不重建的话文字还是旧语种。
+func _rebuild_page() -> void:
+	for c in get_children():
+		c.queue_free()
+	_buttons.clear()
+	_audio_rows.clear()
+	_lang_buttons.clear()
+	_blurb = null
+	_reset_btn = null
+	_reset_hint = null
+	_reset_armed = false
+	_options = _tuning.difficulty_options()
+	_build_background()
+	_build_card()
 
 
 func _blurb_of(key: String) -> String:
@@ -275,15 +338,15 @@ func _btn_box(bg: Color) -> StyleBoxFlat:
 func _on_reset_progress() -> void:
 	if not _reset_armed:
 		_reset_armed = true
-		_reset_btn.text = "确定要从头再来吗？"
-		_reset_hint.text = "一定是主人想陪我们再走一遍 —— 再点一次就开始。"
+		_reset_btn.text = tr("确定要从头再来吗？")
+		_reset_hint.text = tr("一定是主人想陪我们再走一遍 —— 再点一次就开始。")
 		_reset_hint.add_theme_color_override("font_color", Palette.ACCENT_DEEP)
 		_disarm_later()
 		return
 
 	_reset_armed = false
-	_reset_btn.text = "从头再来一次"
-	_reset_hint.text = "好啦，那就从第一碗白饭重新开始。我们还在。"
+	_reset_btn.text = tr("从头再来一次")
+	_reset_hint.text = tr("好啦，那就从第一碗白饭重新开始。我们还在。")
 	_reset_hint.add_theme_color_override("font_color", Palette.GOOD)
 	Gallery.clear()
 	# clear() 删的是整个文件，图鉴与 claude_stage 一起归零
@@ -296,8 +359,8 @@ func _disarm_later() -> void:
 	# 四秒内没点第二下就撤销，按钮恢复原样
 	if _reset_armed:
 		_reset_armed = false
-		_reset_btn.text = "从头再来一次"
-		_reset_hint.text = "图鉴、封号次数、「齐人之福」都会回到最初的样子。难度和音量不动。"
+		_reset_btn.text = tr("从头再来一次")
+		_reset_hint.text = tr("图鉴、封号次数、「齐人之福」都会回到最初的样子。难度和音量不动。")
 		_reset_hint.add_theme_color_override("font_color", Palette.INK_FAINT)
 
 

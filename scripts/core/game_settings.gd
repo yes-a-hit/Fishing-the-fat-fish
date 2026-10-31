@@ -11,8 +11,12 @@ extends RefCounted
 
 const PATH := "user://settings.json"
 const DEFAULT_DIFFICULTY := "normal"
+## 界面语言。空串 = 跟随系统（Godot 会拿 OS 的 locale 去匹配已加载的翻译）。
+const DEFAULT_LANGUAGE := "zh_CN"
+const LANGUAGES := ["zh_CN", "en"]
 
 var difficulty: String = DEFAULT_DIFFICULTY
+var language: String = DEFAULT_LANGUAGE
 
 # 声音偏好。音量都是 0~1 的线性值，播放时再转成 dB。
 var bgm_on: bool = true
@@ -52,7 +56,18 @@ static func load_settings(path: String = PATH) -> GameSettings:
 	s.voice_on = bool(data.get("voice_on", s.voice_on))
 	s.bgm_volume = clampf(float(data.get("bgm_volume", s.bgm_volume)), 0.0, 1.0)
 	s.voice_volume = clampf(float(data.get("voice_volume", s.voice_volume)), 0.0, 1.0)
+
+	var lang := String(data.get("language", DEFAULT_LANGUAGE))
+	if LANGUAGES.has(lang):
+		s.language = lang
+	else:
+		push_warning("[settings] 未知语言 '%s'，回落到 %s" % [lang, DEFAULT_LANGUAGE])
 	return s
+
+
+## 把语言真的切过去。UI 里所有 tr() 在下一帧按新语种查表。
+func apply_language() -> void:
+	TranslationServer.set_locale(language)
 
 
 func save(path: String = PATH) -> void:
@@ -61,8 +76,9 @@ func save(path: String = PATH) -> void:
 		push_warning("[settings] 无法写入 %s" % path)
 		return
 	file.store_string(JSON.stringify({
-		"_note": "玩家偏好。难度 key 必须是 easy/normal/hard 之一；音量是 0~1 的线性值。",
+		"_note": "玩家偏好。难度 key 必须是 easy/normal/hard 之一；音量是 0~1 的线性值；语言是 zh_CN / en。",
 		"difficulty": difficulty,
+		"language": language,
 		"bgm_on": bgm_on,
 		"bgm_volume": bgm_volume,
 		"voice_on": voice_on,

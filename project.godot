@@ -1,4 +1,4 @@
-﻿; Engine configuration file.
+; Engine configuration file.
 ; It's best edited using the editor UI and not directly,
 ; since the parameters that go here are not all obvious.
 ;
@@ -18,6 +18,7 @@ config/icon="res://assets/icon_app.png"
 
 [autoload]
 
+Boot="*res://scripts/core/boot.gd"
 Audio="*res://scripts/core/audio_director.gd"
 
 [display]
@@ -41,3 +42,8 @@ rendering_device/driver.windows="d3d12"
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 textures/vram_compression/import_etc2_astc=true
+
+[internationalization]
+
+locale/translations=PackedStringArray("res://data/i18n/strings.zh_CN.translation", "res://data/i18n/strings.en.translation")
+locale/fallback="zh_CN"

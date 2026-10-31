@@ -112,9 +112,9 @@ func _draw_meters() -> void:
 		Palette.ACCENT.lerp(Palette.BAD, clampf(_tension * 1.4, 0.0, 1.0)))
 
 	if _font != null:
-		draw_string(_font, Vector2(x - 44.0, METER_TOP + 8.0), "体力",
+		draw_string(_font, Vector2(x - 44.0, METER_TOP + 8.0), tr("体力"),
 			HORIZONTAL_ALIGNMENT_LEFT, -1, Palette.F_SMALL, Palette.INK_SOFT)
-		draw_string(_font, Vector2(x - 44.0, METER_TOP + 26.0), "张力",
+		draw_string(_font, Vector2(x - 44.0, METER_TOP + 26.0), tr("张力"),
 			HORIZONTAL_ALIGNMENT_LEFT, -1, Palette.F_SMALL,
 			Palette.BAD if _tension > 0.7 else Palette.INK_SOFT)
 
@@ -170,9 +170,9 @@ func _draw_ring() -> void:
 	if _font == null:
 		return
 	if _locked:
-		_center_text("等", Palette.F_H2, Color(Palette.INK_FAINT, 0.7), 8.0)
+		_center_text(tr("等"), Palette.F_H2, Color(Palette.INK_FAINT, 0.7), 8.0)
 		return
-	_center_text("点一下", Palette.F_H2, Palette.INK_SOFT, 8.0)
+	_center_text(tr("点一下"), Palette.F_H2, Palette.INK_SOFT, 8.0)
 	if _fight != null:
 		var done := _fight.rounds_done()
 		var need := _fight.rounds_needed()

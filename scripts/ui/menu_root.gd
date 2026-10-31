@@ -83,8 +83,8 @@ func _build_card() -> void:
 	logo.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	col.add_child(logo)
 
-	col.add_child(UIKit.title("钓肥鱼", Palette.F_TITLE))
-	var sub := UIKit.label("有限的饵，喂饱这几条鱼", Palette.F_BODY, Palette.INK_FAINT)
+	col.add_child(UIKit.title(tr("钓肥鱼"), Palette.F_TITLE))
+	var sub := UIKit.label(tr("有限的饵，喂饱这几条鱼"), Palette.F_BODY, Palette.INK_FAINT)
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	col.add_child(sub)
 
@@ -92,7 +92,7 @@ func _build_card() -> void:
 	col.add_child(UIKit.divider())
 	col.add_child(UIKit.spacer(6))
 
-	var start := UIKit.button("开 始 钓 鱼", true)
+	var start := UIKit.button(tr("开 始 钓 鱼"), true)
 	start.pressed.connect(_on_start)
 	col.add_child(start)
 
@@ -101,10 +101,10 @@ func _build_card() -> void:
 	col.add_child(footer_row)
 
 	for spec in [
-		{"text": "图 鉴", "cb": _on_gallery},
-		{"text": "设 置", "cb": _on_settings},
-		{"text": "关 于", "cb": _on_about},
-		{"text": "退 出", "cb": func(): get_tree().quit()},
+		{"text": tr("图 鉴"), "cb": _on_gallery},
+		{"text": tr("设 置"), "cb": _on_settings},
+		{"text": tr("关 于"), "cb": _on_about},
+		{"text": tr("退 出"), "cb": func(): get_tree().quit()},
 	]:
 		var b := UIKit.button(String(spec["text"]), false, true)
 		b.add_theme_font_size_override("font_size", Palette.F_SMALL)

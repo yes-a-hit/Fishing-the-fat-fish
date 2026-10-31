@@ -69,7 +69,7 @@ func setup(fish_list: Array) -> void:
 
 ## 重建白饭图标（数量变了才需要调）。
 func refresh_bait(left: int, total: int) -> void:
-	_bait_label.text = "白饭 %d / %d" % [left, total]
+	_bait_label.text = tr("白饭 %d / %d") % [left, total]
 
 	if _bowl_row.get_child_count() != total:
 		for c in _bowl_row.get_children():

@@ -38,6 +38,9 @@ var _doubao_gain: Label = null
 ## 暂停遮罩。非 null 就代表正暂停着 —— 输入、tick、QTE 全靠这一个判据让路。
 var _paused_layer: Control = null
 
+## 剧情播放中。和暂停分开是因为暂停有菜单和按钮，剧情只是把这一局冻住。
+var _story_playing: bool = false
+
 
 func _ready() -> void:
 	# 根节点自己不能拦鼠标，否则点击在 GUI 层就被吃掉，
@@ -64,11 +67,26 @@ func _ready() -> void:
 	_build_ui()
 	_apply_mouse_policy(self)
 	_start_session()
+	# 上一局欠下的剧情在这时候补播。放在开局之后而不是之前，
+	# 是因为要等 UI 全部建好、session 也起来，播完才轮得到玩家操作。
+	_play_pending_story_on_boot()
+
+
+## 开局补播。队列空就什么都不做 —— 多数对局根本没剧情。
+## 播的时候整局冻住，不然玩家一边看字一边蓄力条在背后转。
+func _play_pending_story_on_boot() -> void:
+	if Gallery.pending_stories().is_empty():
+		return
+	_story_playing = true
+	_play_story_queue(func(): _story_playing = false)
 
 
 func _process(delta: float) -> void:
 	# 暂停时整局冻住：session 不推进，QTE 不转，动画不停但不影响判定。
 	if _paused_layer != null:
+		return
+	# 剧情播放中同理，看字的时候不该被蓄力条偷走时间。
+	if _story_playing:
 		return
 	if _session != null:
 		_session.tick(delta)
@@ -82,6 +100,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	if _paused_layer != null:
+		return
+	# 剧情层自己会吃掉点击（它在子节点里先收到事件），走到这里说明是漏网的
+	if _story_playing:
 		return
 	if _session == null or _session.phase == FishingSession.Phase.ENDED:
 		return
@@ -217,7 +238,7 @@ func _build_pause_button() -> void:
 	add_child(row)
 
 	var btn := Button.new()
-	btn.tooltip_text = "暂停（Esc）"
+	btn.tooltip_text = tr("暂停（Esc）")
 	btn.custom_minimum_size = Vector2(44, 44)
 	btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	btn.focus_mode = Control.FOCUS_NONE
@@ -291,7 +312,7 @@ func _build_doubao_card() -> Control:
 	col.add_child(pic)
 	_doubao_pic = pic
 
-	var tip := UIKit.label("哪来的奶黄包！", Palette.F_BODY, Palette.INK)
+	var tip := UIKit.label(tr("哪来的奶黄包！"), Palette.F_BODY, Palette.INK)
 	tip.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	tip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	col.add_child(tip)
@@ -395,7 +416,7 @@ func _on_phase_changed(phase: int) -> void:
 
 	match phase:
 		FishingSession.Phase.AIMING:
-			_hud.set_hint("按住蓄力，松手抛竿")
+			_hud.set_hint(tr("按住蓄力，松手抛竿"))
 			_qte.visible = false
 			_lake.set_bobber(0.0, false)
 			_lake.set_bite(false)
@@ -403,26 +424,26 @@ func _on_phase_changed(phase: int) -> void:
 			_lake.set_fish_shadow(false)
 			_cast_panel.reset()
 		FishingSession.Phase.WAITING:
-			_hud.set_hint("饵在水里，等鱼咬钩…")
+			_hud.set_hint(tr("饵在水里，等鱼咬钩…"))
 			_qte.visible = false
 		FishingSession.Phase.FIGHTING:
-			_hud.set_hint("圆环转到顶部时点一下")
+			_hud.set_hint(tr("圆环转到顶部时点一下"))
 			_qte.visible = true
 			_lake.set_bite(false)
 			_lake.set_fight_intensity(1.0)
 			_lake.set_fish_shadow(true)
 		FishingSession.Phase.LANDING:
-			_hud.set_hint("上鱼！")
+			_hud.set_hint(tr("上鱼！"))
 			_qte.visible = false
 			_lake.set_fight_intensity(0.0)
 			_lake.set_fish_shadow(false)
 		FishingSession.Phase.RESOLVING:
-			_hud.set_hint("收竿")
+			_hud.set_hint(tr("收竿"))
 			_qte.visible = false
 			_lake.set_fight_intensity(0.0)
 			_lake.set_fish_shadow(false)
 		FishingSession.Phase.ENDED:
-			_hud.set_hint("本局结束")
+			_hud.set_hint(tr("本局结束"))
 			_qte.visible = false
 			_lake.set_fight_intensity(0.0)
 			_lake.set_fish_shadow(false)
@@ -477,20 +498,20 @@ func _on_resolved(kind: String, fish: FishSpec) -> void:
 		FishingSession.RESULT_ESCAPED:
 			_show_escape(fish)
 		_:
-			_feedback.show_text("空　竿", Palette.INK_SOFT)
+			_feedback.show_text(tr("空　竿"), Palette.INK_SOFT)
 
 
 ## 豆包上钩。饭已经由 session 加回去了，这里只负责把那张梗图飘出来。
 func _on_doubao(refund: int) -> void:
 	_hud.refresh_bait(_session.bait_left, _session.bait_max)
-	var gain_text := "+%d 碗白饭" % refund if refund > 0 else "碗已经满了"
+	var gain_text := tr("+%d 碗白饭") % refund if refund > 0 else tr("碗已经满了")
 	var gain_color := Palette.GOOD if refund > 0 else Palette.INK_FAINT
-	_flash_card("res://assets/doubao_kick.webp", "哪来的奶黄包！", gain_text, gain_color)
+	_flash_card("res://assets/doubao_kick.webp", tr("哪来的奶黄包！"), gain_text, gain_color)
 
 
 ## 私奔之后再钓上她。不封号，不结算，只是浮上来打个照面。
 func _on_claude_spared() -> void:
-	_feedback.show_text("她 看 了 你 一 眼", Palette.ACCENT_DEEP)
+	_feedback.show_text(tr("她 看 了 你 一 眼"), Palette.ACCENT_DEEP)
 	Audio.play_voice("claude")
 
 
@@ -501,7 +522,7 @@ func _on_claude_spared() -> void:
 func _show_escape(fish: FishSpec) -> void:
 	var art := _escape_art_of(fish)
 	if art.is_empty():
-		_feedback.show_text("线　断　了", Palette.BAD)
+		_feedback.show_text(tr("线　断　了"), Palette.BAD)
 		Audio.play_voice("escape")
 		return
 	Gallery.unlock(String(art["gallery"]))
@@ -516,8 +537,8 @@ func _escape_art_of(fish: FishSpec) -> Dictionary:
 	if fish.is_doubao:
 		return {
 			"image": "res://assets/doubao_escape.webp",
-			"tip": "奶黄包 笑 着 跑 了",
-			"gain": "白饭没捞着",
+			"tip": tr("奶黄包 笑 着 跑 了"),
+			"gain": tr("白饭没捞着"),
 			"color": Palette.WARN,
 			"voice": "doubao_escape",
 			"gallery": "escape_doubao",
@@ -525,8 +546,8 @@ func _escape_art_of(fish: FishSpec) -> Dictionary:
 	if fish.is_claude:
 		return {
 			"image": "res://assets/claude_escape.webp",
-			"tip": "她 扭 过 头 去 了",
-			"gain": "通知单没递成",
+			"tip": tr("她 扭 过 头 去 了"),
+			"gain": tr("通知单没递成"),
 			"color": Palette.WARN,
 			"voice": "escape",
 			"gallery": "escape_claude",
@@ -534,8 +555,8 @@ func _escape_art_of(fish: FishSpec) -> Dictionary:
 	if fish.id == "big":
 		return {
 			"image": "res://assets/deepseek_escape_big.webp",
-			"tip": "鲸鱼不是肥，是密度好",
-			"gain": "她 游 走 了",
+			"tip": tr("鲸鱼不是肥，是密度好"),
+			"gain": tr("她 游 走 了"),
 			"color": Palette.WARN,
 			"voice": "escape",
 			"gallery": "escape_big",
@@ -543,8 +564,8 @@ func _escape_art_of(fish: FishSpec) -> Dictionary:
 	if fish.id == "small" or fish.id == "mid":
 		return {
 			"image": "res://assets/deepseek_escape.webp",
-			"tip": "哦 鲸 鲸 …",
-			"gain": "她 甩 尾 巴 跑 了",
+			"tip": tr("哦 鲸 鲸 …"),
+			"gain": tr("她 甩 尾 巴 跑 了"),
 			"color": Palette.WARN,
 			"voice": "escape",
 			"gallery": "escape_small",
@@ -581,13 +602,17 @@ func _on_finished(ending: String, summary: Dictionary) -> void:
 	_lake.set_fish_shadow(false)
 	# 记一笔图鉴。新解锁时顺手打条日志，方便确认落盘成功。
 	if Gallery.unlock(ending):
-		print("[gallery] 新解锁结局: " + ending)
+		print(tr("[gallery] 新解锁结局: ") + ending)
 	var data: Dictionary = _endings.get(ending, {})
 	Audio.play_voice(ending)
 	# 这一局欠下的剧情先播完，再摆结算。
 	# 顺序反了的话，第二次钓上豆包那一竿恰好也是集齐三条鱼的那一竿，
 	# 结算卡片一盖上来，「白饭来咯」就永远看不到了。
-	_play_story_queue(func(): _ending.show_ending(ending, data, summary, _targets))
+	_story_playing = true
+	_play_story_queue(func():
+		_story_playing = false
+		_ending.show_ending(ending, data, summary, _targets)
+	)
 
 
 ## 把队列里的剧情一段段播完，最后调 done。
@@ -652,18 +677,18 @@ func _pause_game() -> void:
 	col.add_theme_constant_override("separation", 12)
 	card.add_child(col)
 
-	col.add_child(UIKit.title("已 暂 停", Palette.F_H2))
+	col.add_child(UIKit.title(tr("已 暂 停"), Palette.F_H2))
 	col.add_child(UIKit.divider())
 
-	var resume := UIKit.button("继 续", true, true)
+	var resume := UIKit.button(tr("继 续"), true, true)
 	resume.pressed.connect(_resume_game)
 	col.add_child(resume)
 
-	var restart := UIKit.button("重 新 开 始", false, true)
+	var restart := UIKit.button(tr("重 新 开 始"), false, true)
 	restart.pressed.connect(_restart_from_pause)
 	col.add_child(restart)
 
-	var menu := UIKit.button("返 回 菜 单", false, true)
+	var menu := UIKit.button(tr("返 回 菜 单"), false, true)
 	menu.pressed.connect(_back_to_menu)
 	col.add_child(menu)
 

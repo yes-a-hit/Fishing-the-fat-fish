@@ -74,6 +74,8 @@ func _run_all() -> void:
 	_case_story_queue()
 	_case_doubao_second()
 	_case_grand_gate()
+	_case_i18n()
+	_case_story_boots_on_start()
 
 
 func _check(label: String, actual, expected) -> void:
@@ -1663,3 +1665,95 @@ func _find_blocking_control(node: Node) -> String:
 		if found != "":
 			return found
 	return ""
+
+# ---------- i18n ----------
+
+func _case_i18n() -> void:
+	# 1. 两套翻译都加载了
+	var locales := TranslationServer.get_loaded_locales()
+	_ok("简中翻译已加载", locales.has("zh_CN"))
+	_ok("英文翻译已加载", locales.has("en"))
+
+	# 2. 切到英文后 tr() 真的翻
+	var prev := TranslationServer.get_locale()
+	TranslationServer.set_locale("zh_CN")
+	_check("中文下的标题", tr("钓肥鱼"), "钓肥鱼")
+	TranslationServer.set_locale("en")
+	_check("英文下的标题", tr("钓肥鱼"), "Fishing the Fat Fish")
+	_check("英文下的开始按钮", tr("开 始 钓 鱼"), "Start Fishing")
+
+	# 3. 没收录的键回落原文，不能变成空串
+	_check("未翻译键回落原文", tr("一句谁都没翻过的话"), "一句谁都没翻过的话")
+
+	# 4. 带格式占位符的不能翻坏
+	TranslationServer.set_locale("en")
+	_check("格式串仍然可用", tr("白饭 %d / %d") % [3, 5], "Rice 3 / 5")
+
+	# 4b. 数据层的文案也走翻译：鱼名、结局标题
+	var fishes_en := ConfigLoader.load_fish()
+	var names_en: Array = []
+	for f in fishes_en:
+		names_en.append((f as FishSpec).display_name)
+	_ok("英文下鱼名已翻译", names_en.has("Little Fatty") and names_en.has("Doubao"))
+	var ends_en := ConfigLoader.load_endings()
+	_check("英文下结局标题已翻译", String((ends_en.get("feast", {}) as Dictionary).get("title", "")), "ALL THREE")
+
+	TranslationServer.set_locale("zh_CN")
+	var fishes_zh := ConfigLoader.load_fish()
+	var names_zh: Array = []
+	for f in fishes_zh:
+		names_zh.append((f as FishSpec).display_name)
+	_ok("中文下鱼名保持原样", names_zh.has("小肥鱼"))
+
+	TranslationServer.set_locale(prev)
+
+	# 5. 设置里存了语言，且 apply_language 真的切
+	var s := GameSettings.load_settings("user://settings_i18n_test.json")
+	_ok("默认语言是简中", s.language == "zh_CN")
+	s.language = "en"
+	s.save("user://settings_i18n_test.json")
+	var s2 := GameSettings.load_settings("user://settings_i18n_test.json")
+	_check("语言存下来了", s2.language, "en")
+	s2.apply_language()
+	_check("apply_language 生效", TranslationServer.get_locale(), "en")
+	TranslationServer.set_locale(prev)
+	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://settings_i18n_test.json"))
+
+
+# ---------- 剧情在开局时补播 ----------
+
+func _case_story_boots_on_start() -> void:
+	Gallery.override_path = "user://story_boot_test.json"
+	Gallery.clear()
+	Gallery.queue_story("doubao_second")
+
+	var g: Node = _spawn_game()
+	await process_frame
+	await process_frame
+
+	# 开局就该进剧情态：整局冻住、剧情层可见、队列被取空
+	_ok("开局进入剧情态", g._story_playing)
+	_ok("剧情层已显示", g._story.visible)
+	_ok("队列被取空", Gallery.pending_stories().is_empty())
+	_check("演的是豆包那段", (g._story._pages as Array).size(), 10)
+
+	# 跳过整段后解除冻结
+	g._story._on_skip()
+	await process_frame
+	_ok("跳过后解冻", not g._story_playing)
+	_ok("剧情层收起", not g._story.visible)
+
+	g.queue_free()
+	await process_frame
+
+	# 队列空的对局不该卡住
+	Gallery.clear()
+	var g2: Node = _spawn_game()
+	await process_frame
+	await process_frame
+	_ok("没有欠剧情时不冻结", not g2._story_playing)
+	g2.queue_free()
+	await process_frame
+
+	Gallery.clear()
+	Gallery.override_path = ""

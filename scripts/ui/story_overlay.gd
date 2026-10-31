@@ -112,7 +112,7 @@ func _build() -> void:
 	_counter.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	bottom.add_child(_counter)
 
-	var next_hint := UIKit.label("点击继续 ▸", Palette.F_SMALL, Palette.INK_SOFT)
+	var next_hint := UIKit.label(tr("点击继续 ▸"), Palette.F_SMALL, Palette.INK_SOFT)
 	bottom.add_child(next_hint)
 
 	# 右上角：回看 / 跳过
@@ -126,11 +126,11 @@ func _build() -> void:
 	top.add_theme_constant_override("separation", 10)
 	add_child(top)
 
-	_back_btn = UIKit.button("◀ 回看", false, true)
+	_back_btn = UIKit.button(tr("◀ 回看"), false, true)
 	_back_btn.pressed.connect(_on_back)
 	top.add_child(_back_btn)
 
-	var skip := UIKit.button("跳过 ▶▶", false, true)
+	var skip := UIKit.button(tr("跳过 ▶▶"), false, true)
 	skip.pressed.connect(_on_skip)
 	top.add_child(skip)
 

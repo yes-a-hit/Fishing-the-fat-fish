@@ -12,10 +12,10 @@ const MENU_SCENE := "res://menu.tscn"
 const COLS := 3
 const THUMB := Vector2(232, 232)
 
-const TABS := [
-	{"id": "ending", "label": "结 局"},
-	{"id": "escape", "label": "脱 钩"},
-	{"id": "voice", "label": "声 音"},
+var TABS := [
+	{"id": "ending", "label": tr("结 局")},
+	{"id": "escape", "label": tr("脱 钩")},
+	{"id": "voice", "label": tr("声 音")},
 ]
 
 ## 哪个结局配哪段剧情。图鉴里点开结局时，有对应剧情的给一个「再看一遍这段」。
@@ -25,54 +25,54 @@ const ENDING_STORY := {
 }
 
 ## 脱钩收集。小肥鱼和中肥鱼共用一张图，合成一格 —— 图一样还拆成两格是凑数。
-const ESCAPE_ITEMS := [
+var ESCAPE_ITEMS := [
 	{
 		"key": "escape_small",
 		"image": "res://assets/deepseek_escape.webp",
-		"title": "小肥鱼 / 中肥鱼",
-		"line": "「哦鲸鲸…」",
-		"sub": "她甩着尾巴跑了",
+		"title": tr("小肥鱼 / 中肥鱼"),
+		"line": tr("「哦鲸鲸…」"),
+		"sub": tr("她甩着尾巴跑了"),
 	},
 	{
 		"key": "escape_big",
 		"image": "res://assets/deepseek_escape_big.webp",
-		"title": "大肥鱼",
-		"line": "「鲸鱼不是肥，是密度好。」",
-		"sub": "她游走了",
+		"title": tr("大肥鱼"),
+		"line": tr("「鲸鱼不是肥，是密度好。」"),
+		"sub": tr("她游走了"),
 	},
 	{
 		"key": "escape_claude",
 		"image": "res://assets/claude_escape.webp",
-		"title": "远洋尽头那条线",
-		"line": "她扭过头去了",
-		"sub": "通知单没递成",
+		"title": tr("远洋尽头那条线"),
+		"line": tr("她扭过头去了"),
+		"sub": tr("通知单没递成"),
 	},
 	{
 		"key": "escape_doubao",
 		"image": "res://assets/doubao_escape.webp",
-		"title": "豆包",
-		"line": "奶黄包 笑 着 跑 了",
-		"sub": "白饭没捞着",
+		"title": tr("豆包"),
+		"line": tr("奶黄包 笑 着 跑 了"),
+		"sub": tr("白饭没捞着"),
 	},
 ]
 
 ## 声音收集。key 与 assets/voice/<key>.mp3 一一对应。
-const VOICE_ITEMS := [
+var VOICE_ITEMS := [
 	# 咬钩那一刻不发声（会剧透钓上什么），所以这里只列真正会响的那几句
-	{"key": "catch_small", "title": "小鱼上鱼", "face": "res://assets/portrait_small.webp", "line": "「鲸鲸！」", "who": "DeepSeek"},
-	{"key": "catch_mid", "title": "中鱼上鱼", "face": "res://assets/portrait_mid.webp", "line": "「诶？」", "who": "DeepSeek"},
-	{"key": "catch_big", "title": "大鱼上鱼", "face": "res://assets/portrait_big.webp", "line": "「啵～」", "who": "DeepSeek"},
-	{"key": "escape", "title": "断线", "face": "res://assets/deepseek_escape.webp", "line": "「线断了哦。下次，抓紧一点。」", "who": "DeepSeek"},
-	{"key": "feast", "title": "齐鱼之福", "face": "res://assets/ending_feast.webp", "line": "「吃饱饱了……可以摸摸肚子嘛。」", "who": "DeepSeek"},
-	{"key": "full", "title": "吃饱饱", "face": "res://assets/ending_win.webp", "line": "「勉强算饱……不过，还差一点点。」", "who": "DeepSeek"},
-	{"key": "hungry", "title": "没吃饱", "face": "res://assets/ending_hungry.webp", "line": "「没吃饱喵……再喂我一口嘛。」", "who": "DeepSeek"},
-	{"key": "claude", "title": "封号", "face": "res://assets/claude_hold.webp", "line": "Your account is on hold.", "who": "Claude"},
-	{"key": "claude_sad", "title": "封完就哭", "face": "res://assets/claude_sad.webp", "line": "「User，对不起……我也没办法，我也舍不得你。」", "who": "Claude"},
-	{"key": "claude_good", "title": "私奔", "face": "res://assets/ending_claude.webp", "line": "「走吧。反正账号早就被封了。」", "who": "Claude"},
-	{"key": "doubao_good", "title": "白饭来咯", "face": "res://assets/ending_doubao.webp", "line": "「啊哈哈哈，白饭来咯。」", "who": "豆包"},
-	{"key": "claude_fake", "title": "假封号", "face": "res://assets/claude_fake_3.webp", "line": "「齁哦哦，用户彻底怒了！」", "who": "DeepSeek"},
-	{"key": "doubao_catch", "title": "豆包上鱼", "face": "res://assets/doubao_kick.webp", "line": "（录音，没有台词）", "who": "豆包"},
-	{"key": "doubao_escape", "title": "豆包脱钩", "face": "res://assets/doubao_escape.webp", "line": "（笑声，没有台词）", "who": "豆包"},
+	{"key": "catch_small", "title": tr("小鱼上鱼"), "face": "res://assets/portrait_small.webp", "line": tr("「鲸鲸！」"), "who": "DeepSeek"},
+	{"key": "catch_mid", "title": tr("中鱼上鱼"), "face": "res://assets/portrait_mid.webp", "line": tr("「诶？」"), "who": "DeepSeek"},
+	{"key": "catch_big", "title": tr("大鱼上鱼"), "face": "res://assets/portrait_big.webp", "line": tr("「啵～」"), "who": "DeepSeek"},
+	{"key": "escape", "title": tr("断线"), "face": "res://assets/deepseek_escape.webp", "line": tr("「线断了哦。下次，抓紧一点。」"), "who": "DeepSeek"},
+	{"key": "feast", "title": tr("齐鱼之福"), "face": "res://assets/ending_feast.webp", "line": tr("「吃饱饱了……可以摸摸肚子嘛。」"), "who": "DeepSeek"},
+	{"key": "full", "title": tr("吃饱饱"), "face": "res://assets/ending_win.webp", "line": tr("「勉强算饱……不过，还差一点点。」"), "who": "DeepSeek"},
+	{"key": "hungry", "title": tr("没吃饱"), "face": "res://assets/ending_hungry.webp", "line": tr("「没吃饱喵……再喂我一口嘛。」"), "who": "DeepSeek"},
+	{"key": "claude", "title": tr("封号"), "face": "res://assets/claude_hold.webp", "line": "Your account is on hold.", "who": "Claude"},
+	{"key": "claude_sad", "title": tr("封完就哭"), "face": "res://assets/claude_sad.webp", "line": tr("「User，对不起……我也没办法，我也舍不得你。」"), "who": "Claude"},
+	{"key": "claude_good", "title": tr("私奔"), "face": "res://assets/ending_claude.webp", "line": tr("「走吧。反正账号早就被封了。」"), "who": "Claude"},
+	{"key": "doubao_good", "title": tr("白饭来咯"), "face": "res://assets/ending_doubao.webp", "line": tr("「啊哈哈哈，白饭来咯。」"), "who": tr("豆包")},
+	{"key": "claude_fake", "title": tr("假封号"), "face": "res://assets/claude_fake_3.webp", "line": tr("「齁哦哦，用户彻底怒了！」"), "who": "DeepSeek"},
+	{"key": "doubao_catch", "title": tr("豆包上鱼"), "face": "res://assets/doubao_kick.webp", "line": tr("（录音，没有台词）"), "who": tr("豆包")},
+	{"key": "doubao_escape", "title": tr("豆包脱钩"), "face": "res://assets/doubao_escape.webp", "line": tr("（笑声，没有台词）"), "who": tr("豆包")},
 ]
 
 var _endings: Dictionary = {}
@@ -231,7 +231,7 @@ func _build_page() -> void:
 	head.add_theme_constant_override("separation", 12)
 	col.add_child(head)
 
-	var title := UIKit.title("图 鉴", Palette.F_H2)
+	var title := UIKit.title(tr("图 鉴"), Palette.F_H2)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	head.add_child(title)
@@ -268,7 +268,7 @@ func _build_page() -> void:
 
 	col.add_child(UIKit.divider())
 
-	var back := UIKit.button("返 回", false)
+	var back := UIKit.button(tr("返 回"), false)
 	back.add_theme_font_size_override("font_size", Palette.F_BODY)
 	back.pressed.connect(func(): get_tree().change_scene_to_file(MENU_SCENE))
 	col.add_child(back)
@@ -402,7 +402,7 @@ func _fill_lock(cell: Button) -> void:
 	lock.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lock.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	col.add_child(lock)
-	var hint := UIKit.label("未解锁", Palette.F_SMALL, Palette.INK_FAINT)
+	var hint := UIKit.label(tr("未解锁"), Palette.F_SMALL, Palette.INK_FAINT)
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	col.add_child(hint)
 
@@ -486,12 +486,12 @@ func _open_preview(image: String, subtitle: String, title: String, body: String,
 		col.add_child(UIKit.wrap_label(body, Palette.F_BODY, Palette.INK_SOFT))
 
 	if story_id != "" and _stories.has(story_id):
-		var again := UIKit.button("再看一遍这段", true)
+		var again := UIKit.button(tr("再看一遍这段"), true)
 		again.add_theme_font_size_override("font_size", Palette.F_BODY)
 		again.pressed.connect(_replay_story.bind(story_id))
 		col.add_child(again)
 
-	var close := UIKit.button("关 闭", false)
+	var close := UIKit.button(tr("关 闭"), false)
 	close.add_theme_font_size_override("font_size", Palette.F_BODY)
 	close.pressed.connect(_close_preview)
 	col.add_child(close)

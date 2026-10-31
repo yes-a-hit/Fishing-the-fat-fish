@@ -158,9 +158,29 @@ ComfyUI + `DeepSeek_ZipZipPipe_style_anima2b` LoRA，基座 Anima 2B（不兼容
 
 ---
 
-## 九、现在的短板
+## 九、多语言
+
+翻译表是 `data/i18n/strings.csv`，Godot 导入时自动切成 `strings.zh_CN.translation` 和 `strings.en.translation`，在 `project.godot` 的 `[internationalization]` 里注册。
+
+**中文原文直接当键** —— 代码里写 `tr("开 始 钓 鱼")`，CSV 里查不到就原样返回。好处是写代码时不用先起 key 名，坏处是改了中文得同步改 CSV。
+
+三层要分开看：
+
+- **UI 层**：`scripts/ui/` 下的中文字面量已全部包了 `tr()`（`tools/wrap_tr.py` 批量做的，脚本留着，加新文件可以再跑）。
+- **数据层**：`fish.json` 的 `display_name` / `tagline` / `blurb`、`endings.json` 的 `title` / `subtitle` / `lines` / `pages[].caption`，在 `ConfigLoader` 加载时过一遍 `TranslationServer.translate()`。用这个而不是 `tr()`，因为 `ConfigLoader` 是纯静态类。
+- **切换时机**：`Boot` autoload（排在 `Audio` 前面）在 `_ready` 里读设置并 `set_locale`，保证任何场景建 UI 之前语种已生效。设置页改完语言调 `_rebuild_page()` 整页重画 —— `tr()` 只在构建时求值，不重建文字还是旧语种。
+
+两个坑：
+
+1. **`const` 数组里不能用 `tr()`**。报 `Assigned value for constant "TABS" isn't a constant expression`，改成 `var`。
+2. **语言按钮上的名字不走 `tr()`**。中文界面下写「简体中文」，英文界面下它还是「简体中文」—— 用母语写语言名才认得出是哪个。
+
+---
+
+## 十、现在的短板
 
 - 三条鱼共用同一张立绘，只靠缩放区分体型。
 - Claude 和豆包没有上鱼动画，还是静态立绘。
 - 张力条在 UI 上不够显眼，玩家不知道自己快拉爆了。
 - 结局图 832×1216、立绘 768×768，分辨率不一致，混着放会看出来。
+- 英文翻译只覆盖了界面骨架，鱼的对白、结局正文、剧情台词还是中文。

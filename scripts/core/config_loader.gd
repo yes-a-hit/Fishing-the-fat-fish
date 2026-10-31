@@ -71,6 +71,13 @@ static func load_fish(path: String = PATH_FISH) -> Array:
 		push_error("[config] 没有任何可用鱼数据，使用内置兜底数据")
 		for item in FALLBACK_FISH:
 			out.append(FishSpec.from_dict(item, "fallback"))
+
+	# 鱼名走翻译表。规格里的 tagline / blurb 也一并处理。
+	for spec in out:
+		var s: FishSpec = spec
+		s.display_name = TranslationServer.translate(s.display_name)
+		s.tagline = TranslationServer.translate(s.tagline)
+		s.blurb = TranslationServer.translate(s.blurb)
 	return out
 
 
@@ -78,10 +85,41 @@ static func load_tuning(path: String = PATH_TUNING) -> GameTuning:
 	return GameTuning.from_dict(read_json(path))
 
 
+## 数据层的文案（鱼名、结局标题）也走翻译表。
+## 用 TranslationServer.translate() 而不是 tr()，因为这是 static 函数。
+## 语种在读完就固化了 —— 切语言后回菜单再进游戏会重新加载，够用。
+static func _loc(v: Variant) -> Variant:
+	if v is String:
+		return TranslationServer.translate(v as String)
+	if v is Array:
+		var arr: Array = []
+		for item in (v as Array):
+			arr.append(_loc(item))
+		return arr
+	return v
+
+
 static func load_endings(path: String = PATH_ENDINGS) -> Dictionary:
 	var data := read_json(path)
 	if data.is_empty():
 		push_error("[config] endings.json 为空，结算页将没有文案")
+		return data
+	# 只翻展示字段，不碰 reward / pages 里的资源路径
+	for key in data.keys():
+		var entry: Variant = data[key]
+		if not (entry is Dictionary):
+			continue
+		var d: Dictionary = entry
+		for field in ["title", "subtitle", "lines", "caption"]:
+			if d.has(field):
+				d[field] = _loc(d[field])
+		if d.has("pages") and d["pages"] is Array:
+			for page in (d["pages"] as Array):
+				if page is Dictionary:
+					var pg: Dictionary = page
+					for pf in ["caption", "text", "who"]:
+						if pg.has(pf):
+							pg[pf] = _loc(pg[pf])
 	return data
 
 

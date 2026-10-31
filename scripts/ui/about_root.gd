@@ -30,7 +30,7 @@ func _read_json(path: String) -> Dictionary:
 	f.close()
 	var json := JSON.new()
 	if json.parse(text) != OK:
-		push_warning("[about] 解析失败：" + path)
+		push_warning(tr("[about] 解析失败：") + path)
 		return {}
 	var raw: Variant = json.data
 	return raw if typeof(raw) == TYPE_DICTIONARY else {}
@@ -122,7 +122,7 @@ func _build_page() -> void:
 	head.add_theme_constant_override("separation", 12)
 	col.add_child(head)
 
-	var title := UIKit.title("关 于", Palette.F_H2)
+	var title := UIKit.title(tr("关 于"), Palette.F_H2)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	head.add_child(title)
@@ -150,7 +150,7 @@ func _build_page() -> void:
 	var links := _links()
 	if not links.is_empty():
 		body.add_child(UIKit.divider())
-		body.add_child(UIKit.label("去 处", Palette.F_SMALL, Palette.INK_FAINT))
+		body.add_child(UIKit.label(tr("去 处"), Palette.F_SMALL, Palette.INK_FAINT))
 		for l in links:
 			body.add_child(_build_link_row(l))
 
@@ -162,7 +162,7 @@ func _build_page() -> void:
 
 	col.add_child(UIKit.divider())
 
-	var back := UIKit.button("返 回", false)
+	var back := UIKit.button(tr("返 回"), false)
 	back.add_theme_font_size_override("font_size", Palette.F_BODY)
 	back.pressed.connect(func(): get_tree().change_scene_to_file(MENU_SCENE))
 	col.add_child(back)
@@ -238,7 +238,7 @@ func _build_easter_section(eggs: Array) -> Control:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 8)
 
-	box.add_child(UIKit.label("彩 蛋", Palette.F_SMALL, Palette.INK_FAINT))
+	box.add_child(UIKit.label(tr("彩 蛋"), Palette.F_SMALL, Palette.INK_FAINT))
 
 	var grid := GridContainer.new()
 	grid.columns = 2
@@ -263,7 +263,7 @@ func _build_easter_cell(e: Dictionary) -> Control:
 	cell.add_theme_stylebox_override("pressed", _link_box(Palette.CARD_EDGE.darkened(0.12)))
 	if has_art:
 		cell.pressed.connect(_open_preview.bind(img, String(e.get("caption", ""))))
-		cell.tooltip_text = "点一下放大"
+		cell.tooltip_text = tr("点一下放大")
 	else:
 		cell.disabled = true
 
@@ -332,7 +332,7 @@ func _open_preview(image: String, caption: String) -> void:
 		cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		col.add_child(cap)
 
-	var close := UIKit.button("关 闭", false)
+	var close := UIKit.button(tr("关 闭"), false)
 	close.add_theme_font_size_override("font_size", Palette.F_BODY)
 	close.pressed.connect(_close_preview)
 	col.add_child(close)
@@ -353,7 +353,7 @@ func _link_box(bg: Color) -> StyleBoxFlat:
 func _open_url(url: String) -> void:
 	var err := OS.shell_open(url)
 	if err != OK:
-		push_warning("[about] 打不开链接：%s (err %d)" % [url, err])
+		push_warning(tr("[about] 打不开链接：%s (err %d)") % [url, err])
 
 
 func _unhandled_input(event: InputEvent) -> void:

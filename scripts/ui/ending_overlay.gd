@@ -80,7 +80,7 @@ func show_ending(ending_key: String, data: Dictionary, summary: Dictionary, fish
 	_box.add_child(subtitle)
 
 	# 主标题
-	var title := UIKit.title(String(data.get("title", "结算")), Palette.F_TITLE, Palette.INK)
+	var title := UIKit.title(String(data.get("title", tr("结算"))), Palette.F_TITLE, Palette.INK)
 	_box.add_child(title)
 
 	_box.add_child(UIKit.spacer(2))
@@ -198,17 +198,17 @@ func _add_buttons(parent: Control = null) -> void:
 	if btns != _footer:
 		parent.add_child(btns)
 
-	var again := UIKit.button("再来一局", true, true)
+	var again := UIKit.button(tr("再来一局"), true, true)
 	again.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	again.pressed.connect(func(): restart_requested.emit())
 	btns.add_child(again)
 
-	var menu := UIKit.button("返回菜单", false, true)
+	var menu := UIKit.button(tr("返回菜单"), false, true)
 	menu.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	menu.pressed.connect(func(): menu_requested.emit())
 	btns.add_child(menu)
 
-	var quit := UIKit.button("退出", false, true)
+	var quit := UIKit.button(tr("退出"), false, true)
 	quit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	quit.pressed.connect(func(): get_tree().quit())
 	btns.add_child(quit)
@@ -228,22 +228,22 @@ func _stats_block(summary: Dictionary, fish_list: Array) -> Control:
 	line1.alignment = BoxContainer.ALIGNMENT_CENTER
 	col.add_child(line1)
 
-	line1.add_child(_stat("用饵", "%d / %d" % [
+	line1.add_child(_stat(tr("用饵"), "%d / %d" % [
 		int(summary.get("bait_used", 0)), int(summary.get("bait_total", 0))
 	]))
-	line1.add_child(_stat("上鱼", "%d / %d" % [
+	line1.add_child(_stat(tr("上鱼"), "%d / %d" % [
 		int(summary.get("caught_count", 0)), int(summary.get("fish_total", 0))
 	]))
-	line1.add_child(_stat("轮次", str(int(summary.get("rounds", 0)))))
+	line1.add_child(_stat(tr("轮次"), str(int(summary.get("rounds", 0)))))
 
 	var line2 := HBoxContainer.new()
 	line2.add_theme_constant_override("separation", 26)
 	line2.alignment = BoxContainer.ALIGNMENT_CENTER
 	col.add_child(line2)
 
-	line2.add_child(_stat("命中", str(int(summary.get("good", 0))), Palette.GOOD))
-	line2.add_child(_stat("完美", str(int(summary.get("perfect", 0))), Palette.ACCENT_DEEP))
-	line2.add_child(_stat("失手", str(int(summary.get("miss", 0))), Palette.BAD))
+	line2.add_child(_stat(tr("命中"), str(int(summary.get("good", 0))), Palette.GOOD))
+	line2.add_child(_stat(tr("完美"), str(int(summary.get("perfect", 0))), Palette.ACCENT_DEEP))
+	line2.add_child(_stat(tr("失手"), str(int(summary.get("miss", 0))), Palette.BAD))
 
 	# 每条鱼的收集状态 —— 鱼多鱼少都能摆
 	var caught: Array = summary.get("caught", [])
