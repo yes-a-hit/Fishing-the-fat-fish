@@ -59,6 +59,7 @@ func _run_all() -> void:
 	_case_doubao_curve()
 	_case_gallery()
 	_case_gallery_pages()
+	_case_ending_stories()
 	_case_voice_rewards()
 	_case_claude_stages()
 	_case_about()
@@ -861,28 +862,73 @@ func _case_gallery() -> void:
 	_ok("清理后为空", Gallery.load_unlocked().is_empty())
 
 
-## 图鉴三页：结局 / 脱钩 / 声音。顺带验 play_voice 会解锁、override_path 能隔离。
+## 图鉴四页：结局 / 角色 / 脱钩 / 声音。顺带验 play_voice 会解锁、override_path 能隔离。
+## 每个结局都得配一段对话。少一个就说明结算页还是「一张图 + 三行字」。
+func _case_ending_stories() -> void:
+	print("[case] 结局对话")
+	var endings := ConfigLoader.load_endings()
+	var stories: Dictionary = ConfigLoader.read_json(ConfigLoader.PATH_STORY)
+	var missing: Array = []
+	var empty: Array = []
+	for k in endings.keys():
+		var key := String(k)
+		if key.begins_with("_"):
+			continue
+		var id := "ending_" + key
+		if not stories.has(id):
+			missing.append(key)
+			continue
+		var pages: Variant = (stories[id] as Dictionary).get("pages", [])
+		if not (pages is Array) or (pages as Array).is_empty():
+			empty.append(key)
+	_ok("每个结局都有对话（缺: %s）" % ", ".join(missing), missing.is_empty())
+	_ok("结局对话都不是空的（空: %s）" % ", ".join(empty), empty.is_empty())
+
+	# 带 voice 的那几句，语音文件得真的在
+	var bad_voice: Array = []
+	var bad_portrait: Array = []
+	for id in stories.keys():
+		if String(id).begins_with("_"):
+			continue
+		var d: Dictionary = stories[id]
+		var portrait := String(d.get("portrait", ""))
+		if portrait != "" and not ResourceLoader.exists(portrait):
+			bad_portrait.append(String(id))
+		for page in (d.get("pages", []) as Array):
+			if not (page is Dictionary):
+				continue
+			var v := String((page as Dictionary).get("voice", ""))
+			if v != "" and not ResourceLoader.exists("res://assets/voice/%s.ogg" % v):
+				bad_voice.append("%s/%s" % [id, v])
+	_ok("剧情立绘都存在（缺: %s）" % ", ".join(bad_portrait), bad_portrait.is_empty())
+	_ok("剧情配音都存在（缺: %s）" % ", ".join(bad_voice), bad_voice.is_empty())
+
+
 func _case_gallery_pages() -> void:
-	print("[case] 图鉴三页")
+	print("[case] 图鉴四页")
 	var gr: Node = (load("res://scripts/ui/gallery_root.gd") as GDScript).new()
-	# _endings 只在 _ready 里拉，测试里得手动喂
+	# _endings / _characters 只在 _ready 里拉，测试里得手动喂
 	gr._endings = ConfigLoader.load_endings()
+	gr._characters = ConfigLoader.load_characters()
 
 	# 页数与每页条目数
-	_check("三页", gr.TABS.size(), 3)
+	_check("四页", gr.TABS.size(), 4)
 	_check("结局页 9 条", gr._total_of("ending"), 9)
+	_check("角色页 5 条", gr._total_of("character"), 5)
 	_check("脱钩页 4 条", gr._total_of("escape"), 4)
 	_check("声音页 14 条", gr._total_of("voice"), 14)
 
-	# 结局页能重看剧情的映射：key 得是真结局，剧情 id 得在 story.json 里
+	# 结局页能重看剧情的映射：每个结局都该有 ending_<key> 那段
 	var stories: Dictionary = ConfigLoader.read_json(ConfigLoader.PATH_STORY)
-	_ok("有结局配了剧情", not gr.ENDING_STORY.is_empty())
-	for ek in gr.ENDING_STORY.keys():
-		_ok("结局 %s 确实存在" % ek, gr._endings.has(String(ek)))
-		var sid := String(gr.ENDING_STORY[ek])
-		_ok("剧情 %s 确实存在" % sid, stories.has(sid))
-		var pages: Array = (stories.get(sid, {}) as Dictionary).get("pages", [])
-		_ok("剧情 %s 有页" % sid, pages.size() > 0)
+	gr._stories = stories
+	for ek in gr._endings.keys():
+		if String(ek).begins_with("_"):
+			continue
+		var sid: String = gr._story_of_ending(String(ek))
+		_ok("结局 %s 配了剧情" % ek, sid != "")
+		if sid != "":
+			var pages: Array = (stories.get(sid, {}) as Dictionary).get("pages", [])
+			_ok("剧情 %s 有页" % sid, pages.size() > 0)
 
 	# 每条脱钩条目都要有图、有 key、有唯一 key
 	var keys: Array = []

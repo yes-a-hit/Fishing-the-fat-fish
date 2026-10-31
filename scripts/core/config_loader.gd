@@ -14,6 +14,7 @@ const PATH_FISH := "res://data/fish.json"
 const PATH_TUNING := "res://data/tuning.json"
 const PATH_ENDINGS := "res://data/endings.json"
 const PATH_STORY := "res://data/story.json"
+const PATH_CHARACTERS := "res://data/characters.json"
 
 ## 连 fish.json 都读不到时的兜底，保证游戏还能跑起来。
 const FALLBACK_FISH := [
@@ -131,3 +132,21 @@ static func load_all() -> Dictionary:
 		"endings": load_endings(),
 		"story": read_json(PATH_STORY),
 	}
+
+
+## 图鉴「角色」页用。只取 characters 数组，翻展示字段。
+static func load_characters(path: String = PATH_CHARACTERS) -> Array:
+	var data := read_json(path)
+	var raw: Variant = data.get("characters", [])
+	if not (raw is Array):
+		return []
+	var out: Array = []
+	for item in (raw as Array):
+		if not (item is Dictionary):
+			continue
+		var c: Dictionary = item
+		for field in ["name", "personality", "quote"]:
+			if c.has(field):
+				c[field] = _loc(c[field])
+		out.append(c)
+	return out

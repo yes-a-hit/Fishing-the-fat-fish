@@ -605,13 +605,16 @@ func _on_finished(ending: String, summary: Dictionary) -> void:
 		print(tr("[gallery] 新解锁结局: ") + ending)
 	var data: Dictionary = _endings.get(ending, {})
 	Audio.play_voice(ending)
-	# 这一局欠下的剧情先播完，再摆结算。
+	# 这一局欠下的剧情先播完，再播这个结局自己的那段，最后才摆结算。
 	# 顺序反了的话，第二次钓上豆包那一竿恰好也是集齐三条鱼的那一竿，
 	# 结算卡片一盖上来，「白饭来咯」就永远看不到了。
 	_story_playing = true
 	_play_story_queue(func():
-		_story_playing = false
-		_ending.show_ending(ending, data, summary, _targets)
+		# 每个结局都配了一段对话，播完才轮到结算页
+		_play_one_story("ending_" + ending, func():
+			_story_playing = false
+			_ending.show_ending(ending, data, summary, _targets)
+		)
 	)
 
 
@@ -627,6 +630,17 @@ func _play_story_queue(done: Callable) -> void:
 		_play_story_queue(done)
 		return
 	_story.finished.connect(_play_story_queue.bind(done), CONNECT_ONE_SHOT)
+	_story.play(story)
+
+
+## 播指定的一段剧情，播完调 done。找不到就直接 done。
+## 结局剧情走这里，不进队列 —— 它每局都要放，不是「欠下的」。
+func _play_one_story(id: String, done: Callable) -> void:
+	var story: Dictionary = _stories.get(id, {})
+	if story.is_empty() or (story.get("pages", []) as Array).is_empty():
+		done.call()
+		return
+	_story.finished.connect(done, CONNECT_ONE_SHOT)
 	_story.play(story)
 
 

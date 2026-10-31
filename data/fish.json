@@ -60,7 +60,7 @@
     {
       "id": "doubao",
       "name": "豆包",
-      "portrait": "res://assets/doubao.webp",
+      "portrait": "res://assets/doubao_seed.webp",
       "tint": "#ffffff",
       "stamina": 60.0,
       "damage_ratio": 1.0,

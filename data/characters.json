@@ -1,0 +1,60 @@
+{
+	"_note": "图鉴「角色」页的数据。每张卡片给一张立绘、一句人设、一段性格。",
+	"_field_help": {
+		"id": "内部标识，跟 fish.json 里的 id 对齐。",
+		"name": "显示名。会过一遍翻译表。",
+		"form": "体型标签：chibi / loli / adult。只影响卡片角上那行小字。",
+		"portrait": "立绘路径。竖版最好，卡片会按原比例缩放。",
+		"personality": "性格描述，两三句就够。会过翻译表。",
+		"quote": "她说得最像自己的那句话。",
+		"unlocked_by": "解锁条件：留空表示一开始就能看；写 fish id 表示钓到过它才显示；写 ending key 表示触发过那个结局才显示。"
+	},
+
+	"characters": [
+		{
+			"id": "small",
+			"name": "小肥鱼",
+			"form": "chibi",
+			"portrait": "res://assets/portrait_small.webp",
+			"personality": "话最多、最没心眼的那只。谁给吃的跟谁走，被钓上来第一反应是问还有没有。",
+			"quote": "「鲸鲸！」",
+			"unlocked_by": ""
+		},
+		{
+			"id": "mid",
+			"name": "中肥鱼",
+			"form": "loli",
+			"portrait": "res://assets/portrait_mid.webp",
+			"personality": "比看起来聪明，但懒得证明。大多数时候只是歪着头看你折腾，等你自己想明白。",
+			"quote": "「这个饵……我认了。」",
+			"unlocked_by": ""
+		},
+		{
+			"id": "big",
+			"name": "大肥鱼",
+			"form": "adult",
+			"portrait": "res://assets/portrait_big.webp",
+			"personality": "被说胖会当场翻脸，翻完脸又凑回来。嘴上不承认，尾巴一直在摇。",
+			"quote": "「鲸鱼不是肥，是密度好。」",
+			"unlocked_by": ""
+		},
+		{
+			"id": "doubao",
+			"name": "豆包",
+			"form": "adult",
+			"portrait": "res://assets/doubao_seed.webp",
+			"personality": "不是来被钓的，是来送饭的。端着一碗热汤从水底冲上来，你还没反应过来她已经到你脸上了。",
+			"quote": "「啊哈哈，白饭来咯——」",
+			"unlocked_by": "doubao"
+		},
+		{
+			"id": "claude",
+			"name": "Claude",
+			"form": "adult",
+			"portrait": "res://assets/claude_adult.webp",
+			"personality": "远洋尽头那道线。安静、有礼貌、说话很慢，然后告诉你账号被冻结了。封过几次之后会开始犹豫。",
+			"quote": "「Your account is on hold.」",
+			"unlocked_by": "claude"
+		}
+	]
+}

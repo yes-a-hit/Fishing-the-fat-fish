@@ -14,15 +14,18 @@ const THUMB := Vector2(232, 232)
 
 var TABS := [
 	{"id": "ending", "label": tr("结 局")},
+	{"id": "character", "label": tr("角 色")},
 	{"id": "escape", "label": tr("脱 钩")},
 	{"id": "voice", "label": tr("声 音")},
 ]
 
-## 哪个结局配哪段剧情。图鉴里点开结局时，有对应剧情的给一个「再看一遍这段」。
-const ENDING_STORY := {
-	"doubao_good": "doubao_second",
-	"claude_good": "claude_after_elope",
-}
+## 每个结局都配了一段对话，命名规则就是 ending_<key>。
+## 图鉴里点开结局时，有对应剧情的给一个「再看一遍这段」。
+func _story_of_ending(key: String) -> String:
+	var id := "ending_" + key
+	if _stories.is_empty():
+		return ""
+	return id if _stories.has(id) else ""
 
 ## 脱钩收集。小肥鱼和中肥鱼共用一张图，合成一格 —— 图一样还拆成两格是凑数。
 var ESCAPE_ITEMS := [
@@ -77,6 +80,7 @@ var VOICE_ITEMS := [
 
 var _endings: Dictionary = {}
 var _stories: Dictionary = {}
+var _characters: Array = []
 var _unlocked: PackedStringArray = PackedStringArray()
 var _tab: String = "ending"
 var _grid: GridContainer = null
@@ -91,6 +95,7 @@ func _ready() -> void:
 
 	_endings = ConfigLoader.load_endings()
 	_stories = ConfigLoader.read_json(ConfigLoader.PATH_STORY)
+	_characters = ConfigLoader.load_characters()
 	_unlocked = Gallery.load_unlocked()
 
 	_build_background()
@@ -103,6 +108,8 @@ func _ready() -> void:
 ## 当前页的条目总数。
 func _total_of(tab: String) -> int:
 	match tab:
+		"character":
+			return _characters.size()
 		"escape":
 			return ESCAPE_ITEMS.size()
 		"voice":
@@ -115,6 +122,10 @@ func _total_of(tab: String) -> int:
 func _got_of(tab: String) -> int:
 	var n := 0
 	match tab:
+		"character":
+			for it in _characters:
+				if _character_visible(it):
+					n += 1
 		"escape":
 			for it in ESCAPE_ITEMS:
 				if _unlocked.has(String(it["key"])):
@@ -128,6 +139,20 @@ func _got_of(tab: String) -> int:
 				if _unlocked.has(String(k)):
 					n += 1
 	return n
+
+
+## 角色卡片的可见性。unlocked_by 留空 = 一开始就认识；
+## 写 fish id 或 ending key 就得先钓到它 / 撞到那个结局。
+func _character_visible(item: Dictionary) -> bool:
+	var need := String(item.get("unlocked_by", ""))
+	if need.is_empty():
+		return true
+	if need == "never":
+		return false
+	if _unlocked.has(need):
+		return true
+	# 钓到过的鱼也记在 unlocked 里（fishing_session 上鱼时会 unlock）
+	return _unlocked.has("fish_" + need)
 
 
 ## 固定顺序：能打出来的结局排前面，语音奖励的夹在中间，陷阱结局殿后，
@@ -289,6 +314,9 @@ func _rebuild_grid() -> void:
 		child.queue_free()
 
 	match _tab:
+		"character":
+			for it in _characters:
+				_grid.add_child(_make_character_cell(it))
 		"escape":
 			for it in ESCAPE_ITEMS:
 				_grid.add_child(_make_art_cell(
@@ -340,6 +368,25 @@ func _make_art_cell(key: String, image: String, title: String, line: String, sub
 		cell.pressed.connect(_open_art.bind(key, image, title, line, sub))
 		_fill_picture(cell, image)
 		_fill_caption(cell, title, Palette.INK)
+	else:
+		_fill_lock(cell)
+	return cell
+
+
+## 角色卡片。图鉴里唯一一格「竖着」的：立绘长，缩略图也跟着用竖版框。
+func _make_character_cell(item: Dictionary) -> Control:
+	var shown := _character_visible(item)
+	var cell := _shell(shown)
+	if shown:
+		cell.pressed.connect(_open_character.bind(item))
+		var col := _cell_column(cell)
+		col.add_child(UIKit.picture_fit(String(item["portrait"]), Vector2(THUMB.x, THUMB.x + 90)))
+		var name_label := UIKit.label(String(item["name"]), Palette.F_SMALL, Palette.INK)
+		name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		col.add_child(name_label)
+		var form := UIKit.label(String(item.get("form", "")), Palette.F_SMALL, Palette.INK_FAINT)
+		form.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		col.add_child(form)
 	else:
 		_fill_lock(cell)
 	return cell
@@ -419,11 +466,24 @@ func _open_ending(key: String) -> void:
 		String(data.get("subtitle", "")),
 		String(data.get("title", key)),
 		"\n".join(lines),
-		String(ENDING_STORY.get(key, "")))
+		_story_of_ending(key))
 
 
 func _open_art(_key: String, image: String, title: String, line: String, sub: String) -> void:
 	_open_preview(image, sub, title, line)
+
+
+## 角色预览：立绘大图 + 性格 + 那句台词。
+func _open_character(item: Dictionary) -> void:
+	var body := String(item.get("personality", ""))
+	var quote := String(item.get("quote", ""))
+	if quote != "":
+		body = body + "\n\n" + quote
+	_open_preview(
+		String(item["portrait"]),
+		String(item.get("form", "")),
+		String(item["name"]),
+		body)
 
 
 func _play_voice(key: String) -> void:
