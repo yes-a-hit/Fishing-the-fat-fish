@@ -30,8 +30,8 @@ Godot 4.7 · GDScript · 1280×800 · 单场景小游戏
 
 | 平台 | 直接下载 | 大小 |
 |---|---|---|
-| **Windows** | [`钓肥鱼-v1.4.2-windows-x64.zip`](docs/download/钓肥鱼-v1.4.2-windows-x64.zip) — 解压后双击 `钓肥鱼.exe`，单文件 | 23 MB |
-| **Android** | [`钓肥鱼-v1.4.2.apk`](docs/download/钓肥鱼-v1.4.2.apk) — 直接安装 | 34 MB |
+| **Windows** | [`钓肥鱼-v1.4.3-windows-x64.zip`](docs/download/钓肥鱼-v1.4.3-windows-x64.zip) — 解压后双击 `钓肥鱼.exe`，单文件 | 23 MB |
+| **Android** | [`钓肥鱼-v1.4.3.apk`](docs/download/钓肥鱼-v1.4.3.apk) — 直接安装 | 34 MB |
 | **网页版** | [在线玩](https://yes-a-hit.github.io/Fishing-the-fat-fish/) | — |
 
 如果链接点了没反应，右键 →「链接另存为」，或者把地址里的 `github.com/.../raw/main/...` 换成 `raw.githubusercontent.com/...`。
@@ -315,11 +315,15 @@ BGM 是一段 60 秒的海浪垫底 + A 小调五声拨弦，由 `tools/gen_bgm.
 
 ## 语言
 
-设置页第二栏能切简中和英文，切完回菜单再进游戏就生效。选过的语言存在 `user://settings.json`，下次开游戏直接是那个语种。
+设置页第二栏是个下拉框，现在有简体中文、繁體中文、English、日本語四种。切完回菜单再进游戏就生效。选过的语言存在 `user://settings.json`，下次开游戏直接是那个语种。
 
-翻译表在 `data/i18n/strings.csv`，两列：中文原文当键，右边是英文。没收录的句子原样透出来，不会变成空白。鱼名、结局标题这类数据层的文案也走同一张表（`ConfigLoader` 加载时过一遍 `TranslationServer.translate`）。
+翻译表在 `data/i18n/strings.csv`，第一列 `keys` 是中文原文，后面几列一列一门语言。没收录的句子原样透出来，不会变成空白。鱼名、结局标题、难度说明、水域牌子这些数据层的文案也走同一张表（`ConfigLoader` 和 `GameTuning` 加载时过一遍 `TranslationServer.translate`）。
 
-新增文案时，在 `data/i18n/strings.csv` 补一行就行；代码里写 `tr("中文原句")`，抄不到就回落原文。
+**自己加语言**：往 `data/i18n/strings.csv` 加一列就行，列名是语言代码，然后在 `GameSettings.LANGUAGES` 里加一条，重导一次。代码里写 `tr("中文原句")`，抄不到就回落原文。
+
+**不改源码也能翻**：把 csv 扔进 `user://i18n/`，文件名就是语言代码，例如 `ko.csv`。格式跟内置表一样，中文原文当键。启动时自动加载，**盖住**内置翻译里同名的条目，所以只想改一句就只写那一句。Windows 上这个目录在 `%APPDATA%\Godot\app_userdata\钓肥鱼\i18n\`，安卓在应用私有目录里。
+
+翻的时候注意：`白饭 %d / %d` 这种带占位符的，`%d` 别动，位置可以调。
 
 ---
 

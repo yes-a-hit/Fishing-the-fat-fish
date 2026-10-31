@@ -16,7 +16,7 @@ var _options: Array = []
 var _buttons: Dictionary = {}
 var _blurb: Label = null
 var _audio_rows: Dictionary = {}
-var _lang_buttons: Dictionary = {}
+var _lang_pick: OptionButton = null
 var _reset_btn: Button = null
 var _reset_hint: Label = null
 var _reset_armed: bool = false
@@ -122,15 +122,24 @@ func _build_card() -> void:
 	col.add_child(UIKit.label(tr("语言"), Palette.F_SMALL, Palette.INK_FAINT))
 
 	var lang_row := HBoxContainer.new()
-	lang_row.add_theme_constant_override("separation", 8)
+	lang_row.add_theme_constant_override("separation", 10)
 	col.add_child(lang_row)
-	for code in GameSettings.LANGUAGES:
-		var lb := UIKit.button(_lang_label(code), false)
-		lb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		lb.add_theme_font_size_override("font_size", Palette.F_BODY)
-		lb.pressed.connect(_on_language.bind(String(code)))
-		lang_row.add_child(lb)
-		_lang_buttons[String(code)] = lb
+
+	# 语言多了以后一排按钮挤不下，改下拉框：新语种只要往 LANGUAGES 里加一条就自己出现
+	_lang_pick = OptionButton.new()
+	_lang_pick.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_lang_pick.add_theme_font_size_override("font_size", Palette.F_BODY)
+	_lang_pick.add_theme_color_override("font_color", Palette.INK)
+	var pick_idx := 0
+	for i in GameSettings.LANGUAGES.size():
+		var code := String(GameSettings.LANGUAGES[i])
+		_lang_pick.add_item(_lang_label(code), i)
+		_lang_pick.set_item_metadata(i, code)
+		if code == _settings.language:
+			pick_idx = i
+	_lang_pick.selected = pick_idx
+	_lang_pick.item_selected.connect(_on_language_picked)
+	lang_row.add_child(_lang_pick)
 
 	col.add_child(UIKit.spacer(2))
 	col.add_child(UIKit.divider())
@@ -269,33 +278,25 @@ func _refresh_selection() -> void:
 		b.add_theme_color_override("font_hover_color", fg)
 		b.add_theme_color_override("font_pressed_color", fg)
 
-	for code in _lang_buttons.keys():
-		var lb: Button = _lang_buttons[code]
-		var on: bool = String(code) == _settings.language
-		var base2 := Palette.ACCENT if on else Palette.CARD_SOFT
-		var hover2 := Palette.ACCENT_DEEP if on else Palette.CARD_EDGE
-		var fg2 := Palette.ON_DARK if on else Palette.INK
-		lb.add_theme_stylebox_override("normal", _btn_box(base2))
-		lb.add_theme_stylebox_override("hover", _btn_box(hover2))
-		lb.add_theme_stylebox_override("pressed", _btn_box(hover2.darkened(0.12)))
-		lb.add_theme_color_override("font_color", fg2)
-		lb.add_theme_color_override("font_hover_color", fg2)
-		lb.add_theme_color_override("font_pressed_color", fg2)
-
 	if _blurb != null:
 		_blurb.text = _blurb_of(_settings.difficulty)
 
 
-## 语言按钮上写的话要一直显示中文名 —— 英文界面下 "Chinese" 也认不出是哪个。
-## 换语言后整页文案跟着变，但按钮标识本身保持原样。
+## 下拉框每项写的名字要一直显示该语言自己的写法 —— 英文界面下 "Chinese"
+## 反而认不出是哪个。所以这里整张表自己维护，不走 tr()。
 func _lang_label(code: String) -> String:
 	match code:
 		"zh_CN": return "简体中文"
+		"zh_TW": return "繁體中文"
 		"en": return "English"
+		"ja": return "日本語"
+		"ko": return "한국어"
+		"ru": return "Русский"
 	return code
 
 
-func _on_language(code: String) -> void:
+func _on_language_picked(idx: int) -> void:
+	var code := String(_lang_pick.get_item_metadata(idx))
 	if _settings.language == code:
 		return
 	_settings.language = code
@@ -310,7 +311,7 @@ func _rebuild_page() -> void:
 		c.queue_free()
 	_buttons.clear()
 	_audio_rows.clear()
-	_lang_buttons.clear()
+	_lang_pick = null
 	_blurb = null
 	_reset_btn = null
 	_reset_hint = null

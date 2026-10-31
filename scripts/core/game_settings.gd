@@ -13,7 +13,7 @@ const PATH := "user://settings.json"
 const DEFAULT_DIFFICULTY := "normal"
 ## 界面语言。空串 = 跟随系统（Godot 会拿 OS 的 locale 去匹配已加载的翻译）。
 const DEFAULT_LANGUAGE := "zh_CN"
-const LANGUAGES := ["zh_CN", "en"]
+const LANGUAGES := ["zh_CN", "zh_TW", "en", "ja"]
 
 var difficulty: String = DEFAULT_DIFFICULTY
 var language: String = DEFAULT_LANGUAGE

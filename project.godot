@@ -45,5 +45,5 @@ textures/vram_compression/import_etc2_astc=true
 
 [internationalization]
 
-locale/translations=PackedStringArray("res://data/i18n/strings.zh_CN.translation", "res://data/i18n/strings.en.translation")
+locale/translations=PackedStringArray("res://data/i18n/strings.zh_CN.translation", "res://data/i18n/strings.zh_TW.translation", "res://data/i18n/strings.en.translation", "res://data/i18n/strings.ja.translation")
 locale/fallback="zh_CN"

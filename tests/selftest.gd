@@ -36,6 +36,10 @@ func _run_all() -> void:
 	Gallery.override_path = "user://gallery_sandbox.json"
 	Gallery.clear()
 
+	# 断言里写的是中文原文，界面上找的也是中文。玩家可能把语言设成了日文，
+	# 那 UI 上一个「开始钓鱼」都找不到 —— 先钉回简中再测。
+	TranslationServer.set_locale("zh_CN")
+
 	_case_config()
 	_case_auto_zones()
 	_case_extension_add_fish()
@@ -1718,6 +1722,47 @@ func _case_i18n() -> void:
 	_check("apply_language 生效", TranslationServer.get_locale(), "en")
 	TranslationServer.set_locale(prev)
 	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://settings_i18n_test.json"))
+
+	# 6. 四门语言都在，且切换后各自翻出不同的字
+	var all := TranslationServer.get_loaded_locales()
+	for code in GameSettings.LANGUAGES:
+		_ok("语言已加载：%s" % code, all.has(code))
+	TranslationServer.set_locale("zh_TW")
+	_check("繁中下的标题", tr("钓肥鱼"), "釣肥魚")
+	TranslationServer.set_locale("ja")
+	_check("日文下的开始按钮", tr("开 始 钓 鱼"), "釣 り を 始 め る")
+	_check("日文下的鱼名", tr("小肥鱼"), "小デブ")
+	TranslationServer.set_locale("zh_CN")
+
+	# 7. 玩家自备的翻译表：扔个 csv 进 user://i18n/ 就能盖住内置的
+	# --script 模式下 autoload 不在编译期作用域里，得从场景树里捞
+	var box: Node = (Engine.get_main_loop() as SceneTree).root.get_node_or_null("Boot")
+	_ok("Boot 节点存在", box != null)
+	if box == null:
+		TranslationServer.set_locale("zh_CN")
+		return
+	DirAccess.make_dir_recursive_absolute("user://i18n")
+	var csv := "keys,ko\n\"钓肥鱼\",\"뚱뚱이 낚시\"\n\"设 置\",\"설정\"\n"
+	var f := FileAccess.open("user://i18n/ko.csv", FileAccess.WRITE)
+	_ok("能写自备翻译", f != null)
+	if f != null:
+		f.store_string(csv)
+		f.close()
+	var loaded: Translation = box.call("_read_csv_translation","user://i18n/ko.csv", "ko")
+	_ok("自备翻译解析得出来", loaded != null)
+	if loaded != null:
+		_check("自备翻译条目数", loaded.get_message_count(), 2)
+		_check("自备翻译内容", loaded.get_message("钓肥鱼"), "뚱뚱이 낚시")
+		TranslationServer.add_translation(loaded)
+		TranslationServer.set_locale("ko")
+		_check("自备翻译生效", tr("钓肥鱼"), "뚱뚱이 낚시")
+	TranslationServer.set_locale("zh_CN")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://i18n/ko.csv"))
+
+	# 8. 引号里的逗号不能被当分隔符切开
+	var cells: PackedStringArray = box.call("_split_csv_line","\"a,b\",\"c\"")
+	_check("引号内逗号不切", cells.size(), 2)
+	_check("引号内逗号内容", cells[0], "a,b")
 
 
 # ---------- 剧情在开局时补播 ----------

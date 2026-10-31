@@ -159,8 +159,8 @@ func difficulty_options() -> Array:
 		var d: Dictionary = difficulties[key] as Dictionary
 		out.append({
 			"key": key,
-			"label": String(d.get("label", key)),
-			"blurb": String(d.get("blurb", "")),
+			"label": TranslationServer.translate(String(d.get("label", key))),
+			"blurb": TranslationServer.translate(String(d.get("blurb", ""))),
 		})
 	return out
 
@@ -316,13 +316,14 @@ static func zone_of(zone_list: Array, fish_id: String) -> Dictionary:
 
 ## 落点对应的水域描述。纯位置语言，不点名任何鱼 ——
 ## 抛竿条只靠这块牌子给「大概在哪」，剩下的留给玩家自己猜。
+## 静态函数里没有 tr()，走 TranslationServer。
 static func water_label(point: float) -> String:
 	var p := clampf(point, 0.0, 100.0)
 	if p < 33.0:
-		return "近岸水域"
+		return TranslationServer.translate("近岸水域")
 	if p < 66.0:
-		return "中段水域"
-	return "远洋水域"
+		return TranslationServer.translate("中段水域")
+	return TranslationServer.translate("远洋水域")
 
 
 ## 战斗配置的浅取值，带默认值。FightSession 用同一套 key。
