@@ -27,37 +27,8 @@ func _story_of_ending(key: String) -> String:
 		return ""
 	return id if _stories.has(id) else ""
 
-## 脱钩收集。小肥鱼和中肥鱼共用一张图，合成一格 —— 图一样还拆成两格是凑数。
-var ESCAPE_ITEMS := [
-	{
-		"key": "escape_small",
-		"image": "res://assets/deepseek_escape.webp",
-		"title": tr("小肥鱼 / 中肥鱼"),
-		"line": tr("「哦鲸鲸…」"),
-		"sub": tr("她甩着尾巴跑了"),
-	},
-	{
-		"key": "escape_big",
-		"image": "res://assets/deepseek_escape_big.webp",
-		"title": tr("大肥鱼"),
-		"line": tr("「鲸鱼不是肥，是密度好。」"),
-		"sub": tr("她游走了"),
-	},
-	{
-		"key": "escape_claude",
-		"image": "res://assets/claude_escape.webp",
-		"title": tr("远洋尽头那条线"),
-		"line": tr("她扭过头去了"),
-		"sub": tr("通知单没递成"),
-	},
-	{
-		"key": "escape_doubao",
-		"image": "res://assets/doubao_escape.webp",
-		"title": tr("豆包"),
-		"line": tr("奶黄包 笑 着 跑 了"),
-		"sub": tr("白饭没捞着"),
-	},
-]
+## 脱钩收集。图与文案全部来自 data/escapes.json，这里不再抄一份。
+## 小肥鱼和中肥鱼共用一张图，在数据里就写成同一格。
 
 ## 声音收集。key 与 assets/voice/<key>.mp3 一一对应。
 var VOICE_ITEMS := [
@@ -81,6 +52,7 @@ var VOICE_ITEMS := [
 var _endings: Dictionary = {}
 var _stories: Dictionary = {}
 var _characters: Array = []
+var _escapes: Array = []      ## 脱钩演出表，见 data/escapes.json
 var _unlocked: PackedStringArray = PackedStringArray()
 var _tab: String = "ending"
 var _grid: GridContainer = null
@@ -96,9 +68,10 @@ func _ready() -> void:
 	_endings = ConfigLoader.load_endings()
 	_stories = ConfigLoader.read_json(ConfigLoader.PATH_STORY)
 	_characters = ConfigLoader.load_characters()
+	_escapes = ConfigLoader.load_escapes()
 	_unlocked = Gallery.load_unlocked()
 
-	_build_background()
+	add_child(LakeBackdrop.new())
 	_build_page()
 	_rebuild_grid()
 
@@ -111,7 +84,7 @@ func _total_of(tab: String) -> int:
 		"character":
 			return _characters.size()
 		"escape":
-			return ESCAPE_ITEMS.size()
+			return _escapes.size()
 		"voice":
 			return VOICE_ITEMS.size()
 		_:
@@ -127,7 +100,7 @@ func _got_of(tab: String) -> int:
 				if _character_visible(it):
 					n += 1
 		"escape":
-			for it in ESCAPE_ITEMS:
+			for it in _escapes:
 				if _unlocked.has(String(it["key"])):
 					n += 1
 		"voice":
@@ -156,12 +129,16 @@ func _character_visible(item: Dictionary) -> bool:
 
 
 ## 固定顺序：能打出来的结局排前面，语音奖励的夹在中间，陷阱结局殿后，
-## 剩下的按 json 里出现的顺序补。
+## 剩下的按 json 里出现的顺序补。顺序本身写在 endings.json 的 _order 里 ——
+## 之前硬编码在这个文件的数组里，加结局要同时改数据和一个 UI 文件。
 func _ordered_keys() -> Array:
 	var out: Array = []
-	for k in ["feast", "full", "hungry", "doubao_good", "claude_good", "true_end", "claude", "claude_fake"]:
-		if _endings.has(k):
-			out.append(k)
+	var order: Variant = _endings.get("_order", [])
+	var wanted: Array = order if order is Array else []
+	for k in wanted:
+		var key := String(k)
+		if _endings.has(key) and not out.has(key):
+			out.append(key)
 	for k in _endings.keys():
 		var key := String(k)
 		if key.begins_with("_") or out.has(key):
@@ -192,47 +169,6 @@ func _thumb_of(key: String) -> String:
 		if typeof(pick) == TYPE_DICTIONARY:
 			return String((pick as Dictionary).get("image", ""))
 	return ""
-
-
-# ---------- 背景 ----------
-
-func _build_background() -> void:
-	var bg := Control.new()
-	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	bg.draw.connect(_draw_background.bind(bg))
-	add_child(bg)
-
-
-func _draw_background(canvas: Control) -> void:
-	var w := canvas.size.x
-	var h := canvas.size.y
-	if w <= 1.0 or h <= 1.0:
-		return
-	var horizon := h * 0.62
-	canvas.draw_polygon(
-		PackedVector2Array([Vector2(0, 0), Vector2(w, 0), Vector2(w, horizon), Vector2(0, horizon)]),
-		PackedColorArray([Palette.SKY_TOP, Palette.SKY_TOP, Palette.SKY_LOW, Palette.SKY_LOW])
-	)
-	canvas.draw_polygon(
-		PackedVector2Array([Vector2(0, horizon), Vector2(w, horizon), Vector2(w, h), Vector2(0, h)]),
-		PackedColorArray([Palette.WATER_DEEP, Palette.WATER_DEEP, Palette.WATER_SHALLOW, Palette.WATER_SHALLOW])
-	)
-	canvas.draw_colored_polygon(PackedVector2Array([
-		Vector2(-w * 0.1, horizon),
-		Vector2(w * 0.18, horizon - h * 0.11),
-		Vector2(w * 0.44, horizon - h * 0.04),
-		Vector2(w * 0.62, horizon - h * 0.13),
-		Vector2(w * 1.1, horizon),
-	]), Palette.HILL_FAR)
-	canvas.draw_colored_polygon(PackedVector2Array([
-		Vector2(-w * 0.1, horizon),
-		Vector2(w * 0.30, horizon - h * 0.06),
-		Vector2(w * 0.55, horizon - h * 0.02),
-		Vector2(w * 0.78, horizon - h * 0.08),
-		Vector2(w * 1.1, horizon),
-	]), Palette.HILL_NEAR)
-	canvas.draw_rect(Rect2(0, horizon - 1.0, w, 2.0), Palette.WATER_LINE)
 
 
 # ---------- 页面 ----------
@@ -318,7 +254,7 @@ func _rebuild_grid() -> void:
 			for it in _characters:
 				_grid.add_child(_make_character_cell(it))
 		"escape":
-			for it in ESCAPE_ITEMS:
+			for it in _escapes:
 				_grid.add_child(_make_art_cell(
 					String(it["key"]), String(it["image"]),
 					String(it["title"]), String(it["line"]), String(it["sub"])))

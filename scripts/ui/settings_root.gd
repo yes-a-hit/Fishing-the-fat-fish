@@ -30,55 +30,13 @@ func _ready() -> void:
 	_tuning = ConfigLoader.load_tuning()
 	_options = _tuning.difficulty_options()
 
-	_build_background()
+	add_child(LakeBackdrop.new())
 	_build_card()
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
 		_back()
-
-
-# ---------- 背景 ----------
-
-func _build_background() -> void:
-	var bg := Control.new()
-	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	bg.draw.connect(_draw_background.bind(bg))
-	add_child(bg)
-
-
-func _draw_background(canvas: Control) -> void:
-	var w := canvas.size.x
-	var h := canvas.size.y
-	if w <= 1.0 or h <= 1.0:
-		return
-	var horizon := h * 0.62
-
-	canvas.draw_polygon(
-		PackedVector2Array([Vector2(0, 0), Vector2(w, 0), Vector2(w, horizon), Vector2(0, horizon)]),
-		PackedColorArray([Palette.SKY_TOP, Palette.SKY_TOP, Palette.SKY_LOW, Palette.SKY_LOW])
-	)
-	canvas.draw_polygon(
-		PackedVector2Array([Vector2(0, horizon), Vector2(w, horizon), Vector2(w, h), Vector2(0, h)]),
-		PackedColorArray([Palette.WATER_DEEP, Palette.WATER_DEEP, Palette.WATER_SHALLOW, Palette.WATER_SHALLOW])
-	)
-	canvas.draw_colored_polygon(PackedVector2Array([
-		Vector2(-w * 0.1, horizon),
-		Vector2(w * 0.18, horizon - h * 0.11),
-		Vector2(w * 0.44, horizon - h * 0.04),
-		Vector2(w * 0.62, horizon - h * 0.13),
-		Vector2(w * 1.1, horizon),
-	]), Palette.HILL_FAR)
-	canvas.draw_colored_polygon(PackedVector2Array([
-		Vector2(-w * 0.1, horizon),
-		Vector2(w * 0.30, horizon - h * 0.06),
-		Vector2(w * 0.55, horizon - h * 0.02),
-		Vector2(w * 0.78, horizon - h * 0.08),
-		Vector2(w * 1.1, horizon),
-	]), Palette.HILL_NEAR)
-	canvas.draw_rect(Rect2(0, horizon - 1.0, w, 2.0), Palette.WATER_LINE)
 
 
 # ---------- 卡片 ----------
@@ -243,17 +201,23 @@ func _on_audio_slider(value: float, channel: String) -> void:
 	Audio.apply_settings(_settings)
 
 
+## 选中 / 未选中两态的同一套样式。
+## 早先 _style_toggle 与 _refresh_selection 各抄一遍，只差关闭态的文字色
+## （开关用 INK_SOFT，难度用 INK）—— 改一次配色要改两处，还会漂。
+func _paint_button(b: Button, active: bool, off_fg: Color = Palette.INK_SOFT) -> void:
+	var base := Palette.ACCENT if active else Palette.CARD_SOFT
+	var hover := Palette.ACCENT_DEEP if active else Palette.CARD_EDGE
+	var fg := Palette.ON_DARK if active else off_fg
+	b.add_theme_stylebox_override("normal", _btn_box(base))
+	b.add_theme_stylebox_override("hover", _btn_box(hover))
+	b.add_theme_stylebox_override("pressed", _btn_box(hover.darkened(0.12)))
+	b.add_theme_color_override("font_color", fg)
+	b.add_theme_color_override("font_hover_color", fg)
+	b.add_theme_color_override("font_pressed_color", fg)
+
+
 func _style_toggle(toggle: Button) -> void:
-	var on := toggle.button_pressed
-	var base := Palette.ACCENT if on else Palette.CARD_SOFT
-	var hover := Palette.ACCENT_DEEP if on else Palette.CARD_EDGE
-	var fg := Palette.ON_DARK if on else Palette.INK_SOFT
-	toggle.add_theme_stylebox_override("normal", _btn_box(base))
-	toggle.add_theme_stylebox_override("hover", _btn_box(hover))
-	toggle.add_theme_stylebox_override("pressed", _btn_box(hover.darkened(0.12)))
-	toggle.add_theme_color_override("font_color", fg)
-	toggle.add_theme_color_override("font_hover_color", fg)
-	toggle.add_theme_color_override("font_pressed_color", fg)
+	_paint_button(toggle, toggle.button_pressed)
 
 
 # ---------- 交互 ----------
@@ -267,16 +231,7 @@ func _on_pick(key: String) -> void:
 func _refresh_selection() -> void:
 	for key in _buttons.keys():
 		var b: Button = _buttons[key]
-		var active: bool = String(key) == _settings.difficulty
-		var base := Palette.ACCENT if active else Palette.CARD_SOFT
-		var hover := Palette.ACCENT_DEEP if active else Palette.CARD_EDGE
-		var fg := Palette.ON_DARK if active else Palette.INK
-		b.add_theme_stylebox_override("normal", _btn_box(base))
-		b.add_theme_stylebox_override("hover", _btn_box(hover))
-		b.add_theme_stylebox_override("pressed", _btn_box(hover.darkened(0.12)))
-		b.add_theme_color_override("font_color", fg)
-		b.add_theme_color_override("font_hover_color", fg)
-		b.add_theme_color_override("font_pressed_color", fg)
+		_paint_button(b, String(key) == _settings.difficulty, Palette.INK)
 
 	if _blurb != null:
 		_blurb.text = _blurb_of(_settings.difficulty)
@@ -317,7 +272,7 @@ func _rebuild_page() -> void:
 	_reset_hint = null
 	_reset_armed = false
 	_options = _tuning.difficulty_options()
-	_build_background()
+	add_child(LakeBackdrop.new())
 	_build_card()
 
 

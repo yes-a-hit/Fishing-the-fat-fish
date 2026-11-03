@@ -86,6 +86,15 @@
 
 ---
 
+## 7. 剩下的小尾巴（结构债，玩家看不见）
+
+- `tests/input_probe.gd` 还是圆环之前的探针，没接进验收口径。
+- `ConfigLoader.FALLBACK_FISH` 与 `fish.json` 两份数据，只作读档失败兜底；可以考虑改成「读不到就报错退出」，让失败显性化。
+- 翻译残留：`fish.json` 的 `tagline/blurb`、`story.json` 剧情台词、`endings.json` 长正文。
+- `tests/screenshot.gd` 出的五张图还没按新布局重拍。
+
+---
+
 ## 已完成备查
 
 这一轮补的（都在 `main` 上）：
@@ -93,3 +102,15 @@
 - 手机端结算页按钮够不着 —— 按钮条移出 `ScrollContainer`
 - 网页版中文乱码 —— 自带 Noto Sans SC 子集（`tools/make_font.py`，8.1 MB → 281 KB）
 - 三端导出与 `docs/` 部署、APK 直链
+
+2026-11-03 结构债清理：
+
+- 脱钩演出与图鉴脱钩页统一到 `data/escapes.json`，`_escape_art_of()` 不再按 `fish.id` 分支
+- 四份复制的湖面背景合进 `LakeBackdrop`；暂停遮罩抽成 `PauseLayer`（自己处理 `WHEN_PAUSED`）
+- 难度字段表 `GameTuning.SCALAR_FIELDS`：修掉 11 个字段「写在难度档里不生效」
+- 中心偏向真的进了抽签（`_pick_weight` 用 `score = weight × bias`）
+- 结算 `good` 改为 `rounds − perfect`，`good + perfect == rounds` 恒成立
+- 图鉴结局顺序挪进 `endings.json` 的 `_order`
+- 关于页不再自己开 `FileAccess`，统一走 `ConfigLoader`
+- 小肥鱼人设从「谁给吃的跟谁走」改成「不是谁都跟，只是认准了你这双手」，四语同步
+- 自测 508 → 589（新增脱钩表、难度字段、统计口径、中心偏向、人设五组）

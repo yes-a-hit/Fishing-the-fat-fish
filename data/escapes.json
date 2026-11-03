@@ -1,0 +1,50 @@
+{
+  "_note": "脱钩演出表。key 同时是图鉴解锁 id，fish 列出哪些鱼共用这一张演出。image 是第一真相源，gallery 与 game_root 都只读这张表。",
+  "_field_help": {
+    "key": "图鉴解锁用的 id，也是 Gallery.unlock 的键",
+    "fish": "适用鱼 id 数组。小肥鱼和中肥鱼共用一张图，合成一格 —— 图一样还拆成两格是凑数。",
+    "image": "脱钩演出图",
+    "title": "图鉴格子标题",
+    "line": "鱼跑掉时说的那句，同时是结算/演出卡片的大字",
+    "sub": "图鉴格子副标题，同时是演出卡片的小字",
+    "voice": "assets/voice/<key>.mp3，留空则不发声"
+  },
+  "items": [
+    {
+      "key": "escape_small",
+      "fish": ["small", "mid"],
+      "image": "res://assets/deepseek_escape.webp",
+      "title": "小肥鱼 / 中肥鱼",
+      "line": "「哦鲸鲸…」",
+      "sub": "她甩着尾巴跑了",
+      "voice": "escape"
+    },
+    {
+      "key": "escape_big",
+      "fish": ["big"],
+      "image": "res://assets/deepseek_escape_big.webp",
+      "title": "大肥鱼",
+      "line": "「鲸鱼不是肥，是密度好。」",
+      "sub": "她游走了",
+      "voice": "escape"
+    },
+    {
+      "key": "escape_claude",
+      "fish": ["claude"],
+      "image": "res://assets/claude_escape.webp",
+      "title": "远洋尽头那条线",
+      "line": "她扭过头去了",
+      "sub": "通知单没递成",
+      "voice": "escape"
+    },
+    {
+      "key": "escape_doubao",
+      "fish": ["doubao"],
+      "image": "res://assets/doubao_escape.webp",
+      "title": "豆包",
+      "line": "奶黄包 笑 着 跑 了",
+      "sub": "白饭没捞着",
+      "voice": "doubao_escape"
+    }
+  ]
+}

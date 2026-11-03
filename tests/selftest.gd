@@ -41,6 +41,11 @@ func _run_all() -> void:
 	TranslationServer.set_locale("zh_CN")
 
 	_case_config()
+	_case_escape_data()
+	_case_tuning_scalar_coverage()
+	_case_summary_math()
+	_case_center_bias()
+	_case_small_fish_voice()
 	_case_auto_zones()
 	_case_extension_add_fish()
 	_case_ring()
@@ -910,6 +915,7 @@ func _case_gallery_pages() -> void:
 	# _endings / _characters 只在 _ready 里拉，测试里得手动喂
 	gr._endings = ConfigLoader.load_endings()
 	gr._characters = ConfigLoader.load_characters()
+	gr._escapes = ConfigLoader.load_escapes()
 
 	# 页数与每页条目数
 	_check("四页", gr.TABS.size(), 4)
@@ -932,7 +938,7 @@ func _case_gallery_pages() -> void:
 
 	# 每条脱钩条目都要有图、有 key、有唯一 key
 	var keys: Array = []
-	for it in gr.ESCAPE_ITEMS:
+	for it in gr._escapes:
 		var k := String(it["key"])
 		_ok("脱钩 %s 有图" % k, String(it["image"]) != "")
 		_ok("脱钩 %s 图存在" % k, ResourceLoader.exists(String(it["image"])))
@@ -1044,8 +1050,7 @@ func _case_about() -> void:
 	_ok("about.tscn 存在", ResourceLoader.exists("res://about.tscn"))
 	_ok("about.json 存在", ResourceLoader.exists("res://data/about.json"))
 
-	var ab: Node = (load("res://scripts/ui/about_root.gd") as GDScript).new()
-	var data: Dictionary = ab._read_json("res://data/about.json")
+	var data: Dictionary = ConfigLoader.read_json(ConfigLoader.PATH_ABOUT)
 	_ok("json 能解析", not data.is_empty())
 	_ok("协议短名非空", String(data.get("license_short", "")) != "")
 	_ok("有正文字段", String(data.get("intro", "")) != "")
@@ -1061,6 +1066,7 @@ func _case_about() -> void:
 	_check("关于页没有外链", links.size(), 0)
 
 	# _pretty_url 本身还在，单测一下别让它坏掉
+	var ab: Node = (load("res://scripts/ui/about_root.gd") as GDScript).new()
 	_ok("短链接原样显示", String(ab._pretty_url("https://a.cn/x")) == "a.cn/x")
 	var long: String = ab._pretty_url("https://space.bilibili.com/zh-Hans/4168597")
 	_ok("长链接非空", long != "" and long != "—")
@@ -1210,6 +1216,10 @@ func _case_pause() -> void:
 	g._session.charge = 0.37
 	g._pause_game()
 	_ok("暂停后遮罩在", g._paused_layer != null)
+	_ok("暂停遮罩是独立脚本 PauseLayer", g._paused_layer is PauseLayer)
+	# 遮罩自己带 WHEN_PAUSED，外层只负责接线和冻结树；这个 bit 掉了按钮就点不动
+	_ok("暂停遮罩在暂停时仍然处理输入",
+		g._paused_layer != null and g._paused_layer.process_mode == Node.PROCESS_MODE_WHEN_PAUSED)
 	_ok("暂停后场景树冻结", get_root().get_tree().paused)
 
 	var before: float = g._session.charge
@@ -1332,7 +1342,7 @@ func _sample_summary() -> Dictionary:
 		"bait_total": 5, "bait_left": 2, "bait_used": 3,
 		"caught": ["small"], "caught_count": 1, "landed": 2, "fish_total": 3,
 		"claude_caught": false,
-		"rounds": 12, "perfect": 7, "good": 12, "miss": 4,
+		"rounds": 12, "perfect": 7, "good": 5, "miss": 4,
 	}
 
 
@@ -1460,6 +1470,8 @@ func _case_menu_boot() -> void:
 	_ok("菜单有「设置」入口", labels.has("设 置"))
 	_ok("菜单不再摆难度按钮", not labels.has("轻松") and not labels.has("普通") and not labels.has("困难"))
 	_ok("菜单不再摆音量滑块", _count_type(m, "HSlider") == 0)
+	# 四页共用同一个背景件：删掉 add_child 会让页面直接露出纯色底
+	_ok("菜单挂了湖面背景", m.get_child_count() > 0 and m.get_child(0) is LakeBackdrop)
 
 	m.free()
 
@@ -1475,6 +1487,7 @@ func _case_menu_boot() -> void:
 	_ok("当前难度有对应按钮", s._buttons.has(s._settings.difficulty))
 	_ok("设置页有说明文字", s._blurb != null and s._blurb.text != "")
 	_check("设置页有两个音量滑块", _count_type(s, "HSlider"), 2)
+	_ok("设置页挂了湖面背景", s.get_child_count() > 0 and s.get_child(0) is LakeBackdrop)
 
 	s._on_pick("hard")
 	_check("切换难度生效", s._settings.difficulty, "hard")
@@ -1848,3 +1861,136 @@ func _case_story_boots_on_start() -> void:
 
 	Gallery.clear()
 	Gallery.override_path = ""
+
+
+## 脱钩演出：escapes.json 是唯一真相源，图鉴与对局读同一张表。
+func _case_escape_data() -> void:
+	print("[case] 脱钩演出表")
+	var items := ConfigLoader.load_escapes()
+	_check("脱钩条目 4 张", items.size(), 4)
+
+	var keys: Array = []
+	for it in items:
+		var key := String(it.get("key", ""))
+		var img := String(it.get("image", ""))
+		keys.append(key)
+		_ok("%s 有图" % key, img != "")
+		_ok("%s 图文件存在" % key, ResourceLoader.exists(img))
+		_ok("%s 有台词" % key, String(it.get("line", "")) != "")
+		_ok("%s 有说明" % key, String(it.get("sub", "")) != "")
+		_ok("%s 认领了至少一条鱼" % key, not (it.get("fish", []) as Array).is_empty())
+	var unique := {}
+	for k in keys:
+		unique[k] = true
+	_check("key 不重复", unique.size(), keys.size())
+
+	# 每条鱼都能找到自己的脱钩演出
+	for f in ConfigLoader.load_fish():
+		_ok("鱼 %s 配了脱钩演出" % f.id, not ConfigLoader.escape_for(items, f.id).is_empty())
+	_ok("没配的鱼返回空（退回纯文字）", ConfigLoader.escape_for(items, "no_such_fish").is_empty())
+
+	# 数据里的文案也得进 strings.csv，否则英/日/繁中界面上这几句还是会回落中文
+	# 只查「有没有这一行」：豆包、她游走了 这类简繁同形的词，翻完还是同一串，不能靠比对差异判断
+	var csv_text := FileAccess.get_file_as_string("res://data/i18n/strings.csv")
+	_ok("strings.csv 读得到", csv_text != "")
+	var untranslated: Array = []
+	for it in items:
+		for field in ["title", "line", "sub"]:
+			var src_text := String(it.get(field, ""))
+			if src_text != "" and not csv_text.contains("\"%s\"," % src_text):
+				untranslated.append("%s.%s（%s）" % [String(it.get("key", "")), field, src_text])
+	_ok("脱钩文案都在 strings.csv 里（缺: %s）" % ", ".join(untranslated), untranslated.is_empty())
+
+	# 图鉴读的就是这张表：条数跟着数据走，不是代码里另写一份
+	var gr: Node = (load("res://scripts/ui/gallery_root.gd") as GDScript).new()
+	gr._escapes = items
+	_check("图鉴脱钩页条数 = 表条数", gr._total_of("escape"), items.size())
+	gr.free()
+
+
+## 难度的标量覆盖走同一张字段表：某一档里写了的字段必须真的生效。
+## 之前 from_dict 与 apply_difficulty 各抄一份白名单，两边漂移，
+## 在难度档里写 shadow_width / empty_wait 这类字段会被静默吃掉。
+func _case_tuning_scalar_coverage() -> void:
+	print("[case] 难度覆盖字段全覆盖")
+	var t := GameTuning.from_dict({"difficulties": {"easy": {
+		"shadow_width": 21.0,
+		"empty_wait": 0.4,
+		"resolve_hold": 1.1,
+		"bite_delay_min": 0.3,
+		"bite_delay_max": 0.9,
+		"landing_timeout": 1.4,
+		"dda_speed_gain": 0.9,
+		"dda_sway_gain": 2.2,
+		"doubao_peak_center": 40.0,
+		"doubao_peak_sigma": 9.0,
+		"doubao_mercy_bait": 3,
+	}}})
+	t.apply_difficulty("easy")
+	_check("shadow_width 生效", t.shadow_width, 21.0)
+	_check("empty_wait 生效", t.empty_wait, 0.4)
+	_check("resolve_hold 生效", t.resolve_hold, 1.1)
+	_check("bite_delay_min 生效", t.bite_delay_min, 0.3)
+	_check("bite_delay_max 生效", t.bite_delay_max, 0.9)
+	_check("landing_timeout 生效", t.landing_timeout, 1.4)
+	_check("dda_speed_gain 生效", t.dda_speed_gain, 0.9)
+	_check("dda_sway_gain 生效", t.dda_sway_gain, 2.2)
+	_check("doubao_peak_center 生效", t.doubao_peak_center, 40.0)
+	_check("doubao_peak_sigma 生效", t.doubao_peak_sigma, 9.0)
+	_check("doubao_mercy_bait 生效", t.doubao_mercy_bait, 3)
+
+	# 没写的字段保持默认，不能被难度档抹成 0
+	var plain := GameTuning.from_dict({"difficulties": {"normal": {}}})
+	var want := plain.empty_wait
+	plain.apply_difficulty("normal")
+	_check("没写的字段保持默认", plain.empty_wait, want)
+
+	# 咬钩区间不能倒挂
+	var flip := GameTuning.from_dict({"difficulties": {"hard": {
+		"bite_delay_min": 2.0, "bite_delay_max": 0.5,
+	}}})
+	flip.apply_difficulty("hard")
+	_ok("bite_delay_max 不低于 min", flip.bite_delay_max >= flip.bite_delay_min)
+
+
+## 结算统计口径：rounds 是搏斗轮数，perfect 是满轮，good 是剩下的命中。
+## miss 是空竿，不进 rounds —— 用 rounds - miss 算 good 会算出一个假数。
+func _case_summary_math() -> void:
+	print("[case] 结算统计口径")
+	var s := _new_session()
+	s._totals = {"rounds": 5, "perfect": 2, "miss": 3}
+	var sum := s.summary()
+	_check("good = rounds - perfect", sum["good"], 3)
+	_check("good + perfect = rounds", int(sum["good"]) + int(sum["perfect"]), 5)
+	_check("rounds 原样返回", sum["rounds"], 5)
+
+
+## 落点倾向：抽签权重用的是 score（已乘上中心偏向），不是裸 weight。
+func _case_center_bias() -> void:
+	print("[case] 中心偏向参与抽签")
+	var s := _new_session()
+	var pool := [
+		{"fish": "near", "weight": 1.0, "bias": 1.0, "score": 1.0},
+		{"fish": "edge", "weight": 1.0, "bias": 0.2, "score": 0.2},
+	]
+	var seen := {"near": 0, "edge": 0}
+	for i in 600:
+		var picked := String(s._weighted_pick(pool))
+		seen[picked] = int(seen.get(picked, 0)) + 1
+	_ok("两条鱼都能抽到", int(seen["near"]) > 0 and int(seen["edge"]) > 0)
+	_ok("贴边的鱼抽到的次数明显少于中间的", int(seen["edge"]) < int(seen["near"]) / 2)
+
+
+## 小肥鱼的介绍：她认人，不认碗。
+func _case_small_fish_voice() -> void:
+	print("[case] 小肥鱼的人设表述")
+	var small := {}
+	for c in ConfigLoader.load_characters():
+		if String(c.get("id", "")) == "small":
+			small = c
+	_ok("小肥鱼在角色表里", not small.is_empty())
+	if small.is_empty():
+		return
+	var p := String(small.get("personality", ""))
+	_ok("不再写「谁给吃的跟谁走」", not p.contains("谁给吃的跟谁走"))
+	_ok("写明她认人", p.contains("认准"))

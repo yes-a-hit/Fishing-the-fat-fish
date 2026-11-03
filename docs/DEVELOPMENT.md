@@ -174,13 +174,45 @@ ComfyUI + `DeepSeek_ZipZipPipe_style_anima2b` LoRA，基座 Anima 2B（不兼容
 
 1. **`const` 数组里不能用 `tr()`**。报 `Assigned value for constant "TABS" isn't a constant expression`，改成 `var`。
 2. **语言按钮上的名字不走 `tr()`**。中文界面下写「简体中文」，英文界面下它还是「简体中文」—— 用母语写语言名才认得出是哪个。
+3. **数据里改文案忘了同步 CSV**，英日界面就会冒出中文。`characters.json` 的人设与口头禅、`escapes.json` 的台词、暂停页按钮，都属于这一类。改完重跑 `--import`。
+4. **批量追加 CSV 行时列序容易写反**，把繁体填进 `zh_CN` 列的症状是「简中界面显示繁体」。追加完扫一眼第 2、3 列是否相同。
 
 ---
 
-## 十、现在的短板
+## 十、2026-11 这一轮清掉的结构债
+
+都是「同一件事写了两份」的变体，记下来免得再长回去。
+
+| 原来的样子 | 现在 | 代价 |
+|---|---|---|
+| 四个页面各一份 `_build_background()/_draw_background()`，逐字相同 | `scripts/ui/lake_backdrop.gd` | 改配色只动一处 |
+| `game_root._pause_game()` 内联搭 dim + 卡片 + 三按钮 | `scripts/ui/pause_layer.gd`，只发三个信号 | 暂停层能单独测、单独改 |
+| 脱钩演出的图与文案在 `_escape_art_of()` 和 `gallery_root.ESCAPE_ITEMS` 各一份，还带 `fish.id` 分支 | `data/escapes.json` + `ConfigLoader.escape_for()` | 加鱼/改台词只动数据 |
+| 图鉴结局顺序写死在 `_ordered_keys()` 的数组里 | `endings.json` 的 `_order` | 加结局不用改 UI |
+| `_start_session()` / `_disconnect_session()` 手写十组 connect / is_connected | `SESSION_HOOKS` 表 + 循环 | 加信号加一行 |
+| `from_dict()` 与 `apply_difficulty()` 各抄一份字段白名单，漂移后 11 个字段在难度档里静默失效 | `GameTuning.SCALAR_FIELDS` + `_read_scalars()` | 加字段加一行 |
+| `good = rounds - miss`（miss 不进 rounds，算出来是假数） | `good = rounds - perfect` | 统计页自洽 |
+| `candidates_at()` 算出 `score = weight × 中心偏向`，抽签却只用 `weight` | `_pick_weight()` 优先用 `score` | 文档承诺的中心偏向真的生效 |
+| `about_root` 自己 `FileAccess` + `JSON.parse_string` | `ConfigLoader.read_json(PATH_ABOUT)` | 文件入口只有一处 |
+| `GameTuning.fish_id_in()` 无人调用 | 删除 | 少一个「兼容旧调用」的幽灵 |
+| 设置页三处各写一遍 stylebox 覆盖 | `_paint_button()` | 选中/关闭态一致 |
+| 小肥鱼人设「谁给吃的跟谁走」 | 「不是谁都跟，只是认准了你这双手」 | 角色不写成谁都能骗走 |
+
+顺手补的测试（`pass` 从 508 涨到 589）：`_case_escape_data` / `_case_tuning_scalar_coverage` / `_case_summary_math` / `_case_center_bias` / `_case_small_fish_voice`。
+
+两条教训：
+
+1. **同名函数删了要全仓搜**。`about_root._read_json()` 删掉后，自测里还有一处调用，`--headless` 跑出来的是一行 `SCRIPT ERROR`，但退出码仍是 0、`pass=508 fail=0` —— 不盯 stderr 就会以为没事。
+2. **`Node.free()` 别写两次**。同一个节点 free 两遍，Windows 上是 `0xC0000409`（栈溢出保护）直接崩，输出只停在上一条 `ok`，很容易误判成别处的问题。
+
+---
+
+## 十一、现在的短板
 
 - 三条鱼共用同一张立绘，只靠缩放区分体型。
 - Claude 和豆包没有上鱼动画，还是静态立绘。
 - 张力条在 UI 上不够显眼，玩家不知道自己快拉爆了。
 - 结局图 832×1216、立绘 768×768，分辨率不一致，混着放会看出来。
-- 英文翻译只覆盖了界面骨架，鱼的对白、结局正文、剧情台词还是中文。
+- 翻译已覆盖界面骨架、角色页、脱钩页与暂停页；`fish.json` 的 `tagline/blurb`、`story.json` 的剧情台词、`endings.json` 的长正文仍有中文残留。
+- `tests/input_probe.gd` 还是旧圆环之前的探针，没接进验收口径。
+- `ConfigLoader.FALLBACK_FISH` 与 `fish.json` 仍是两份数据，只作为读档失败时的兜底。

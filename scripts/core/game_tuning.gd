@@ -68,36 +68,71 @@ var difficulty: String = "normal"       ## 当前难度 key
 var difficulties: Dictionary = {}       ## 原样的 difficulties 段，menu 场景拿它列选项
 
 
+## 可被顶层或某一档难度覆盖的数值字段。
+##
+## 每项：[字段名, 类型, 下限, 上限]，上限为 null 表示不封顶。
+## from_dict 与 apply_difficulty 都只走这张表 —— 之前两处各写一份白名单，
+## 结果难度档能覆盖的字段比顶层少十几个：在 tuning.json 的 easy 里改
+## shadow_width / empty_wait / dda_speed_gain 全都不生效，而且没有任何报错。
+const SCALAR_FIELDS: Array = [
+	["bait_count", "int", 1, null],
+	["full_catch_threshold", "int", 1, null],
+	["fake_claude_chance", "float", 0.0, 1.0],
+	["doubao_refund", "int", 1, null],
+	["doubao_escape_chance", "float", 0.0, 1.0],
+	["doubao_mercy_bait", "int", 0, null],
+	["doubao_mercy_gain", "float", 1.0, null],
+	["doubao_peak_center", "float", 0.0, 100.0],
+	["doubao_peak_chance", "float", 0.0, 1.0],
+	["doubao_peak_sigma", "float", 1.0, null],
+	["dda_speed_gain", "float", 0.0, null],
+	["dda_sway_gain", "float", 0.0, null],
+	["dda_from_difficulty", "bool", null, null],
+	["charge_full_seconds", "float", 0.1, null],
+	["cast_jitter", "float", 0.0, null],
+	["shadow_count", "int", 0, 6],
+	["shadow_width", "float", 3.0, 40.0],
+	["shadow_weaken", "float", 0.2, 1.0],
+	["bite_delay_min", "float", 0.05, null],
+	["bite_delay_max", "float", 0.0, null],
+	["empty_wait", "float", 0.05, null],
+	["resolve_hold", "float", 0.2, null],
+	["landing_timeout", "float", 0.5, null],
+]
+
+
+## 按 SCALAR_FIELDS 覆盖本对象上的值。src 里没写的键保持不动 ——
+## 顶层缺字段用默认值，难度档缺字段继承顶层，都是同一套语义。
+func _read_scalars(src: Dictionary) -> void:
+	for row in SCALAR_FIELDS:
+		var field := String(row[0])
+		if not src.has(field):
+			continue
+		match String(row[1]):
+			"int":
+				var iv := int(src[field])
+				if row[2] != null:
+					iv = maxi(iv, int(row[2]))
+				if row[3] != null:
+					iv = mini(iv, int(row[3]))
+				set(field, iv)
+			"float":
+				var fv := float(src[field])
+				if row[2] != null:
+					fv = maxf(fv, float(row[2]))
+				if row[3] != null:
+					fv = minf(fv, float(row[3]))
+				set(field, fv)
+			"bool":
+				set(field, bool(src[field]))
+	# 上限跟着下限走：写反了也不让最短等待大于最长等待
+	bite_delay_max = maxf(bite_delay_max, bite_delay_min)
+
+
 static func from_dict(src: Dictionary) -> GameTuning:
 	var t := GameTuning.new()
-	t.bait_count = maxi(int(src.get("bait_count", t.bait_count)), 1)
-	t.full_catch_threshold = maxi(int(src.get("full_catch_threshold", t.full_catch_threshold)), 1)
-	t.fake_claude_chance = clampf(float(src.get("fake_claude_chance", t.fake_claude_chance)), 0.0, 1.0)
-	t.doubao_refund = maxi(int(src.get("doubao_refund", t.doubao_refund)), 1)
-	t.doubao_escape_chance = clampf(float(src.get("doubao_escape_chance", t.doubao_escape_chance)), 0.0, 1.0)
-	t.doubao_mercy_bait = maxi(int(src.get("doubao_mercy_bait", t.doubao_mercy_bait)), 0)
-	t.doubao_mercy_gain = maxf(float(src.get("doubao_mercy_gain", t.doubao_mercy_gain)), 1.0)
-	t.doubao_peak_center = clampf(float(src.get("doubao_peak_center", t.doubao_peak_center)), 0.0, 100.0)
-	t.doubao_peak_chance = clampf(float(src.get("doubao_peak_chance", t.doubao_peak_chance)), 0.0, 1.0)
-	t.doubao_peak_sigma = maxf(float(src.get("doubao_peak_sigma", t.doubao_peak_sigma)), 1.0)
-	t.dda_speed_gain = maxf(float(src.get("dda_speed_gain", t.dda_speed_gain)), 0.0)
-	t.dda_sway_gain = maxf(float(src.get("dda_sway_gain", t.dda_sway_gain)), 0.0)
-	t.dda_from_difficulty = bool(src.get("dda_from_difficulty", t.dda_from_difficulty))
-	t.charge_full_seconds = maxf(float(src.get("charge_full_seconds", t.charge_full_seconds)), 0.1)
-	t.cast_jitter = maxf(float(src.get("cast_jitter", t.cast_jitter)), 0.0)
-	t.shadow_count = clampi(int(src.get("shadow_count", t.shadow_count)), 0, 6)
-	t.shadow_width = clampf(float(src.get("shadow_width", t.shadow_width)), 3.0, 40.0)
-	t.shadow_weaken = clampf(float(src.get("shadow_weaken", t.shadow_weaken)), 0.2, 1.0)
-	t.bite_delay_min = maxf(float(src.get("bite_delay_min", t.bite_delay_min)), 0.05)
-	t.bite_delay_max = maxf(float(src.get("bite_delay_max", t.bite_delay_max)), t.bite_delay_min)
-	t.empty_wait = maxf(float(src.get("empty_wait", t.empty_wait)), 0.05)
-	t.resolve_hold = maxf(float(src.get("resolve_hold", t.resolve_hold)), 0.2)
-	t.landing_timeout = maxf(float(src.get("landing_timeout", t.landing_timeout)), 0.5)
-
-	var raw_zones: Variant = src.get("zones", null)
-	if raw_zones is Array and not (raw_zones as Array).is_empty():
-		t.zones = _sanitize_zones(raw_zones as Array)
-		t.zones_explicit = not t.zones.is_empty()
+	t._read_scalars(src)
+	t._read_zones(src)
 
 	var raw_fight: Variant = src.get("fight", null)
 	t.fight = (raw_fight as Dictionary).duplicate(true) if raw_fight is Dictionary else {}
@@ -105,6 +140,23 @@ static func from_dict(src: Dictionary) -> GameTuning:
 	var raw_diff: Variant = src.get("difficulties", null)
 	t.difficulties = (raw_diff as Dictionary).duplicate(true) if raw_diff is Dictionary else {}
 	return t
+
+
+## 距离带：显式写了就用，没写（或全被丢掉）就交给自动分带。
+func _read_zones(src: Dictionary) -> void:
+	var raw: Variant = src.get("zones", null)
+	if raw is Array and not (raw as Array).is_empty():
+		zones = _sanitize_zones(raw as Array)
+		zones_explicit = not zones.is_empty()
+
+
+## fight 段是原样透传给 FightSession 的，所以只做浅合并，不校验键名。
+func _merge_fight(src: Dictionary) -> void:
+	var raw: Variant = src.get("fight", null)
+	if not (raw is Dictionary):
+		return
+	for k in (raw as Dictionary).keys():
+		fight[k] = (raw as Dictionary)[k]
 
 
 ## 套用一档难度。只覆盖它显式写了的键，其余继承顶层。
@@ -116,36 +168,9 @@ func apply_difficulty(name: String) -> void:
 		return
 	var d: Dictionary = difficulties[key] as Dictionary
 
-	bait_count = maxi(int(d.get("bait_count", bait_count)), 1)
-	full_catch_threshold = maxi(int(d.get("full_catch_threshold", full_catch_threshold)), 1)
-	fake_claude_chance = clampf(float(d.get("fake_claude_chance", fake_claude_chance)), 0.0, 1.0)
-	doubao_refund = maxi(int(d.get("doubao_refund", doubao_refund)), 1)
-	doubao_escape_chance = clampf(float(d.get("doubao_escape_chance", doubao_escape_chance)), 0.0, 1.0)
-	# 简单难度整档关掉动态难度，普通以上才上劲
-	if d.has("dda_from_difficulty"):
-		dda_from_difficulty = bool(d["dda_from_difficulty"])
-	if d.has("doubao_mercy_gain"):
-		doubao_mercy_gain = maxf(float(d["doubao_mercy_gain"]), 1.0)
-	# 豆包峰值：简单 30% / 普通 40% / 困难 50%。越难越常撞见，因为越难越缺饭。
-	doubao_peak_chance = clampf(float(d.get("doubao_peak_chance", doubao_peak_chance)), 0.0, 1.0)
-	charge_full_seconds = maxf(float(d.get("charge_full_seconds", charge_full_seconds)), 0.1)
-	cast_jitter = maxf(float(d.get("cast_jitter", cast_jitter)), 0.0)
-
-	var dz: Variant = d.get("zones", null)
-	if dz is Array and not (dz as Array).is_empty():
-		zones = _sanitize_zones(dz as Array)
-		zones_explicit = not zones.is_empty()
-
-	# 简单难度关掉鱼影，故事模式不该考验手气
-	if d.has("shadow_count"):
-		shadow_count = clampi(int(d["shadow_count"]), 0, 6)
-	if d.has("shadow_weaken"):
-		shadow_weaken = clampf(float(d["shadow_weaken"]), 0.2, 1.0)
-
-	var df: Variant = d.get("fight", null)
-	if df is Dictionary:
-		for k in (df as Dictionary).keys():
-			fight[k] = (df as Dictionary)[k]
+	_read_scalars(d)
+	_read_zones(d)
+	_merge_fight(d)
 
 	difficulty = key
 
@@ -298,12 +323,6 @@ static func pick_fish_at(zone_list: Array, point: float, rng: RandomNumberGenera
 		if roll <= 0.0:
 			return String(c["fish"])
 	return String(cands[cands.size() - 1]["fish"])
-
-
-## 兼容旧调用：返回该点上第一条鱼的 id。新代码用 pick_fish_at()。
-static func fish_id_in(zone_list: Array, point: float) -> String:
-	var cands := candidates_at(zone_list, point)
-	return "" if cands.is_empty() else String(cands[0]["fish"])
 
 
 ## 某条鱼的主带（第一条），找不到返回 {}。

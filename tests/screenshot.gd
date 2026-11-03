@@ -66,7 +66,7 @@ func _process(delta: float) -> bool:
 					"bait_total": 5, "bait_left": 2, "bait_used": 3,
 					"caught": ["small", "mid", "big"], "caught_count": 3, "landed": 3,
 					"fish_total": 3, "claude_caught": false,
-					"rounds": 16, "perfect": 9, "miss": 3, "good": 16,
+					"rounds": 16, "perfect": 9, "miss": 3, "good": 7,
 				}
 				_game._ending.show_ending("feast", _game._endings.get("feast", {}), fake, _game._fish)
 				_step = 5

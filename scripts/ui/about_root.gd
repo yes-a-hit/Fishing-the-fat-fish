@@ -1,13 +1,14 @@
 extends Control
 
-## 关于页。授权、出处、以及三个链接。
+## 关于页。协议、出处、彩蛋。
 ##
 ## 为什么要有这一页：这是个 CC BY-NC-SA 的免费小游戏，角色形象全部来自
 ## 别人（ZipZipPipe）和社区梗图。把出处摆在自己家门口，是这条协议要求的最起码的事。
-## 链接存在 data/about.json 里，改地址不用动代码。
+## 内容是 data/about.json，读它只经过 ConfigLoader —— 这一层不碰文件。
+##
+## 页面上不放外链：手机上外链一点就跳浏览器，回来时游戏已经被系统回收了。
 
 const MENU_SCENE := "res://menu.tscn"
-const DATA_PATH := "res://data/about.json"
 
 var _data: Dictionary = {}
 var _preview: Control = null
@@ -15,25 +16,9 @@ var _preview: Control = null
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_data = _read_json(DATA_PATH)
-	_build_background()
+	_data = ConfigLoader.read_json(ConfigLoader.PATH_ABOUT)
+	add_child(LakeBackdrop.new())
 	_build_page()
-
-
-func _read_json(path: String) -> Dictionary:
-	if not FileAccess.file_exists(path):
-		return {}
-	var f := FileAccess.open(path, FileAccess.READ)
-	if f == null:
-		return {}
-	var text := f.get_as_text()
-	f.close()
-	var json := JSON.new()
-	if json.parse(text) != OK:
-		push_warning(tr("[about] 解析失败：") + path)
-		return {}
-	var raw: Variant = json.data
-	return raw if typeof(raw) == TYPE_DICTIONARY else {}
 
 
 func _sections() -> Array:
@@ -58,47 +43,6 @@ func _easter() -> Array:
 		if typeof(e) == TYPE_DICTIONARY:
 			out.append(e)
 	return out
-
-
-# ---------- 背景 ----------
-
-func _build_background() -> void:
-	var bg := Control.new()
-	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	bg.draw.connect(_draw_background.bind(bg))
-	add_child(bg)
-
-
-func _draw_background(canvas: Control) -> void:
-	var w := canvas.size.x
-	var h := canvas.size.y
-	if w <= 1.0 or h <= 1.0:
-		return
-	var horizon := h * 0.62
-	canvas.draw_polygon(
-		PackedVector2Array([Vector2(0, 0), Vector2(w, 0), Vector2(w, horizon), Vector2(0, horizon)]),
-		PackedColorArray([Palette.SKY_TOP, Palette.SKY_TOP, Palette.SKY_LOW, Palette.SKY_LOW])
-	)
-	canvas.draw_polygon(
-		PackedVector2Array([Vector2(0, horizon), Vector2(w, horizon), Vector2(w, h), Vector2(0, h)]),
-		PackedColorArray([Palette.WATER_DEEP, Palette.WATER_DEEP, Palette.WATER_SHALLOW, Palette.WATER_SHALLOW])
-	)
-	canvas.draw_colored_polygon(PackedVector2Array([
-		Vector2(-w * 0.1, horizon),
-		Vector2(w * 0.18, horizon - h * 0.11),
-		Vector2(w * 0.44, horizon - h * 0.04),
-		Vector2(w * 0.62, horizon - h * 0.13),
-		Vector2(w * 1.1, horizon),
-	]), Palette.HILL_FAR)
-	canvas.draw_colored_polygon(PackedVector2Array([
-		Vector2(-w * 0.1, horizon),
-		Vector2(w * 0.30, horizon - h * 0.06),
-		Vector2(w * 0.55, horizon - h * 0.02),
-		Vector2(w * 0.78, horizon - h * 0.08),
-		Vector2(w * 1.1, horizon),
-	]), Palette.HILL_NEAR)
-	canvas.draw_rect(Rect2(0, horizon - 1.0, w, 2.0), Palette.WATER_LINE)
 
 
 # ---------- 页面 ----------

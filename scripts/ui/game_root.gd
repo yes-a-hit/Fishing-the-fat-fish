@@ -19,6 +19,7 @@ var _targets: Array = []      ## 收集目标，不含 is_claude 的陷阱
 var _tuning: GameTuning = null
 var _endings: Dictionary = {}
 var _stories: Dictionary = {}
+var _escapes: Array = []      ## 脱钩演出表，见 data/escapes.json
 var _session: FishingSession = null
 
 var _lake: LakeView = null
@@ -41,6 +42,22 @@ var _paused_layer: Control = null
 ## 剧情播放中。和暂停分开是因为暂停有菜单和按钮，剧情只是把这一局冻住。
 var _story_playing: bool = false
 
+## 会话信号 → 处理函数。加一条信号只补这里一行。
+## 早先 connect 与 disconnect 各抄十行名字：删信号时漏掉一半，旧会话就会
+## 继续往同一个界面上推事件 —— 表现为「重开一局后数量跳两格」。
+const SESSION_HOOKS := [
+	["phase_changed", "_on_phase_changed"],
+	["bait_changed", "_on_bait_changed"],
+	["charge_changed", "_on_charge_changed"],
+	["cast_made", "_on_cast_made"],
+	["bite_started", "_on_bite_started"],
+	["landing_started", "_on_landing_started"],
+	["resolved", "_on_resolved"],
+	["doubao_started", "_on_doubao"],
+	["claude_spared", "_on_claude_spared"],
+	["finished", "_on_finished"],
+]
+
 
 func _ready() -> void:
 	# 根节点自己不能拦鼠标，否则点击在 GUI 层就被吃掉，
@@ -52,6 +69,7 @@ func _ready() -> void:
 	_tuning = cfg["tuning"]
 	_endings = cfg["endings"]
 	_stories = cfg.get("story", {})
+	_escapes = ConfigLoader.load_escapes()
 
 	# 难度只改数值，不改结构：先套难度再解析距离带，顺序不能反
 	var settings := GameSettings.load_settings()
@@ -353,16 +371,8 @@ func _start_session() -> void:
 		_disconnect_session()
 
 	_session = FishingSession.new(_fish, _tuning)
-	_session.phase_changed.connect(_on_phase_changed)
-	_session.bait_changed.connect(_on_bait_changed)
-	_session.charge_changed.connect(_on_charge_changed)
-	_session.cast_made.connect(_on_cast_made)
-	_session.bite_started.connect(_on_bite_started)
-	_session.landing_started.connect(_on_landing_started)
-	_session.resolved.connect(_on_resolved)
-	_session.doubao_started.connect(_on_doubao)
-	_session.claude_spared.connect(_on_claude_spared)
-	_session.finished.connect(_on_finished)
+	for hook in SESSION_HOOKS:
+		_session.connect(StringName(hook[0]), Callable(self, String(hook[1])))
 
 	_ending.hide_overlay()
 	_qte.unbind()
@@ -387,26 +397,11 @@ func _disconnect_session() -> void:
 		return
 	var s := _session
 	_session = null
-	if s.phase_changed.is_connected(_on_phase_changed):
-		s.phase_changed.disconnect(_on_phase_changed)
-	if s.bait_changed.is_connected(_on_bait_changed):
-		s.bait_changed.disconnect(_on_bait_changed)
-	if s.charge_changed.is_connected(_on_charge_changed):
-		s.charge_changed.disconnect(_on_charge_changed)
-	if s.cast_made.is_connected(_on_cast_made):
-		s.cast_made.disconnect(_on_cast_made)
-	if s.bite_started.is_connected(_on_bite_started):
-		s.bite_started.disconnect(_on_bite_started)
-	if s.landing_started.is_connected(_on_landing_started):
-		s.landing_started.disconnect(_on_landing_started)
-	if s.resolved.is_connected(_on_resolved):
-		s.resolved.disconnect(_on_resolved)
-	if s.doubao_started.is_connected(_on_doubao):
-		s.doubao_started.disconnect(_on_doubao)
-	if s.claude_spared.is_connected(_on_claude_spared):
-		s.claude_spared.disconnect(_on_claude_spared)
-	if s.finished.is_connected(_on_finished):
-		s.finished.disconnect(_on_finished)
+	for hook in SESSION_HOOKS:
+		var sig := StringName(hook[0])
+		var cb := Callable(self, String(hook[1]))
+		if s.is_connected(sig, cb):
+			s.disconnect(sig, cb)
 
 
 # ---------- 阶段切换 ----------
@@ -527,50 +522,27 @@ func _show_escape(fish: FishSpec) -> void:
 		return
 	Gallery.unlock(String(art["gallery"]))
 	_flash_card(art["image"], art["tip"], art["gain"], art["color"])
-	Audio.play_voice(art["voice"])
+	var voice := String(art["voice"])
+	if not voice.is_empty():
+		Audio.play_voice(voice)
 
 
-## 图、字、音按鱼分。缺图返回空字典，调用方退回纯文字。
+## 图、字、音全部来自 data/escapes.json。这里只把字段名对到卡片要的名字，
+## 不再判断「她是不是鲸鱼 / 是不是豆包」—— 加一条鱼只改数据。
 func _escape_art_of(fish: FishSpec) -> Dictionary:
 	if fish == null:
 		return {}
-	if fish.is_doubao:
-		return {
-			"image": "res://assets/doubao_escape.webp",
-			"tip": tr("奶黄包 笑 着 跑 了"),
-			"gain": tr("白饭没捞着"),
-			"color": Palette.WARN,
-			"voice": "doubao_escape",
-			"gallery": "escape_doubao",
-		}
-	if fish.is_claude:
-		return {
-			"image": "res://assets/claude_escape.webp",
-			"tip": tr("她 扭 过 头 去 了"),
-			"gain": tr("通知单没递成"),
-			"color": Palette.WARN,
-			"voice": "escape",
-			"gallery": "escape_claude",
-		}
-	if fish.id == "big":
-		return {
-			"image": "res://assets/deepseek_escape_big.webp",
-			"tip": tr("鲸鱼不是肥，是密度好"),
-			"gain": tr("她 游 走 了"),
-			"color": Palette.WARN,
-			"voice": "escape",
-			"gallery": "escape_big",
-		}
-	if fish.id == "small" or fish.id == "mid":
-		return {
-			"image": "res://assets/deepseek_escape.webp",
-			"tip": tr("哦 鲸 鲸 …"),
-			"gain": tr("她 甩 尾 巴 跑 了"),
-			"color": Palette.WARN,
-			"voice": "escape",
-			"gallery": "escape_small",
-		}
-	return {}
+	var art := ConfigLoader.escape_for(_escapes, fish.id)
+	if art.is_empty():
+		return {}
+	return {
+		"image": String(art.get("image", "")),
+		"tip": String(art.get("line", "")),
+		"gain": String(art.get("sub", "")),
+		"color": Palette.WARN,
+		"voice": String(art.get("voice", "")),
+		"gallery": String(art.get("key", "")),
+	}
 
 
 func _flash_card(image_path: String, tip_text: String, gain_text: String, gain_color: Color) -> void:
@@ -663,50 +635,15 @@ func _toggle_pause() -> void:
 func _pause_game() -> void:
 	if _paused_layer != null:
 		return
-	# 真暂停整棵场景树：_process 停、Tween 停、动画停，退出时不会留下半个状态。
-	get_tree().paused = true
-
-	var layer := Control.new()
-	layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	# 遮罩自己必须在暂停中照常跑，否则它的按钮按不动。
-	layer.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
+	var layer := PauseLayer.new()
+	layer.resumed.connect(_resume_game)
+	layer.restarted.connect(_restart_from_pause)
+	layer.quit_requested.connect(_back_to_menu)
 	add_child(layer)
-
-	var dim := ColorRect.new()
-	dim.color = Color(0.05, 0.08, 0.12, 0.62)
-	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	dim.mouse_filter = Control.MOUSE_FILTER_STOP
-	layer.add_child(dim)
-
-	var center := CenterContainer.new()
-	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	layer.add_child(center)
-
-	var card := UIKit.card(Palette.CARD, Palette.RADIUS, 26)
-	card.custom_minimum_size = Vector2(320, 0)
-	center.add_child(card)
-
-	var col := VBoxContainer.new()
-	col.add_theme_constant_override("separation", 12)
-	card.add_child(col)
-
-	col.add_child(UIKit.title(tr("已 暂 停"), Palette.F_H2))
-	col.add_child(UIKit.divider())
-
-	var resume := UIKit.button(tr("继 续"), true, true)
-	resume.pressed.connect(_resume_game)
-	col.add_child(resume)
-
-	var restart := UIKit.button(tr("重 新 开 始"), false, true)
-	restart.pressed.connect(_restart_from_pause)
-	col.add_child(restart)
-
-	var menu := UIKit.button(tr("返 回 菜 单"), false, true)
-	menu.pressed.connect(_back_to_menu)
-	col.add_child(menu)
-
 	_paused_layer = layer
+	# 真暂停整棵场景树：_process 停、Tween 停、动画停，退出时不会留下半个状态。
+	# 遮罩自己 PROCESS_MODE_WHEN_PAUSED，所以它还活着。
+	get_tree().paused = true
 
 
 func _resume_game() -> void:

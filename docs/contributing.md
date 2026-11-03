@@ -75,12 +75,39 @@ var new_field: float = maxf(float(src.get("new_field", 5.0)), 0.1)
 
 新视图使用 `Palette` 和 `UIKit`。不要在多个文件复制同一组颜色、字号或卡片样式；确有新视觉需求时，先增加集中常量或通用工厂。
 
-### 7. 非按钮 Control 不得吞掉抛竿点击
+已有的共用件不要重写：
+
+```gdscript
+add_child(LakeBackdrop.new())   # 湖面背景，四个非对局页面共用
+var layer := PauseLayer.new()   # 暂停遮罩，自己处理 WHEN_PAUSED
+```
+
+### 7. 演出、图鉴、结局清单只留一份数据
+
+图片、标题、台词、解锁 key 这类内容进 `data/*.json`，代码只做渲染：
+
+- 脱钩演出 → `data/escapes.json`（`ConfigLoader.load_escapes()` / `escape_for()`）
+- 结局 → `data/endings.json`，顺序进 `_order`
+- 角色 → `data/characters.json`
+
+禁止在 `game_root` / `gallery_root` 里按 `fish.id` 或 `is_xxx` 写内容分支，也禁止同一批素材在两个 UI 文件各写一份数组。
+
+### 8. 玩家可见文案必须进 `strings.csv`
+
+数据层文案（`fish.json` 的 `tagline`、`characters.json` 的 `personality`、`escapes.json` 的 `line` 等）由 `ConfigLoader` 过 `TranslationServer.translate()`，查不到键就回落中文。所以改数据文案时同一次提交里补齐 `data/i18n/strings.csv` 的四列，然后重跑 `--import`。
+
+列序是 `keys,zh_CN,zh_TW,en,ja`。批量追加时 `zh_CN` 列常常被误填成繁体，症状是简中界面冒出繁体字 —— 加完 grep 一下这两列是否相同。
+
+### 9. 可被难度覆盖的数值要登记字段表
+
+新增 `tuning.json` 里的标量字段，必须同时加进 `GameTuning.SCALAR_FIELDS`（`[字段名, 类型, 下限, 上限]`）。`from_dict()` 与 `apply_difficulty()` 都走 `_read_scalars()`，漏登记就只在顶层生效、难度档里静默失效。
+
+### 10. 非按钮 Control 不得吞掉抛竿点击
 
 `game_root._apply_mouse_policy()` 会在初始装配后把非按钮 `Control` 设为 `MOUSE_FILTER_IGNORE`。
 
 - 初始视图应在 `_build_ui()` 期间挂到树上。
-- 运行时新建的视图要单独检查鼠标策略。
+- 运行时新建的视图要单独检查鼠标策略（`PauseLayer` 自己 `set_anchors_and_offsets_preset(PRESET_FULL_RECT)`，不要指望 `_apply_mouse_policy`）。
 - 新增全屏层后运行 `_case_mouse_policy()`。
 - 真实输入修改还要更新并运行窗口输入探针，不能只靠场景断言。
 
@@ -115,6 +142,8 @@ var new_field: float = maxf(float(src.get("new_field", 5.0)), 0.1)
 - [ ] `zones` 本身不留空档（`_has_no_gap()` 会验），且与相邻带确有重叠。
 - [ ] 特殊鱼要显式声明标记：陷阱 `"claude": true`、豆包 `"doubao": true`，两者都不进收集目标，也都不参与 `auto_zones`。
 - [ ] 豆包这类「只给好处」的鱼必须给一条低 `weight` 的窄带，否则显式 zones 会因为缺带而回退自动分带。
+- [ ] 要专属脱钩演出的，在 `data/escapes.json` 的某条 `fish` 数组里加上这个 id，并在 `strings.csv` 补四语；不加也能跑（退回纯文字）。
+- [ ] 要出现在图鉴角色页的，在 `data/characters.json` 加一条，`unlocked_by` 写 fish id / ending key / 留空 / `never`。
 - [ ] 新增角色需要的上鱼动作已按动画规范注册，而不是只换 `portrait`。
 
 现有 `_case_extension_add_fish()` 只验证“加鱼能无空档分带和开局”，不验证整局难度，也不验证动画资源。
@@ -195,9 +224,9 @@ var new_field: float = maxf(float(src.get("new_field", 5.0)), 0.1)
     --headless --path . --script "res://tests/selftest.gd"
 ```
 
-期望最后一行：`[selftest] pass=N fail=0`。不要只写“全绿”，交接时记录实际数字。
+期望最后一行：`[selftest] pass=N fail=0`。不要只写“全绿”，交接时记录实际数字。2026-11-03 的基线是 589。
 
-当前用例覆盖：配置、自动分带、无空档校验、加鱼、难度档、设置读写、菜单装配、圆环判定、冷却窗口、循环蓄力、抛竿、空竿、重复上鱼、上鱼、断线、五种结局、假陷阱、豆包返还、结局图鉴、场景装配和鼠标策略。
+当前用例覆盖：配置、脱钩演出表、难度字段全覆盖、结算统计口径、中心偏向抽签、小肥鱼人设、自动分带、无空档校验、加鱼、难度档、设置读写、菜单装配、圆环判定、冷却窗口、循环蓄力、抛竿、空竿、重复上鱼、上鱼、断线、五种结局、假陷阱、豆包返还、结局图鉴、场景装配和鼠标策略。
 
 ### 添加逻辑测试
 
@@ -233,6 +262,10 @@ var new_field: float = maxf(float(src.get("new_field", 5.0)), 0.1)
 - `core/` 出现 `get_node()`、`await` 或输入读取。
 - 新增角色需要在多个 UI 文件中增加 id 分支。
 - 同一数值同时硬编码在 JSON、core 和 UI。
+- 同一批图片或台词在两个 UI 文件各写一份（脱钩演出踩过一次）。
+- 同一段绘制/样式在三个以上页面里复制（背景、按钮 stylebox 各踩过一次）。
+- 数据里改了文案却没进 `strings.csv`。
+- 新增难度可覆盖字段却没进 `GameTuning.SCALAR_FIELDS`。
 - 动画资源路径散落为多个字符串常量。
 - 新增面板后点击湖面再次失效。
 - 文档重新出现当前代码不存在的字段或类。

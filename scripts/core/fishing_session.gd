@@ -330,19 +330,28 @@ func _cast() -> void:
 	_set_phase(Phase.WAITING)
 
 
-## 从候选池里按 weight 加权抽一条鱼 id。池子必须非空。
+## 从候选池里按权重抽一条鱼 id。池子必须非空。
+##
+## 抽的是 score 不是 weight：score = weight × bias，bias 是「越靠鱼群中心越容易
+## 咬钩」的距离衰减（见 GameTuning.candidates_at）。早先这里只累加 weight，
+## 等于把算好的中心偏向白扔了 —— 甩在影子边缘和压在正中间命中率一模一样，
+## 但文档和手感都按前者写。
 func _weighted_pick(pool: Array) -> String:
 	var total := 0.0
 	for c in pool:
-		total += float(c["weight"])
+		total += _pick_weight(c)
 	if total <= 0.0:
 		return String(pool[0]["fish"])
 	var roll := rng.randf() * total
 	for c in pool:
-		roll -= float(c["weight"])
+		roll -= _pick_weight(c)
 		if roll <= 0.0:
 			return String(c["fish"])
 	return String(pool[pool.size() - 1]["fish"])
+
+
+func _pick_weight(c: Dictionary) -> float:
+	return float(c.get("score", c.get("weight", 0.0)))
 
 
 func _tick_waiting(delta: float) -> void:
@@ -508,7 +517,9 @@ func summary() -> Dictionary:
 		"claude_fake": _pending_claude_fake,
 		"rounds": int(_totals.get("rounds", 0)),
 		"perfect": int(_totals.get("perfect", 0)),
-		"good": maxi(int(_totals.get("rounds", 0)) - int(_totals.get("miss", 0)), 0),
+		# rounds 只数真正进入搏斗的次数，miss 是空竿、不进 rounds。
+		# 命中里分完美与普通，所以普通 = rounds − perfect。
+		"good": maxi(int(_totals.get("rounds", 0)) - int(_totals.get("perfect", 0)), 0),
 		"miss": int(_totals.get("miss", 0)),
 	}
 

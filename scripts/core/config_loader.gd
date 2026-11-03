@@ -15,6 +15,8 @@ const PATH_TUNING := "res://data/tuning.json"
 const PATH_ENDINGS := "res://data/endings.json"
 const PATH_STORY := "res://data/story.json"
 const PATH_CHARACTERS := "res://data/characters.json"
+const PATH_ESCAPES := "res://data/escapes.json"
+const PATH_ABOUT := "res://data/about.json"
 
 ## 连 fish.json 都读不到时的兜底，保证游戏还能跑起来。
 const FALLBACK_FISH := [
@@ -150,3 +152,34 @@ static func load_characters(path: String = PATH_CHARACTERS) -> Array:
 				c[field] = _loc(c[field])
 		out.append(c)
 	return out
+
+
+## 脱钩演出表。图鉴格子与脱钩卡片共用这一份 —— 之前同一批图和字在图鉴与
+## game_root 各写了一遍，改文案要改两个文件，改漏就成了「图鉴里她没跑」。
+static func load_escapes(path: String = PATH_ESCAPES) -> Array:
+	var data := read_json(path)
+	var raw: Variant = data.get("items", [])
+	if not (raw is Array):
+		push_error("[config] escapes.json 缺少 items 数组")
+		return []
+	var out: Array = []
+	for item in (raw as Array):
+		if not (item is Dictionary):
+			continue
+		var e: Dictionary = item
+		for field in ["title", "line", "sub"]:
+			if e.has(field):
+				e[field] = _loc(e[field])
+		out.append(e)
+	return out
+
+
+## 按鱼 id 找脱钩演出。没配返回空字典 —— 调用方退回纯文字提示，不崩。
+static func escape_for(items: Array, fish_id: String) -> Dictionary:
+	for it in items:
+		if not (it is Dictionary):
+			continue
+		var d: Dictionary = it
+		if fish_id in Array(d.get("fish", [])):
+			return d
+	return {}

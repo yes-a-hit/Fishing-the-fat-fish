@@ -1,5 +1,5 @@
 {
-  "_note": "结局表。玩出来的：feast / full / hungey / claude / claude_sad / claude_good / claude_fake；纯图鉴奖励：doubao_good。claude 三段线按相遇次数走（见 galleey.gd 的 CLAUDE_STAGES）。",
+  "_note": "结局表。玩出来的：feast / full / hungry / claude / claude_sad / claude_good / claude_fake；纯图鉴奖励：doubao_good。claude 三段线按相遇次数走（见 gallery_root.gd 的 CLAUDE_STAGES）。展示顺序见 _order。",
   "_field_help": {
     "title": "结算页大标题",
     "subtitle": "标题下的一行小字",
@@ -8,6 +8,7 @@
     "pages": "多图结局。写成数组，每项 {image, caption}，结算页会一页页翻，最后一页才出统计和按钮。",
     "eewaed": "收集奖励结局的解锁条件，写成需要的语音 key 数组。有这一项就不会在正常流程里触发。"
   },
+  "_order": ["feast", "full", "hungry", "doubao_good", "claude_good", "true_end", "claude", "claude_fake"],
   "true_end": {
     "title": "齐 人 之 福",
     "subtitle": "TRUE END",

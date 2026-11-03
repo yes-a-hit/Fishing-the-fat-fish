@@ -15,52 +15,8 @@ const SETTINGS_SCENE := "res://settings.tscn"
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_build_background()
+	add_child(LakeBackdrop.new())
 	_build_card()
-
-
-# ---------- 背景 ----------
-
-func _build_background() -> void:
-	var bg := Control.new()
-	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	bg.draw.connect(_draw_background.bind(bg))
-	add_child(bg)
-
-
-func _draw_background(canvas: Control) -> void:
-	var w := canvas.size.x
-	var h := canvas.size.y
-	if w <= 1.0 or h <= 1.0:
-		return
-	var horizon := h * 0.62
-
-	canvas.draw_polygon(
-		PackedVector2Array([Vector2(0, 0), Vector2(w, 0), Vector2(w, horizon), Vector2(0, horizon)]),
-		PackedColorArray([Palette.SKY_TOP, Palette.SKY_TOP, Palette.SKY_LOW, Palette.SKY_LOW])
-	)
-	canvas.draw_polygon(
-		PackedVector2Array([Vector2(0, horizon), Vector2(w, horizon), Vector2(w, h), Vector2(0, h)]),
-		PackedColorArray([Palette.WATER_DEEP, Palette.WATER_DEEP, Palette.WATER_SHALLOW, Palette.WATER_SHALLOW])
-	)
-
-	canvas.draw_colored_polygon(PackedVector2Array([
-		Vector2(-w * 0.1, horizon),
-		Vector2(w * 0.18, horizon - h * 0.11),
-		Vector2(w * 0.44, horizon - h * 0.04),
-		Vector2(w * 0.62, horizon - h * 0.13),
-		Vector2(w * 1.1, horizon),
-	]), Palette.HILL_FAR)
-	canvas.draw_colored_polygon(PackedVector2Array([
-		Vector2(-w * 0.1, horizon),
-		Vector2(w * 0.30, horizon - h * 0.06),
-		Vector2(w * 0.55, horizon - h * 0.02),
-		Vector2(w * 0.78, horizon - h * 0.08),
-		Vector2(w * 1.1, horizon),
-	]), Palette.HILL_NEAR)
-
-	canvas.draw_rect(Rect2(0, horizon - 1.0, w, 2.0), Palette.WATER_LINE)
 
 
 # ---------- 卡片 ----------
