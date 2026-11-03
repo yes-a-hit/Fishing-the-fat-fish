@@ -32,7 +32,8 @@ Godot 4.7 · GDScript · 1280×800 · 单场景小游戏
 |---|---|---|
 | **Windows** | [`钓肥鱼-v1.4.4-windows-x64.zip`](docs/download/钓肥鱼-v1.4.4-windows-x64.zip) — 解压后双击 `钓肥鱼.exe`，单文件 | 23 MB |
 | **Android** | [`钓肥鱼-v1.4.4.apk`](docs/download/钓肥鱼-v1.4.4.apk) — 直接安装 | 34 MB |
-| **网页版** | [在线玩](https://yes-a-hit.github.io/Fishing-the-fat-fish/) | — |
+| **网页版** | [Github在线玩](https://yes-a-hit.github.io/Fishing-the-fat-fish/) 
+[itch托管](https://yes-a-hit.itch.io/fishing-the-fat-fish)| — |
 
 如果链接点了没反应，右键 →「链接另存为」，或者把地址里的 `github.com/.../raw/main/...` 换成 `raw.githubusercontent.com/...`。
 
