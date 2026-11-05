@@ -133,17 +133,17 @@ func _process(delta: float) -> bool:
 				_step = 10
 		10:
 			if _t > 6.2:
-				_advance_to(12)
+				_advance_to(26)
 				_step = 11
 		11:
 			if _t > 6.5:
 				_shot("08_opening_dive")
-				_advance_to(19)
+				_advance_to(33)
 				_step = 12
 		12:
 			if _t > 6.9:
 				_shot("09_opening_summon")
-				_advance_to(27)
+				_advance_to(41)
 				_step = 13
 		13:
 			if _t > 7.3:

@@ -1719,7 +1719,7 @@ func _case_opening_story() -> void:
 	_ok("story.json 里有 opening", story.has("opening"))
 	var entry: Dictionary = story.get("opening", {})
 	var pages: Array = entry.get("pages", [])
-	_check("开场 29 句", pages.size(), 29)
+	_check("开场 43 句", pages.size(), 43)
 
 	var allowed := ["", "你", "大肥鱼", "中肥鱼", "小肥鱼"]
 	var talk_by_user := 0
@@ -1736,6 +1736,22 @@ func _case_opening_story() -> void:
 	# 原先还有「一个人在岸上钓三条傻鱼」「别说出去」三句，把节奏拖回去了。
 	var last_text := String((pages[pages.size() - 1] as Dictionary).get("text", ""))
 	_ok("最后一句收在大肥鱼下水", last_text.contains("跳了下去"))
+
+	# 主角得是主动的那一个：是他提出去钓鱼、是他打窝、是他甩竿。
+	# 原来是三条鱼把人从被窝里捞出来，玩家全程被安排，开场像过场动画。
+	var joined := ""
+	for p in pages:
+		joined += String((p as Dictionary).get("text", "")) + "\n"
+	_ok("主角自己提出钓鱼", joined.contains("今天去钓鱼"))
+	_ok("主角自己打窝", joined.contains("撒向水面"))
+	_ok("主角自己甩竿", joined.contains("把线甩了出去"))
+	_ok("主角给鱼下过指令", joined.contains("那就下去"))
+	# 中肥鱼把「钓鱼」听成「吃我」，大肥鱼负责把鲸鱼和鱼分开
+	_ok("中肥鱼误会要被吃", joined.contains("奴家就是鱼"))
+	_ok("大肥鱼解释鲸鱼不是鱼", joined.contains("胎生") and joined.contains("喝奶"))
+	_ok("大肥鱼比心", joined.contains("比了个心"))
+	# 早餐的暗示只到「空玻璃杯」为止，不写破
+	_ok("空玻璃杯的暗示在", joined.contains("玻璃杯") and joined.contains("有点甜"))
 
 	# 说话人换立绘：会说话的三条鱼各自有一张脸，文件也得真的在。
 	# 只有一张整段立绘时，中肥鱼说「主人坐我这边」画面上却是大肥鱼，一眼出戏。
@@ -1772,7 +1788,7 @@ func _case_opening_story() -> void:
 			cleared = i
 		elif not bg.is_empty() and not cg_paths.has(bg):
 			cg_paths.append(bg)
-	_check("开场三张 CG", cg_paths.size(), 3)
+	_check("开场 CG（含早餐四张）", cg_paths.size(), 7)
 	for path in cg_paths:
 		_ok("开场 CG 文件存在：%s" % String(path).get_file(), ResourceLoader.exists(String(path)))
 	_ok("有一段用整页 CG（%d 句）" % cg_pages, cg_pages >= 15)

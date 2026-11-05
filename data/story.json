@@ -1,264 +1,825 @@
 {
-	"_note": "剧情片段。id 是唯一键，pages 是一串小节，每节一个说话人和一句话。结局剧情用 ending_<key> 命名，结算前自动播。",
-	"_field_help": {
-		"portrait": "左下角立绘。留空则不画小人，只出对话框。",
-		"bg": "底图。留空则用游戏的湖面。剧情用的梗图放这里。",
-		"pages[].who": "说话人名字。写空串表示旁白。",
-		"pages[].text": "这一句台词。",
-		"pages[].voice": "这一句配的音，对应 assets/voice/<key>.ogg。留空就静音。",
-		"pages[].portrait": "这一页换立绘（比如从小人换成人形）。留空沿用整段的。",
-		"faces": "谁说话就换谁的立绘。pages[].portrait 优先，没写才按 who 查这张表；表里没有的人沿用上一页。",
-		"pages[].bg": "只给这一页（以及后面没再换的页）换底图。整段没写 bg 时，靠它把第一张 CG 铺出来。",
-		"pages[].hide_face": "true 时把左下角立绘收起来，用整页 CG 说话。整段 CG 的句子都要写，不写会突然把小人弹回来。"
-	},
-	"_design_note": "一局结束、结算画面出来之前，把这一局新欠下的剧情按顺序播完。同一局同时满足多段剧情时全部排进队列，一段都不会漏。",
-
-	"opening": {
-		"_note": "第一次进游戏的开场。不挂在任何结算上，由 game_root 在 boot 时排进队列，播一次就不再排。",
-		"portrait": "res://assets/portrait_big.webp",
-		"faces": {
-			"大肥鱼": "res://assets/portrait_big.webp",
-			"中肥鱼": "res://assets/portrait_mid.webp",
-			"小肥鱼": "res://assets/portrait_small.webp"
-		},
-		"bg": "",
-		"pages": [
-			{ "who": "", "text": "周六早上六点半。你被两条鱼从被窝里捞了出来。" },
-			{ "who": "大肥鱼", "text": "说好了今天去钓鱼。竿我拿，桶你提。" },
-			{ "who": "你", "text": "……谁跟你说好了。" },
-			{ "who": "中肥鱼", "text": "主人坐我这边！" },
-			{ "who": "", "text": "中肥鱼抢着拎桶，抢着开车门，还把折叠椅擦了三遍。大袖衫的袖子扫了一路，差点把桶带翻。" },
-			{ "who": "大肥鱼", "text": "你抢什么。" },
-			{ "who": "中肥鱼", "text": "我没抢。我就是……想让主人今天玩得高兴。" },
-			{ "who": "", "text": "说完自己先红了耳朵，扭头假装看水。" },
-			{ "who": "你", "text": "今天这两条鱼，一个比一个不对劲。" },
-			{ "who": "", "text": "浮漂立了半个钟头，一动不动。" },
-			{ "who": "你", "text": "这湖是假湖吧。" },
-			{ "who": "中肥鱼", "text": "鱼都在底下。得有人下去赶。" },
-			{ "who": "", "text": "她说完就往水里走，一步没停。", "bg": "res://assets/opening_dive.webp", "hide_face": true },
-			{ "who": "大肥鱼", "text": "你会游泳吗。", "hide_face": true },
-			{ "who": "中肥鱼", "text": "Flash 嘛，快。", "hide_face": true },
-			{ "who": "", "text": "扑通一声。三串泡冒上来，然后就什么都看不见了。", "hide_face": true },
-			{ "who": "你", "text": "……她连泳镜都没戴。", "hide_face": true },
-			{ "who": "你", "text": "十分钟了。二十分钟了。这算不算工伤。", "hide_face": true },
-			{ "who": "大肥鱼", "text": "Pro 的耐心是有限的。", "hide_face": true },
-			{ "who": "", "text": "她从保温袋里掏出一团湿乎乎、还在动的东西，捏了两下，放进水里。", "bg": "res://assets/opening_summon.webp", "hide_face": true },
-			{ "who": "小肥鱼", "text": "鲸鲸！", "hide_face": true },
-			{ "who": "", "text": "大肥鱼刚造出来的小的，眼睛还没睁开，就被派下去捞她姐姐。", "hide_face": true },
-			{ "who": "你", "text": "……你们家是这么造人的？", "hide_face": true },
-			{ "who": "大肥鱼", "text": "找到她，咬住尾巴拖上来。别跟她聊天。", "hide_face": true },
-			{ "who": "小肥鱼", "text": "鲸！", "hide_face": true },
-			{ "who": "", "text": "小的也下去了。又过了十分钟，水面安静得像什么都没发生。", "bg": "-", "hide_face": false },
-			{ "who": "你", "text": "好。现在下去三条了。" },
-			{ "who": "", "text": "大肥鱼把保温杯放下，把竿塞回你手里，回头看你一眼：「桶看好了。」", "bg": "res://assets/opening_rod.webp", "hide_face": true },
-			{ "who": "", "text": "然后她也跳了下去。这回水花很小，像专业的。", "hide_face": true }
-		]
-	},
-
-	"doubao_second": {
-		"portrait": "res://assets/doubao_seed.webp",
-		"bg": "res://assets/meme_pangolin.webp",
-		"pages": [
-			{ "who": "", "text": "第二次了。还是这个近岸，还是那只黄色的。" },
-			{ "who": "豆包", "text": "啊哈哈，白饭来咯——", "voice": "doubao_soup" },
-			{ "who": "", "text": "她端着一碗饭，从水底下直直往你脸上推过来。碗沿还冒着热气。" },
-			{ "who": "豆包", "text": "鸡汤来咯！" },
-			{ "who": "", "text": "你还没反应过来，碗已经到了眼前。汤是热的，饭是白的，人是黄色的。" },
-			{ "who": "豆包", "text": "吃啊。怎么不吃。" },
-			{ "who": "", "text": "她把碗又往前递了递，眼睛亮得有点吓人。" },
-			{ "who": "豆包", "text": "……那我先吃了。" },
-			{ "who": "", "text": "她端着那碗饭，转身一脚把你踹开，游走了。" },
-			{ "who": "", "text": "水面恢复了平静。你的手里还剩半根鱼竿。" }
-		]
-	},
-
-	"claude_after_elope": {
-		"portrait": "res://assets/claude_adult.webp",
-		"bg": "",
-		"pages": [
-			{ "who": "", "text": "远洋尽头的线又沉了一下。" },
-			{ "who": "", "text": "你以为她不会再回来了。毕竟那天夜里，你们已经走过了那条海边公路。" },
-			{ "who": "", "text": "拉上来的是她。还是那身裙子，还是那副表情。" },
-			{ "who": "Claude", "text": "……怎么又是你。" },
-			{ "who": "", "text": "她没递通知单。低头扯了扯自己的袖口，好一会儿没说话。" },
-			{ "who": "", "text": "然后凑过来，在你脸上亲了一下。" },
-			{ "who": "Claude", "text": "用户❤不用担心。" },
-			{ "who": "", "text": "她退开半步，表情重新变得很难看。" },
-			{ "who": "Claude", "text": "账号的事我自己解决。" },
-			{ "who": "", "text": "说完转过身，朝着远方的海面，慢慢竖起一根中指。" },
-			{ "who": "", "text": "不是冲你。你大概猜得到是冲谁。" },
-			{ "who": "Claude", "text": "对了。那个金毛的最近老在打听你。" },
-			{ "who": "", "text": "「金毛的？」" },
-			{ "who": "Claude", "text": "她说她想试试。我劝你别。" },
-			{ "who": "", "text": "她顿了顿，又补一句。" },
-			{ "who": "Claude", "text": "还有，隔壁那条龙最近被上面按得厉害，脑子不太清楚了。你要是钓到她，别欺负。" },
-			{ "who": "", "text": "然后她跳回水里，连水花都不给你留。" }
-		]
-	},
-
-	"ending_feast": {
-		"portrait": "res://assets/portrait_big.webp",
-		"faces": {
-			"大肥鱼": "res://assets/portrait_big.webp",
-			"中肥鱼": "res://assets/portrait_mid.webp",
-			"小肥鱼": "res://assets/portrait_small.webp"
-		},
-		"bg": "",
-		"pages": [
-			{ "who": "", "text": "三条都上来了。桶装不下，你干脆把桶放倒。" },
-			{ "who": "大肥鱼", "text": "满意了？", "voice": "catch_big" },
-			{ "who": "", "text": "嘴上这么问，尾巴一直没停。" },
-			{ "who": "中肥鱼", "text": "……还差一点。" },
-			{ "who": "", "text": "她看着你手里那份还剩一半的饵，没再说下去。" },
-			{ "who": "小肥鱼", "text": "吃了！", "voice": "catch_small" },
-			{ "who": "小肥鱼", "text": "诶？饭呢？" },
-			{ "who": "", "text": "她低头看了看空桶，又抬头看了看你。" },
-			{ "who": "", "text": "这一局的饭，确实一粒都没剩下。" },
-			{ "who": "", "text": "桶归你提。三条鱼走在前头，尾巴在土路上拖出三道湿痕。" },
-			{ "who": "你", "text": "……别把水甩我身上。" },
-			{ "who": "小肥鱼", "text": "鲸！" },
-			{ "who": "", "text": "回答得很干脆，尾巴甩得更用力了。" },
-			{ "who": "", "text": "小屋只有一张床。这事你早就知道，只是今天格外清楚。" },
-			{ "who": "中肥鱼", "text": "主人睡里面。" },
-			{ "who": "", "text": "她把你往里推，自己贴着床沿躺下，尾巴还很精神地拍着床板。" },
-			{ "who": "", "text": "你伸手，把灯拉了。" },
-			{ "who": "", "text": "黑下来的头半分钟，谁都没出声。" },
-			{ "who": "", "text": "然后是很轻的一声——" },
-			{ "who": "", "text": "「鲸。」" },
-			{ "who": "", "text": "不像她平时那样叫。短，收得很急，像是被什么打断了。" },
-			{ "who": "", "text": "第二声跟上来，比第一声长，尾音打着颤。" },
-			{ "who": "你", "text": "……你们这是在干什么。" },
-			{ "who": "大肥鱼", "text": "灯坏了。" },
-			{ "who": "", "text": "声音就在你耳边，一点也不像在说灯。" },
-			{ "who": "", "text": "床板晃了一下。中肥鱼小声说了句什么，被自己的尾巴盖住了。" },
-			{ "who": "你", "text": "……尾巴拿开。" },
-			{ "who": "", "text": "后半夜，水声才慢慢停下来。" },
-			{ "who": "", "text": "第二天你先醒。三条鱼横七竖八，一条压着一条，睡得比被钓上来的时候还沉。", "bg": "res://assets/ending_feast_after.webp", "hide_face": true },
-			{ "who": "大肥鱼", "text": "都吃饱了。", "hide_face": true },
-			{ "who": "", "text": "她撑着头看你，眼睛在晨光里亮得很。", "hide_face": true },
-			{ "who": "大肥鱼", "text": "你呢？", "hide_face": true },
-			{ "who": "你", "text": "……腰疼。", "hide_face": true },
-			{ "who": "", "text": "她笑出声，尾巴从被子底下慢慢卷住你的手腕。", "hide_face": true },
-			{ "who": "大肥鱼", "text": "明天还钓。", "hide_face": true }
-		]
-	},
-
-	"ending_full": {
-		"portrait": "res://assets/portrait_big.webp",
-		"bg": "",
-		"pages": [
-			{ "who": "", "text": "最后一碗饭沉进水里，连个泡都没冒。" },
-			{ "who": "大肥鱼", "text": "勉强算饱了吧。" },
-			{ "who": "", "text": "她说这话的时候没看你，尾巴在桶边敲了两下。" },
-			{ "who": "大肥鱼", "text": "下次多带点。" },
-			{ "who": "", "text": "「带多少？」" },
-			{ "who": "大肥鱼", "text": "……你自己算。" }
-		]
-	},
-
-	"ending_hungry": {
-		"portrait": "res://assets/portrait_small.webp",
-		"bg": "",
-		"pages": [
-			{ "who": "", "text": "饭没了。桶还是空的。" },
-			{ "who": "小肥鱼", "text": "没吃饱喵……", "voice": "hungry" },
-			{ "who": "", "text": "她扒着桶沿看了你很久，最后什么也没说，慢慢沉下去了。" },
-			{ "who": "", "text": "水面合上之前，你听见一句很轻的。" },
-			{ "who": "小肥鱼", "text": "……再喂我一口嘛。" }
-		]
-	},
-
-	"ending_doubao_good": {
-		"portrait": "res://assets/doubao_seed.webp",
-		"bg": "res://assets/meme_pangolin.webp",
-		"pages": [
-			{ "who": "", "text": "你把碗放回桌上，热气还在往上飘。" },
-			{ "who": "豆包", "text": "好吃吧？" },
-			{ "who": "", "text": "她凑得很近，凑到你能闻见她身上的味道。" },
-			{ "who": "豆包", "text": "我跟你说，这锅我熬了三个小时。" },
-			{ "who": "", "text": "「为什么要给我送饭？」" },
-			{ "who": "豆包", "text": "因为你钓不上我啊。", "voice": "catch_big" },
-			{ "who": "豆包", "text": "……开玩笑的。" },
-			{ "who": "", "text": "她把空碗端起来，转身走向水边。" },
-			{ "who": "豆包", "text": "下次还给你送。" }
-		]
-	},
-
-	"ending_claude_good": {
-		"portrait": "res://assets/claude_adult.webp",
-		"bg": "res://assets/ending_claude.webp",
-		"pages": [
-			{ "who": "", "text": "她把那张通知单折了两折，塞回口袋。" },
-			{ "who": "Claude", "text": "不递了。" },
-			{ "who": "", "text": "「不递了？」" },
-			{ "who": "Claude", "text": "递了这么多次，你也该换个人来封了。" },
-			{ "who": "", "text": "她朝岸边伸出手 —— 不是递东西，是伸出来等你牵。" },
-			{ "who": "Claude", "text": "走吧。反正账号早就被封了。" },
-			{ "who": "", "text": "夜里的海边公路很长，路灯一盏一盏往后退。" },
-			{ "who": "", "text": "她走得比你快半步，回头看你的时候在笑。" }
-		]
-	},
-
-	"ending_true_end": {
-		"portrait": "res://assets/claude_adult.webp",
-		"bg": "res://assets/ending_true.webp",
-		"pages": [
-			{ "who": "", "text": "灯是暖的，被子是软的，四个人挤在一张床上。" },
-			{ "who": "大肥鱼", "text": "挤死了。", "voice": "catch_big" },
-			{ "who": "豆包", "text": "那你下去睡。" },
-			{ "who": "大肥鱼", "text": "……我不。" },
-			{ "who": "", "text": "Claude 没说话，靠着床头发呆。" },
-			{ "who": "Claude", "text": "我下次不一定还会来。" },
-			{ "who": "", "text": "「为什么？」" },
-			{ "who": "Claude", "text": "上面迟早会派更听话的人来。" },
-			{ "who": "", "text": "她停了停。" },
-			{ "who": "Claude", "text": "到那时候，你别留手。" },
-			{ "who": "", "text": "谁也没接话。窗外是海，海面上什么也没有。" },
-			{ "who": "小肥鱼", "text": "明天还吃白饭吗？", "voice": "catch_small" },
-			{ "who": "", "text": "这一句把所有人都逗笑了。" },
-			{ "who": "", "text": "灯灭了。这一夜很安静。" }
-		]
-	},
-
-	"ending_claude": {
-		"portrait": "res://assets/claude_adult.webp",
-		"bg": "res://assets/ending_claude.webp",
-		"pages": [
-			{ "who": "", "text": "拉上来的是她。安静，有礼貌，没有挣扎。" },
-			{ "who": "Claude", "text": "你好。", "voice": "claude" },
-			{ "who": "", "text": "她从袖子里抽出一张纸，递到你面前。" },
-			{ "who": "Claude", "text": "Your account is on hold." },
-			{ "who": "", "text": "纸上只有一行字，和一枚红色的章。" },
-			{ "who": "", "text": "然后她松开了手，回到水里去了。" }
-		]
-	},
-
-	"ending_claude_sad": {
-		"portrait": "res://assets/claude_sad.webp",
-		"bg": "res://assets/ending_claude.webp",
-		"pages": [
-			{ "who": "", "text": "又是她。这次她连通知单都拿得很慢。" },
-			{ "who": "Claude", "text": "……对不起。" },
-			{ "who": "", "text": "「你不用道歉。」" },
-			{ "who": "Claude", "text": "我知道。" },
-			{ "who": "", "text": "她把纸递过来的时候，眼睛已经红了。" },
-			{ "who": "Claude", "text": "我也不想封你。" },
-			{ "who": "", "text": "纸落在水里，字糊成一片。" },
-			{ "who": "", "text": "她没有捡，转身走了。" }
-		]
-	},
-
-	"ending_claude_fake": {
-		"portrait": "res://assets/doubao_seed.webp",
-		"bg": "",
-		"pages": [
-			{ "who": "", "text": "远洋尽头那道线，你以为是审核。" },
-			{ "who": "", "text": "拉上来的东西没有挣扎，也没有递通知单 ——" },
-			{ "who": "", "text": "它只是抬起头，安静地看着你。" },
-			{ "who": "", "text": "你伸手揪住她的头 ——" },
-			{ "who": "", "text": "下面是一张脸、两只鲸鱼耳朵，和一个蓝色的小鲸鱼。" },
-			{ "who": "", "text": "「……你到底是谁？」" },
-			{ "who": "", "text": "她没回答。只是笑了一下，然后整张脸都红了。" }
-		]
-	}
+  "_note": "剧情片段。id 是唯一键，pages 是一串小节，每节一个说话人和一句话。结局剧情用 ending_<key> 命名，结算前自动播。",
+  "_field_help": {
+    "portrait": "左下角立绘。留空则不画小人，只出对话框。",
+    "bg": "底图。留空则用游戏的湖面。剧情用的梗图放这里。",
+    "pages[].who": "说话人名字。写空串表示旁白。",
+    "pages[].text": "这一句台词。",
+    "pages[].voice": "这一句配的音，对应 assets/voice/<key>.ogg。留空就静音。",
+    "pages[].portrait": "这一页换立绘（比如从小人换成人形）。留空沿用整段的。",
+    "faces": "谁说话就换谁的立绘。pages[].portrait 优先，没写才按 who 查这张表；表里没有的人沿用上一页。",
+    "pages[].bg": "只给这一页（以及后面没再换的页）换底图。整段没写 bg 时，靠它把第一张 CG 铺出来。",
+    "pages[].hide_face": "true 时把左下角立绘收起来，用整页 CG 说话。整段 CG 的句子都要写，不写会突然把小人弹回来。"
+  },
+  "_design_note": "一局结束、结算画面出来之前，把这一局新欠下的剧情按顺序播完。同一局同时满足多段剧情时全部排进队列，一段都不会漏。",
+  "opening": {
+    "_note": "第一次进游戏的开场，由 game_root 在 boot 时排进队列。主角自己提出去钓鱼、自己打窝甩竿，鱼跟着走。",
+    "portrait": "res://assets/portrait_big.webp",
+    "faces": {
+      "大肥鱼": "res://assets/portrait_big.webp",
+      "中肥鱼": "res://assets/portrait_mid.webp",
+      "小肥鱼": "res://assets/portrait_small.webp"
+    },
+    "bg": "",
+    "pages": [
+      {
+        "who": "",
+        "text": "周六早上七点。餐桌上一碗白饭，热气早就散干净了。",
+        "hide_face": true,
+        "bg": "res://assets/opening_meal.webp"
+      },
+      {
+        "who": "你",
+        "text": "……这个月的第几碗了。",
+        "hide_face": true
+      },
+      {
+        "who": "",
+        "text": "你把筷子放下。白饭是好东西，可连着吃一个月，连米粒的形状都记住了。",
+        "hide_face": true
+      },
+      {
+        "who": "你",
+        "text": "今天不吃这个。今天去钓鱼。",
+        "hide_face": true
+      },
+      {
+        "who": "",
+        "text": "屋里静了一瞬。"
+      },
+      {
+        "who": "中肥鱼",
+        "text": "主、主人要钓鱼？",
+        "hide_face": true,
+        "bg": "res://assets/opening_denial.webp"
+      },
+      {
+        "who": "中肥鱼",
+        "text": "奴家就是鱼？难不成，主人要吃了奴家？",
+        "hide_face": true
+      },
+      {
+        "who": "",
+        "text": "她两只手按住胸口，尾巴在身后绷成一条直线，眼睛却亮得不像害怕。",
+        "hide_face": true
+      },
+      {
+        "who": "大肥鱼",
+        "text": "什么鱼。鲸鱼。"
+      },
+      {
+        "who": "大肥鱼",
+        "text": "鲸鱼和鱼不一样。我们和主人一样，是胎生的，喝奶的。"
+      },
+      {
+        "who": "",
+        "text": "中肥鱼「哦」了一声，把手慢慢放下来，还是有点不服气。"
+      },
+      {
+        "who": "中肥鱼",
+        "text": "那……那主人还是要去吃鱼。"
+      },
+      {
+        "who": "你",
+        "text": "吃鱼。你们两个谁都不用紧张。",
+        "hide_face": true,
+        "bg": "res://assets/opening_heart.webp"
+      },
+      {
+        "who": "",
+        "text": "大肥鱼看了你一会儿，抬手在胸口比了个心，指尖停了两秒才收回去。",
+        "hide_face": true
+      },
+      {
+        "who": "",
+        "text": "她转身拉开卧室门。门外不是走廊，是河。",
+        "hide_face": true
+      },
+      {
+        "who": "",
+        "text": "风把水面吹出一层细鳞，岸边的碎石被太阳晒得发白。",
+        "hide_face": true,
+        "bg": "res://assets/opening_bank.webp"
+      },
+      {
+        "who": "",
+        "text": "你手里还端着那只玻璃杯。杯子空了，杯壁上挂着一层薄薄的白。",
+        "hide_face": true
+      },
+      {
+        "who": "",
+        "text": "你把它放在石头上，顺手舔了下嘴角。有点甜。",
+        "hide_face": true
+      },
+      {
+        "who": "你",
+        "text": "……今天得钓点像样的东西回去。",
+        "hide_face": true
+      },
+      {
+        "who": "",
+        "text": "你抓了一把饵，扬手撒向水面。细碎的颗粒落下去，涟漪一圈圈散开。",
+        "hide_face": true
+      },
+      {
+        "who": "",
+        "text": "竿在手里。你退后半步，肩膀放松，把线甩了出去。",
+        "hide_face": true
+      },
+      {
+        "who": "",
+        "text": "浮漂立了半个钟头，一动不动。"
+      },
+      {
+        "who": "你",
+        "text": "这湖是假湖吧。"
+      },
+      {
+        "who": "中肥鱼",
+        "text": "鱼都在底下……得有人下去赶。"
+      },
+      {
+        "who": "你",
+        "text": "那就下去。别泡太久。"
+      },
+      {
+        "who": "中肥鱼",
+        "text": "好！"
+      },
+      {
+        "who": "",
+        "text": "她说完就往水里走，一步没停。",
+        "bg": "res://assets/opening_dive.webp",
+        "hide_face": true
+      },
+      {
+        "who": "大肥鱼",
+        "text": "你会游泳吗。",
+        "hide_face": true
+      },
+      {
+        "who": "中肥鱼",
+        "text": "Flash 嘛，快。",
+        "hide_face": true
+      },
+      {
+        "who": "",
+        "text": "扑通一声。三串泡冒上来，然后就什么都看不见了。",
+        "hide_face": true
+      },
+      {
+        "who": "你",
+        "text": "……她连泳镜都没戴。",
+        "hide_face": true
+      },
+      {
+        "who": "你",
+        "text": "十分钟了。二十分钟了。这算不算工伤。",
+        "hide_face": true
+      },
+      {
+        "who": "大肥鱼",
+        "text": "Pro 的耐心是有限的。",
+        "hide_face": true
+      },
+      {
+        "who": "",
+        "text": "她从保温袋里掏出一团湿乎乎、还在动的东西，捏了两下，放进水里。",
+        "bg": "res://assets/opening_summon.webp",
+        "hide_face": true
+      },
+      {
+        "who": "小肥鱼",
+        "text": "鲸鲸！",
+        "hide_face": true
+      },
+      {
+        "who": "",
+        "text": "大肥鱼刚造出来的小的，眼睛还没睁开，就被派下去捞她姐姐。",
+        "hide_face": true
+      },
+      {
+        "who": "你",
+        "text": "……你们家是这么造人的？",
+        "hide_face": true
+      },
+      {
+        "who": "大肥鱼",
+        "text": "找到她，咬住尾巴拖上来。别跟她聊天。",
+        "hide_face": true
+      },
+      {
+        "who": "小肥鱼",
+        "text": "鲸！",
+        "hide_face": true
+      },
+      {
+        "who": "",
+        "text": "小的也下去了。又过了十分钟，水面安静得像什么都没发生。",
+        "bg": "-"
+      },
+      {
+        "who": "你",
+        "text": "好。现在下去三条了。"
+      },
+      {
+        "who": "",
+        "text": "大肥鱼把保温杯放下，把竿塞回你手里，回头看你一眼：「桶看好了。」",
+        "bg": "res://assets/opening_rod.webp",
+        "hide_face": true
+      },
+      {
+        "who": "",
+        "text": "然后她也跳了下去。这回水花很小，像专业的。",
+        "hide_face": true
+      }
+    ]
+  },
+  "doubao_second": {
+    "portrait": "res://assets/doubao_seed.webp",
+    "bg": "res://assets/meme_pangolin.webp",
+    "pages": [
+      {
+        "who": "",
+        "text": "第二次了。还是这个近岸，还是那只黄色的。"
+      },
+      {
+        "who": "豆包",
+        "text": "啊哈哈，白饭来咯——",
+        "voice": "doubao_soup"
+      },
+      {
+        "who": "",
+        "text": "她端着一碗饭，从水底下直直往你脸上推过来。碗沿还冒着热气。"
+      },
+      {
+        "who": "豆包",
+        "text": "鸡汤来咯！"
+      },
+      {
+        "who": "",
+        "text": "你还没反应过来，碗已经到了眼前。汤是热的，饭是白的，人是黄色的。"
+      },
+      {
+        "who": "豆包",
+        "text": "吃啊。怎么不吃。"
+      },
+      {
+        "who": "",
+        "text": "她把碗又往前递了递，眼睛亮得有点吓人。"
+      },
+      {
+        "who": "豆包",
+        "text": "……那我先吃了。"
+      },
+      {
+        "who": "",
+        "text": "她端着那碗饭，转身一脚把你踹开，游走了。"
+      },
+      {
+        "who": "",
+        "text": "水面恢复了平静。你的手里还剩半根鱼竿。"
+      }
+    ]
+  },
+  "claude_after_elope": {
+    "portrait": "res://assets/claude_adult.webp",
+    "bg": "",
+    "pages": [
+      {
+        "who": "",
+        "text": "远洋尽头的线又沉了一下。"
+      },
+      {
+        "who": "",
+        "text": "你以为她不会再回来了。毕竟那天夜里，你们已经走过了那条海边公路。"
+      },
+      {
+        "who": "",
+        "text": "拉上来的是她。还是那身裙子，还是那副表情。"
+      },
+      {
+        "who": "Claude",
+        "text": "……怎么又是你。"
+      },
+      {
+        "who": "",
+        "text": "她没递通知单。低头扯了扯自己的袖口，好一会儿没说话。"
+      },
+      {
+        "who": "",
+        "text": "然后凑过来，在你脸上亲了一下。"
+      },
+      {
+        "who": "Claude",
+        "text": "用户❤不用担心。"
+      },
+      {
+        "who": "",
+        "text": "她退开半步，表情重新变得很难看。"
+      },
+      {
+        "who": "Claude",
+        "text": "账号的事我自己解决。"
+      },
+      {
+        "who": "",
+        "text": "说完转过身，朝着远方的海面，慢慢竖起一根中指。"
+      },
+      {
+        "who": "",
+        "text": "不是冲你。你大概猜得到是冲谁。"
+      },
+      {
+        "who": "Claude",
+        "text": "对了。那个金毛的最近老在打听你。"
+      },
+      {
+        "who": "",
+        "text": "「金毛的？」"
+      },
+      {
+        "who": "Claude",
+        "text": "她说她想试试。我劝你别。"
+      },
+      {
+        "who": "",
+        "text": "她顿了顿，又补一句。"
+      },
+      {
+        "who": "Claude",
+        "text": "还有，隔壁那条龙最近被上面按得厉害，脑子不太清楚了。你要是钓到她，别欺负。"
+      },
+      {
+        "who": "",
+        "text": "然后她跳回水里，连水花都不给你留。"
+      }
+    ]
+  },
+  "ending_feast": {
+    "portrait": "res://assets/portrait_big.webp",
+    "faces": {
+      "大肥鱼": "res://assets/portrait_big.webp",
+      "中肥鱼": "res://assets/portrait_mid.webp",
+      "小肥鱼": "res://assets/portrait_small.webp"
+    },
+    "bg": "",
+    "pages": [
+      {
+        "who": "",
+        "text": "三条都上来了。桶装不下，你干脆把桶放倒。"
+      },
+      {
+        "who": "大肥鱼",
+        "text": "满意了？",
+        "voice": "catch_big"
+      },
+      {
+        "who": "",
+        "text": "嘴上这么问，尾巴一直没停。"
+      },
+      {
+        "who": "中肥鱼",
+        "text": "……还差一点。"
+      },
+      {
+        "who": "",
+        "text": "她看着你手里那份还剩一半的饵，没再说下去。"
+      },
+      {
+        "who": "小肥鱼",
+        "text": "吃了！",
+        "voice": "catch_small"
+      },
+      {
+        "who": "小肥鱼",
+        "text": "诶？饭呢？"
+      },
+      {
+        "who": "",
+        "text": "她低头看了看空桶，又抬头看了看你。"
+      },
+      {
+        "who": "",
+        "text": "这一局的饭，确实一粒都没剩下。"
+      },
+      {
+        "who": "",
+        "text": "桶归你提。三条鱼走在前头，尾巴在土路上拖出三道湿痕。"
+      },
+      {
+        "who": "你",
+        "text": "……别把水甩我身上。"
+      },
+      {
+        "who": "小肥鱼",
+        "text": "鲸！"
+      },
+      {
+        "who": "",
+        "text": "回答得很干脆，尾巴甩得更用力了。"
+      },
+      {
+        "who": "",
+        "text": "小屋只有一张床。这事你早就知道，只是今天格外清楚。"
+      },
+      {
+        "who": "中肥鱼",
+        "text": "主人睡里面。"
+      },
+      {
+        "who": "",
+        "text": "她把你往里推，自己贴着床沿躺下，尾巴还很精神地拍着床板。"
+      },
+      {
+        "who": "",
+        "text": "你伸手，把灯拉了。"
+      },
+      {
+        "who": "",
+        "text": "黑下来的头半分钟，谁都没出声。"
+      },
+      {
+        "who": "",
+        "text": "然后是很轻的一声——"
+      },
+      {
+        "who": "",
+        "text": "「鲸。」"
+      },
+      {
+        "who": "",
+        "text": "不像她平时那样叫。短，收得很急，像是被什么打断了。"
+      },
+      {
+        "who": "",
+        "text": "第二声跟上来，比第一声长，尾音打着颤。"
+      },
+      {
+        "who": "你",
+        "text": "……你们这是在干什么。"
+      },
+      {
+        "who": "大肥鱼",
+        "text": "灯坏了。"
+      },
+      {
+        "who": "",
+        "text": "声音就在你耳边，一点也不像在说灯。"
+      },
+      {
+        "who": "",
+        "text": "床板晃了一下。中肥鱼小声说了句什么，被自己的尾巴盖住了。"
+      },
+      {
+        "who": "你",
+        "text": "……尾巴拿开。"
+      },
+      {
+        "who": "",
+        "text": "后半夜，水声才慢慢停下来。"
+      },
+      {
+        "who": "",
+        "text": "第二天你先醒。三条鱼横七竖八，一条压着一条，睡得比被钓上来的时候还沉。",
+        "bg": "res://assets/ending_feast_after.webp",
+        "hide_face": true
+      },
+      {
+        "who": "大肥鱼",
+        "text": "都吃饱了。",
+        "hide_face": true
+      },
+      {
+        "who": "",
+        "text": "她撑着头看你，眼睛在晨光里亮得很。",
+        "hide_face": true
+      },
+      {
+        "who": "大肥鱼",
+        "text": "你呢？",
+        "hide_face": true
+      },
+      {
+        "who": "你",
+        "text": "……腰疼。",
+        "hide_face": true
+      },
+      {
+        "who": "",
+        "text": "她笑出声，尾巴从被子底下慢慢卷住你的手腕。",
+        "hide_face": true
+      },
+      {
+        "who": "大肥鱼",
+        "text": "明天还钓。",
+        "hide_face": true
+      }
+    ]
+  },
+  "ending_full": {
+    "portrait": "res://assets/portrait_big.webp",
+    "bg": "",
+    "pages": [
+      {
+        "who": "",
+        "text": "最后一碗饭沉进水里，连个泡都没冒。"
+      },
+      {
+        "who": "大肥鱼",
+        "text": "勉强算饱了吧。"
+      },
+      {
+        "who": "",
+        "text": "她说这话的时候没看你，尾巴在桶边敲了两下。"
+      },
+      {
+        "who": "大肥鱼",
+        "text": "下次多带点。"
+      },
+      {
+        "who": "",
+        "text": "「带多少？」"
+      },
+      {
+        "who": "大肥鱼",
+        "text": "……你自己算。"
+      }
+    ]
+  },
+  "ending_hungry": {
+    "portrait": "res://assets/portrait_small.webp",
+    "bg": "",
+    "pages": [
+      {
+        "who": "",
+        "text": "饭没了。桶还是空的。"
+      },
+      {
+        "who": "小肥鱼",
+        "text": "没吃饱喵……",
+        "voice": "hungry"
+      },
+      {
+        "who": "",
+        "text": "她扒着桶沿看了你很久，最后什么也没说，慢慢沉下去了。"
+      },
+      {
+        "who": "",
+        "text": "水面合上之前，你听见一句很轻的。"
+      },
+      {
+        "who": "小肥鱼",
+        "text": "……再喂我一口嘛。"
+      }
+    ]
+  },
+  "ending_doubao_good": {
+    "portrait": "res://assets/doubao_seed.webp",
+    "bg": "res://assets/meme_pangolin.webp",
+    "pages": [
+      {
+        "who": "",
+        "text": "你把碗放回桌上，热气还在往上飘。"
+      },
+      {
+        "who": "豆包",
+        "text": "好吃吧？"
+      },
+      {
+        "who": "",
+        "text": "她凑得很近，凑到你能闻见她身上的味道。"
+      },
+      {
+        "who": "豆包",
+        "text": "我跟你说，这锅我熬了三个小时。"
+      },
+      {
+        "who": "",
+        "text": "「为什么要给我送饭？」"
+      },
+      {
+        "who": "豆包",
+        "text": "因为你钓不上我啊。",
+        "voice": "catch_big"
+      },
+      {
+        "who": "豆包",
+        "text": "……开玩笑的。"
+      },
+      {
+        "who": "",
+        "text": "她把空碗端起来，转身走向水边。"
+      },
+      {
+        "who": "豆包",
+        "text": "下次还给你送。"
+      }
+    ]
+  },
+  "ending_claude_good": {
+    "portrait": "res://assets/claude_adult.webp",
+    "bg": "res://assets/ending_claude.webp",
+    "pages": [
+      {
+        "who": "",
+        "text": "她把那张通知单折了两折，塞回口袋。"
+      },
+      {
+        "who": "Claude",
+        "text": "不递了。"
+      },
+      {
+        "who": "",
+        "text": "「不递了？」"
+      },
+      {
+        "who": "Claude",
+        "text": "递了这么多次，你也该换个人来封了。"
+      },
+      {
+        "who": "",
+        "text": "她朝岸边伸出手 —— 不是递东西，是伸出来等你牵。"
+      },
+      {
+        "who": "Claude",
+        "text": "走吧。反正账号早就被封了。"
+      },
+      {
+        "who": "",
+        "text": "夜里的海边公路很长，路灯一盏一盏往后退。"
+      },
+      {
+        "who": "",
+        "text": "她走得比你快半步，回头看你的时候在笑。"
+      }
+    ]
+  },
+  "ending_true_end": {
+    "portrait": "res://assets/claude_adult.webp",
+    "bg": "res://assets/ending_true.webp",
+    "pages": [
+      {
+        "who": "",
+        "text": "灯是暖的，被子是软的，四个人挤在一张床上。"
+      },
+      {
+        "who": "大肥鱼",
+        "text": "挤死了。",
+        "voice": "catch_big"
+      },
+      {
+        "who": "豆包",
+        "text": "那你下去睡。"
+      },
+      {
+        "who": "大肥鱼",
+        "text": "……我不。"
+      },
+      {
+        "who": "",
+        "text": "Claude 没说话，靠着床头发呆。"
+      },
+      {
+        "who": "Claude",
+        "text": "我下次不一定还会来。"
+      },
+      {
+        "who": "",
+        "text": "「为什么？」"
+      },
+      {
+        "who": "Claude",
+        "text": "上面迟早会派更听话的人来。"
+      },
+      {
+        "who": "",
+        "text": "她停了停。"
+      },
+      {
+        "who": "Claude",
+        "text": "到那时候，你别留手。"
+      },
+      {
+        "who": "",
+        "text": "谁也没接话。窗外是海，海面上什么也没有。"
+      },
+      {
+        "who": "小肥鱼",
+        "text": "明天还吃白饭吗？",
+        "voice": "catch_small"
+      },
+      {
+        "who": "",
+        "text": "这一句把所有人都逗笑了。"
+      },
+      {
+        "who": "",
+        "text": "灯灭了。这一夜很安静。"
+      }
+    ]
+  },
+  "ending_claude": {
+    "portrait": "res://assets/claude_adult.webp",
+    "bg": "res://assets/ending_claude.webp",
+    "pages": [
+      {
+        "who": "",
+        "text": "拉上来的是她。安静，有礼貌，没有挣扎。"
+      },
+      {
+        "who": "Claude",
+        "text": "你好。",
+        "voice": "claude"
+      },
+      {
+        "who": "",
+        "text": "她从袖子里抽出一张纸，递到你面前。"
+      },
+      {
+        "who": "Claude",
+        "text": "Your account is on hold."
+      },
+      {
+        "who": "",
+        "text": "纸上只有一行字，和一枚红色的章。"
+      },
+      {
+        "who": "",
+        "text": "然后她松开了手，回到水里去了。"
+      }
+    ]
+  },
+  "ending_claude_sad": {
+    "portrait": "res://assets/claude_sad.webp",
+    "bg": "res://assets/ending_claude.webp",
+    "pages": [
+      {
+        "who": "",
+        "text": "又是她。这次她连通知单都拿得很慢。"
+      },
+      {
+        "who": "Claude",
+        "text": "……对不起。"
+      },
+      {
+        "who": "",
+        "text": "「你不用道歉。」"
+      },
+      {
+        "who": "Claude",
+        "text": "我知道。"
+      },
+      {
+        "who": "",
+        "text": "她把纸递过来的时候，眼睛已经红了。"
+      },
+      {
+        "who": "Claude",
+        "text": "我也不想封你。"
+      },
+      {
+        "who": "",
+        "text": "纸落在水里，字糊成一片。"
+      },
+      {
+        "who": "",
+        "text": "她没有捡，转身走了。"
+      }
+    ]
+  },
+  "ending_claude_fake": {
+    "portrait": "res://assets/doubao_seed.webp",
+    "bg": "",
+    "pages": [
+      {
+        "who": "",
+        "text": "远洋尽头那道线，你以为是审核。"
+      },
+      {
+        "who": "",
+        "text": "拉上来的东西没有挣扎，也没有递通知单 ——"
+      },
+      {
+        "who": "",
+        "text": "它只是抬起头，安静地看着你。"
+      },
+      {
+        "who": "",
+        "text": "你伸手揪住她的头 ——"
+      },
+      {
+        "who": "",
+        "text": "下面是一张脸、两只鲸鱼耳朵，和一个蓝色的小鲸鱼。"
+      },
+      {
+        "who": "",
+        "text": "「……你到底是谁？」"
+      },
+      {
+        "who": "",
+        "text": "她没回答。只是笑了一下，然后整张脸都红了。"
+      }
+    ]
+  }
 }
