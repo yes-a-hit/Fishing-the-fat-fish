@@ -1719,7 +1719,7 @@ func _case_opening_story() -> void:
 	_ok("story.json 里有 opening", story.has("opening"))
 	var entry: Dictionary = story.get("opening", {})
 	var pages: Array = entry.get("pages", [])
-	_check("开场 32 句", pages.size(), 32)
+	_check("开场 29 句", pages.size(), 29)
 
 	var allowed := ["", "你", "大肥鱼", "中肥鱼", "小肥鱼"]
 	var talk_by_user := 0
@@ -1732,7 +1732,10 @@ func _case_opening_story() -> void:
 		if who == "你":
 			talk_by_user += 1
 	_ok("user 不是摄像头（吐槽 %d 句）" % talk_by_user, talk_by_user >= 5)
-	_check("最后一句收在大肥鱼身上", String((pages[pages.size() - 1] as Dictionary).get("who", "")), "大肥鱼")
+	# 开场到大肥鱼自己也下水为止，后面直接进对局。
+	# 原先还有「一个人在岸上钓三条傻鱼」「别说出去」三句，把节奏拖回去了。
+	var last_text := String((pages[pages.size() - 1] as Dictionary).get("text", ""))
+	_ok("最后一句收在大肥鱼下水", last_text.contains("跳了下去"))
 
 	# 说话人换立绘：会说话的三条鱼各自有一张脸，文件也得真的在。
 	# 只有一张整段立绘时，中肥鱼说「主人坐我这边」画面上却是大肥鱼，一眼出戏。

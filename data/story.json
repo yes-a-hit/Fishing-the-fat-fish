@@ -51,10 +51,7 @@
 			{ "who": "", "text": "小的也下去了。又过了十分钟，水面安静得像什么都没发生。", "bg": "-", "hide_face": false },
 			{ "who": "你", "text": "好。现在下去三条了。" },
 			{ "who": "", "text": "大肥鱼把保温杯放下，把竿塞回你手里，回头看你一眼：「桶看好了。」", "bg": "res://assets/opening_rod.webp", "hide_face": true },
-			{ "who": "", "text": "然后她也跳了下去。这回水花很小，像专业的。", "hide_face": true },
-			{ "who": "你", "text": "……行吧。我一个人在岸上，钓三条傻鱼。", "hide_face": true },
-			{ "who": "", "text": "你把竿甩了出去。二十分钟后，大的、中的、小的，串在一根线上被拖上岸，谁也不说话。", "hide_face": true },
-			{ "who": "大肥鱼", "text": "……别说出去。", "hide_face": true }
+			{ "who": "", "text": "然后她也跳了下去。这回水花很小，像专业的。", "hide_face": true }
 		]
 	},
 
