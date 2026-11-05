@@ -89,7 +89,9 @@ func _run_all() -> void:
 	_case_opening_story()
 	_case_feast_afterstory()
 	_case_score_board()
+	_case_story_director()
 	_case_story_click()
+	_case_gpu_preference()
 	_case_doubao_second()
 	_case_grand_gate()
 	_case_i18n()
@@ -1930,14 +1932,67 @@ func _case_score_board() -> void:
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
 
 
+func _case_gpu_preference() -> void:
+	# 小游戏不该把独显从待机里叫醒：注册表里写一条省电偏好，由系统记住。
+	# 自测跑在编辑器里，prefer_integrated() 会主动跳过（不能把 godot.exe 设成省电），
+	# 所以这里只验格式与查询不炸。
+	print("[case] 省电显卡偏好")
+	_check("偏好串格式", GpuPreference.POWER_SAVING, "GpuPreference=1;")
+	_check("注册表路径", GpuPreference.REG_PATH, "HKCU\\Software\\Microsoft\\DirectX\\UserGpuPreferences")
+	_ok("标记文件路径在 user:// 下", GpuPreference.SENTINEL.begins_with("user://"))
+	# 查询要么拿到值、要么空串，但绝不能抛错
+	var got := GpuPreference.read_preference()
+	_ok("查询不崩（编辑器下通常为空）：%s" % ("空" if got.is_empty() else got), got is String)
+
+
+func _case_story_director() -> void:
+	# 剧情调度从 game_root 抽出来之后，这里验三件事：
+	# 找不到 / 队列空都要直接回调，别再让调用方等一个永远不来的 finished。
+	print("[case] 剧情调度")
+	var ov := StoryOverlay.new()
+	(Engine.get_main_loop() as SceneTree).root.add_child(ov)
+
+	var chrome: Array = []
+	var done: Array = []
+	var director := StoryDirector.new(
+		ov,
+		{"demo": {"pages": [
+			{"who": "大肥鱼", "text": "一。"},
+			{"who": "大肥鱼", "text": "二。"},
+		]}},
+		func(on: bool) -> void: chrome.append(on)
+	)
+
+	director.play("missing", func() -> void: done.append("missing"))
+	_check("找不到剧情就直接回调", done.size(), 1)
+	_check("找不到剧情时不动界面", chrome.size(), 0)
+
+	director.play_queue(func() -> void: done.append("queue"))
+	_check("队列空也直接回调", done.size(), 2)
+
+	director.play("demo", func() -> void: done.append("demo"))
+	_check("开播先收界面", chrome.size(), 1)
+	_ok("收界面传 false", chrome.size() > 0 and chrome[0] == false)
+
+	# 翻到最后一句之后才会 finished —— 多按几次，别依赖页数
+	var guard := 0
+	while chrome.size() < 2 and guard < 8:
+		ov._stop_typing()
+		ov._punch()
+		guard += 1
+	_check("播完还原界面", chrome.size(), 2)
+	_ok("还原传 true", chrome.size() > 1 and chrome[1] == true)
+	_check("播完回调", done.size(), 3)
+
+	ov.queue_free()
+
+
 func _case_story_click() -> void:
 	# 剧情推进必须能点：手机上没有 Enter 可按。
 	# 之前的坑是对话框里的 Label 把点击吃掉，玩家只能按键盘。
 	print("[case] 剧情点击推进")
-	# 用 load 而不是直接 StoryOverlay.new()：
-	# --script 模式下 autoload 不在编译期作用域里，story_overlay 里用到的
-	# Audio 会让静态依赖链直接编译失败。运行时再加载就没事。
-	var ov = load("res://scripts/ui/story_overlay.gd").new()
+	# 现在可以直接 new：剧情层不再引用 Audio 单例，语音走 voice_requested 信号。
+	var ov := StoryOverlay.new()
 	(Engine.get_main_loop() as SceneTree).root.add_child(ov)
 	ov.play({"pages": [
 		{"who": "大肥鱼", "text": "第一句。"},

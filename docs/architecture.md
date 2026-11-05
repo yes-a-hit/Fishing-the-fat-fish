@@ -63,6 +63,8 @@
 | `ui/ending_overlay.gd` | 显示结局、统计和收集项 | 生成统计或判断结局 |
 | `ui/lake_backdrop.gd` | 绘制湖面背景（天空/水面渐变、两层山、水线） | 处理输入、读取数据 |
 | `ui/pause_layer.gd` | 暂停遮罩与三个动作（继续/重开/回菜单），只发信号 | 直接改 paused 之外的状态 |
+| `ui/story_director.gd` | 剧情调度：从队列取段、开播前收界面、播完还原并回调 | 画界面、读数据文件 |
+| `core/gpu_preference.gd` | 导出版首次启动写一条省电显卡偏好（注册表 `UserGpuPreferences`） | 改渲染设置、在编辑器里生效 |
 | `ui/gallery_root.gd` | 图鉴四页；条目来自 `endings.json` / `escapes.json` / `characters.json` / 内置语音表 | 自己写死图片与文案清单 |
 | `ui/settings_root.gd` | 难度、语言、音量、清档二次确认 | 直接改对局内数据 |
 | `ui/about_root.gd` | 渲染 `about.json`：协议、出处、彩蛋 | 自己读文件（走 `ConfigLoader`） |
@@ -290,6 +292,31 @@ FightSession.finished 的 reason 为 "landed" / "line_broke"
 
 ---
 
+## 剧情调度（`ui/story_director.gd`）
+
+「播哪一段、什么时候收界面、播完接着干什么」原本散在 `game_root` 的六个函数里，而且每件都硬连着另一个全局对象：队列在 `Gallery`、界面开关在 `_hud` / `_score_layer`、语音在 `Audio`。改一次剧情要读整个对局脚本。
+
+现在只有一层：`StoryDirector.new(overlay, stories, chrome)`，三样依赖全是注入的 ——
+
+- `overlay`：`StoryOverlay`，只负责显示与翻页；
+- `stories`：`id → 剧情字典`；
+- `chrome`：`func(on: bool)`，收放 HUD / 暂停键 / 分数层；
+- `pop_story`：`func() -> String`，队列来源（生产环境接 `Gallery.pop_story`，测试可以接假的）。
+
+`game_root` 只保留 `_play_story_queue` / `_play_one_story` / `_begin_story` 三个薄壳，截图脚本还在用名字叫它们。
+
+同一条线上还有一处解耦：`StoryOverlay` **不再直接调 `Audio`**，只 `voice_requested.emit(key)`，由 `game_root` 连到 `Audio.play_voice`。这不是洁癖 —— `--script` 模式下 autoload 不在编译期作用域里，剧情层引用 `Audio` 会让整个自测编译失败（`Identifier not found: Audio`），当时的绕法是 `load("res://scripts/ui/story_overlay.gd").new()`。解耦之后自测可以直接 `StoryOverlay.new()`。
+
+## 别让独显为几张贴图醒来（`core/gpu_preference.gd`）
+
+Windows 允许按程序指定显卡，落点是 `HKCU\Software\Microsoft\DirectX\UserGpuPreferences`：值名是 exe 全路径，值是 `GpuPreference=1;`（1 省电 / 集显，2 高性能 / 独显）。
+
+这个游戏一屏就几张贴图加一个圆环，所以导出版**第一次启动**写一条省电偏好，之后由系统记住，玩家也能在「图形设置」里改回去。三条边界：
+
+- 只在 Windows 导出版生效（`OS.has_feature("editor")` 为真时跳过，否则会把 `godot.exe` 一起设成省电，开发时更卡）；
+- 只写一次，靠 `user://gpu_pref_v1.txt` 记；
+- 用 `OS.create_process("reg.exe", ...)` 不阻塞启动，失败就继续用系统默认。
+
 ## 开场剧情（`opening`）
 
 第一次进游戏时先演一段 43 句的开场：早上白饭吃腻了，你自己说要去钓鱼；中肥鱼把「钓鱼」听成「要吃我」，大肥鱼负责解释鲸鱼和鱼不一样；她朝你比了个心，转身拉开门，门外直接是湖；你放下空玻璃杯、打窝、甩竿。中肥鱼自告奋勇下水赶鱼一去不回，大肥鱼掏出一团小的（小肥鱼，子代理）扔下去捞姐姐也没回来，最后她把竿塞回你手里，自己也跳下去 —— 到这儿收，直接进对局。
@@ -484,7 +511,7 @@ func _input(event: InputEvent) -> void:
 ## 测试边界
 
 - `selftest.gd`：当前覆盖配置、脱钩演出表、难度字段全覆盖、结算统计口径、中心偏向抽签、小肥鱼人设、开场剧情（43 句 / 说话人白名单 / 每条鱼一张脸 / 四语覆盖 / 队列只排一次 / 主角主动性 / 七张 CG 的挂点）、齐鱼之福后半段、计分板（底分、倍率、失手清零、尾款、最高分落盘与同分不算新纪录）、剧情层点击与触屏推进（含按钮让位）、自动分带、加鱼、难度档、设置读写、菜单装配、圆环判定、冷却窗口、循环蓄力、抛竿、空竿、重复上鱼、上鱼、断线、五种结局、场景装配和鼠标策略。基线：`[selftest] pass=1072 fail=0`。
-- `screenshot.gd`：输出瞄准、蓄力、搏斗、上鱼、结算、开场、齐鱼之福后续、开场四段 CG、计分行共十一张快照。它验证可见布局，不证明角色动画达标。
+- `screenshot.gd`：输出瞄准、蓄力、搏斗、上鱼、结算、开场、齐鱼之福后续、开场四段 CG、计分行共十四张快照。它验证可见布局，不证明角色动画达标。
   **注意 `_shot()` 抓的是上一帧纹理**：同一帧里先改 UI 再 `_shot()` 是拍不到的，计分那张图因此单独占了一个 `_step = 45`，隔一帧再拍。
 - `input_probe.gd`：仍是旧版探针，未接入当前验收口径。
 

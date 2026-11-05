@@ -30,6 +30,8 @@ var _feedback: SceneFeedback = null
 var _landing: LandingView = null
 var _ending: EndingOverlay = null
 var _story: StoryOverlay = null
+## 剧情调度：队列、界面收放、播完回调都收在这一层，别散回本文件
+var _director: StoryDirector = null
 var _doubao_card: Control = null
 var _doubao_tween: Tween = null
 var _doubao_pic: TextureRect = null
@@ -247,6 +249,11 @@ func _build_ui() -> void:
 	add_child(_story)
 	_ending.restart_requested.connect(_start_session)
 	_ending.menu_requested.connect(_back_to_menu)
+	# 剧情层只发「这一页要放语音」，音频单例由这一层持有 —— 剧情层不认识 Audio
+	_story.voice_requested.connect(Audio.play_voice)
+	# 剧情调度集中在 StoryDirector：队列从 Gallery 取，界面收放回调给这一层
+	_director = StoryDirector.new(_story, _stories, _set_play_chrome)
+	_director.pop_story = Gallery.pop_story
 
 	# 7. 豆包图卡：钓上豆包时飘出来的一小块，2 秒后自己退
 	_doubao_card = _build_doubao_card()
@@ -642,41 +649,19 @@ func _on_finished(ending: String, summary: Dictionary) -> void:
 
 
 ## 把队列里的剧情一段段播完，最后调 done。
-## 队列空就直接 done —— 多数对局根本没剧情。
+## 调度全交给 StoryDirector；这一层只保留同名薄壳，截图与自测还在用它。
 func _play_story_queue(done: Callable) -> void:
-	var id := Gallery.pop_story()
-	if id.is_empty():
-		done.call()
-		return
-	var story: Dictionary = _stories.get(id, {})
-	if story.is_empty() or (story.get("pages", []) as Array).is_empty():
-		_play_story_queue(done)
-		return
-	_begin_story(story, _play_story_queue.bind(done))
+	_director.play_queue(done)
 
 
-## 播指定的一段剧情，播完调 done。找不到就直接 done。
-## 结局剧情走这里，不进队列 —— 它每局都要放，不是「欠下的」。
+## 播指定的一段剧情，播完调 done。结局剧情走这里，不进队列。
 func _play_one_story(id: String, done: Callable) -> void:
-	var story: Dictionary = _stories.get(id, {})
-	if story.is_empty() or (story.get("pages", []) as Array).is_empty():
-		done.call()
-		return
-	_begin_story(story, done)
+	_director.play(id, done)
 
 
-## 剧情期间收起对局界面。开场那段是全屏叙事，
-## 顶上的白饭计数、三条鱼的名字、右上角暂停圆压在字上面，一眼就出戏。
-## 收起来以后玩家看到的只有背景、立绘和台词；播完立刻还原，不给状态留缝。
+## 直接开播一份现成的剧情字典（截图脚本会塞一份假数据进来）。
 func _begin_story(story: Dictionary, done: Callable) -> void:
-	_set_play_chrome(false)
-	_story.finished.connect(
-		func() -> void:
-			_set_play_chrome(true)
-			done.call(),
-		CONNECT_ONE_SHOT
-	)
-	_story.play(story)
+	_director.begin(story, done)
 
 
 func _set_play_chrome(on: bool) -> void:

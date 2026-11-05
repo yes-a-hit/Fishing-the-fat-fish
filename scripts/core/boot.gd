@@ -14,6 +14,9 @@ const USER_I18N_DIR := "user://i18n"
 
 
 func _ready() -> void:
+	# 小游戏不该为几张贴图叫醒独显。写一次系统级的省电偏好，之后由系统记住。
+	# 放在最前面：越早写，玩家在图形设置里看到的越接近真实启动行为。
+	GpuPreference.prefer_integrated()
 	_load_user_translations()
 	var s := GameSettings.load_settings()
 	s.apply_language()

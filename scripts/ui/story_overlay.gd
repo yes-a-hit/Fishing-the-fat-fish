@@ -14,6 +14,8 @@ extends Control
 ## 键盘空格 / 回车等价于点一下。
 
 signal finished
+## 这一页要放一句语音。上层（game_root）接走，交给 Audio 去播。
+signal voice_requested(key: String)
 
 const DIM := Color(0.055, 0.129, 0.169, 0.42)
 const BOX_H := 190.0
@@ -249,9 +251,11 @@ func _render() -> void:
 
 	_start_typing()
 
-	# 这一页配了音就放。回看时不重放 —— 退回上一句是为了读字，不是为了再听一遍。
+	# 这一页配了音就请求播放。回看时不重放 —— 退回上一句是为了读字，不是为了再听一遍。
+	# 只发信号、不直接叫 Audio：这一层不该认识音频单例（`--script` 自测里
+	# 没有 autoload，硬引用会让整个脚本编译失败）。
 	if _forward and not page.get("voice", "").is_empty():
-		Audio.play_voice(String(page["voice"]))
+		voice_requested.emit(String(page["voice"]))
 	_forward = true
 
 
