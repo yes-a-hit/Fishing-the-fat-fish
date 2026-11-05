@@ -126,13 +126,35 @@ static func load_endings(path: String = PATH_ENDINGS) -> Dictionary:
 	return data
 
 
+## 剧情片段。pages 里的 who / text 是玩家看得见的字，也得走翻译表 ——
+## StoryOverlay 直接往 Label 上写字符串，不会自己 tr()，所以翻译必须在读的时候做。
+static func load_story(path: String = PATH_STORY) -> Dictionary:
+	var data := read_json(path)
+	for key in data.keys():
+		var entry: Variant = data[key]
+		if not (entry is Dictionary):
+			continue
+		var d: Dictionary = entry
+		var pages: Variant = d.get("pages", null)
+		if not (pages is Array):
+			continue
+		for page in (pages as Array):
+			if not (page is Dictionary):
+				continue
+			var pg: Dictionary = page
+			for field in ["who", "text"]:
+				if pg.has(field):
+					pg[field] = _loc(pg[field])
+	return data
+
+
 ## 一次性把配置读齐。game_root 只调这个。
 static func load_all() -> Dictionary:
 	return {
 		"fish": load_fish(),
 		"tuning": load_tuning(),
 		"endings": load_endings(),
-		"story": read_json(PATH_STORY),
+		"story": load_story(),
 	}
 
 

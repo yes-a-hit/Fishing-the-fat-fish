@@ -42,6 +42,9 @@ var _paused_layer: Control = null
 ## 剧情播放中。和暂停分开是因为暂停有菜单和按钮，剧情只是把这一局冻住。
 var _story_playing: bool = false
 
+## 右上角暂停键所在的整行。剧情播放时连同 HUD 一起收起来。
+var _pause_row: Control = null
+
 ## 会话信号 → 处理函数。加一条信号只补这里一行。
 ## 早先 connect 与 disconnect 各抄十行名字：删信号时漏掉一半，旧会话就会
 ## 继续往同一个界面上推事件 —— 表现为「重开一局后数量跳两格」。
@@ -57,6 +60,10 @@ const SESSION_HOOKS := [
 	["claude_spared", "_on_claude_spared"],
 	["finished", "_on_finished"],
 ]
+
+## 开场剧情。只在没播过时排队 —— 判定交给 Gallery.queue_story 自己：
+## 它同时看「已播」列表和待播队列，播过一次的不会再排进来。
+const OPENING_STORY := "opening"
 
 
 func _ready() -> void:
@@ -85,6 +92,9 @@ func _ready() -> void:
 	_build_ui()
 	_apply_mouse_policy(self)
 	_start_session()
+	# 开场：第一次进游戏才排。queue_story 自己会跳过「已经播过」和「已经在队里」，
+	# 所以这里不用再判一次，也就没有第二处真相源。
+	Gallery.queue_story(OPENING_STORY)
 	# 上一局欠下的剧情在这时候补播。放在开局之后而不是之前，
 	# 是因为要等 UI 全部建好、session 也起来，播完才轮得到玩家操作。
 	_play_pending_story_on_boot()
@@ -269,6 +279,7 @@ func _build_pause_button() -> void:
 
 	btn.pressed.connect(_toggle_pause)
 	row.add_child(btn)
+	_pause_row = row
 
 
 ## 两条圆角竖杠。用画的不用字体 —— 字体子集里没有 ⏸，
@@ -601,8 +612,7 @@ func _play_story_queue(done: Callable) -> void:
 	if story.is_empty() or (story.get("pages", []) as Array).is_empty():
 		_play_story_queue(done)
 		return
-	_story.finished.connect(_play_story_queue.bind(done), CONNECT_ONE_SHOT)
-	_story.play(story)
+	_begin_story(story, _play_story_queue.bind(done))
 
 
 ## 播指定的一段剧情，播完调 done。找不到就直接 done。
@@ -612,8 +622,28 @@ func _play_one_story(id: String, done: Callable) -> void:
 	if story.is_empty() or (story.get("pages", []) as Array).is_empty():
 		done.call()
 		return
-	_story.finished.connect(done, CONNECT_ONE_SHOT)
+	_begin_story(story, done)
+
+
+## 剧情期间收起对局界面。开场那段是全屏叙事，
+## 顶上的白饭计数、三条鱼的名字、右上角暂停圆压在字上面，一眼就出戏。
+## 收起来以后玩家看到的只有背景、立绘和台词；播完立刻还原，不给状态留缝。
+func _begin_story(story: Dictionary, done: Callable) -> void:
+	_set_play_chrome(false)
+	_story.finished.connect(
+		func() -> void:
+			_set_play_chrome(true)
+			done.call(),
+		CONNECT_ONE_SHOT
+	)
 	_story.play(story)
+
+
+func _set_play_chrome(on: bool) -> void:
+	if _hud != null:
+		_hud.visible = on
+	if _pause_row != null:
+		_pause_row.visible = on
 
 
 func _back_to_menu() -> void:

@@ -219,7 +219,7 @@ FightSession.finished 的 reason 为 "landed" / "line_broke"
 | `data/fish.json` | 鱼名、立绘、体力、伤害比、张力率、台词 | `ConfigLoader.load_fish()` → `FishSpec` | 对局数值、HUD、结算收集项 |
 | `data/tuning.json` | 全局数值、三档难度、距离带、豆包曲线、DDA | `ConfigLoader.load_tuning()` → `GameTuning` | 手感、难度、抽鱼概率 |
 | `data/endings.json` | 结局标题/副标题/正文分页，`_order` 决定图鉴顺序 | `ConfigLoader.load_endings()` | 结算页、图鉴结局页 |
-| `data/story.json` | 结局对话脚本 | `ConfigLoader.load_story()` | 结算前的剧情层 |
+| `data/story.json` | 剧情脚本：`opening`（首次进游戏的开场）+ `ending_<key>`，每项含 `portrait`/`faces`/`pages[]` | `ConfigLoader.load_story()` | 首次进入的开场、结算前的剧情层 |
 | `data/characters.json` | 角色名、形态、立绘、人设、口头禅、解锁条件 | `ConfigLoader.load_characters()` | 图鉴角色页 |
 | `data/escapes.json` | 脱钩演出：key、认领的鱼、图、标题、台词、说明、语音 | `ConfigLoader.load_escapes()` | 对局内脱钩卡片、图鉴脱钩页 |
 | `data/about.json` | 协议、出处分节、彩蛋图 | `ConfigLoader.read_json(PATH_ABOUT)` | 关于页 |
@@ -253,6 +253,31 @@ FightSession.finished 的 reason 为 "landed" / "line_broke"
 - `gallery_root` 直接用同一份 `_escapes` 渲染，条数跟着数据走。
 
 `_case_escape_data()` 会验：四条都在、图存在、每条鱼都有演出、key 不重复、图鉴条数等于表条数、未知鱼返回空。
+
+---
+
+## 开场剧情（`opening`）
+
+第一次进游戏时先演一段 32 句的开场：周末被大肥鱼和中肥鱼捞起来去钓鱼，中肥鱼抢着表现，自告奋勇下水赶鱼，一去不回；大肥鱼从保温袋里掏出一团小的（小肥鱼）扔下去捞姐姐，也没回来；最后她自己跳下水。玩家一个人在岸上吐槽半天，只好把三条鱼串一根线钓回来。
+
+- 数据在 `data/story.json` 的 `opening`，和其它剧情同一套结构（`portrait` / `bg` / `pages[]`）。
+- `pages[]` 的 `who` 白名单是 `""`（旁白）/`你`/`大肥鱼`/`中肥鱼`/`小肥鱼`；`你` 的台词是玩家人格的一部分，不是摄像头。
+- `faces`：`who` → 立绘。`StoryOverlay._render()` 先看这一页有没有 `portrait`，没有才查 `faces`，再没有沿用上一页。只有一张整段立绘时，中肥鱼说「主人坐我这边」画面上却是大肥鱼，一眼出戏。
+- 玩家自己说「你」的时候立绘压暗（`DIM_NARRATOR`），只有鱼说话时亮着。
+- 触发在 `game_root._ready()`：`Gallery.queue_story("opening")` 排在 `_play_pending_story_on_boot()` 之前。去重靠 `Gallery` 自己（已播/已在队都不重复排），不要在别处再记一个「是否看过开场」。
+- `ConfigLoader.load_story()` 会对 `pages[].who` 和 `pages[].text` 过 `TranslationServer.translate()` —— **`StoryOverlay` 直接往 Label 写字符串，不会自己 `tr()`**，所以漏进 `strings.csv` 的台词在任何语种下都是中文原句。
+- `game_root._begin_story()` 是唯一入口：开播前 `_set_play_chrome(false)` 把 HUD 和右上角暂停键收起来，`finished` 时还原再调 `done`。开场是全屏叙事，顶上的白饭计数压在字上很出戏；直接 `_story.play()` 会绕过收 HUD。
+- `_case_opening_story()` 锁死：`pages.size() == 32`、每句非空、`who` 在白名单、`你` 至少 5 句、最后一句是大肥鱼、三条鱼各有专属立绘且文件存在、切英文后每句都变样（缺翻译会列出缺哪几句）、`Gallery` 只排一次。`tests/screenshot.gd` 的第 6 步拍 `06_opening.png`，靠 `while ov._index < 3` 翻到第 4 句，不数点击次数。
+
+## 齐鱼之福的后半段（`ending_feast`）
+
+`ending_feast` 现在是 35 句：前 9 句是三条鱼被钓上来的收尾，后 26 句是回小屋之后的「后续」。
+
+- 触发走 `game_root` 的结局流程：`_play_one_story("ending_" + ending, ...)`，不用另外排队。
+- 这段是全篇唯一带成人暗示的地方，写法是**留白**：你拉灯 → 黑暗里两声「鲸」→ 大肥鱼说「灯坏了」→ 后半夜水声才停 → 第二天「都吃饱了」。不写身体，画面交给玩家补。
+- `faces` 三条鱼都配了（大/中/小各自的立绘），否则中肥鱼说话时还挂着大肥鱼的脸。
+- `_case_feast_afterstory()` 锁死：`pages.size() == 35`、三条鱼各有立绘且文件存在、玩家至少 4 句台词、第 10 句以后必须出现「灯」和「吃饱」、逐句不含 `裸 / 性器 / 高潮 / 插入 / 湿透`、最后 7 句必须带 `hide_face` 且页级底图存在。
+- 第二天那 7 句用整页 CG（`assets/ending_feast_after.webp`）：第一句写 `"bg"`，7 句都写 `"hide_face": true`。`StoryOverlay` 支持「整段没配 `bg` 时由页级 `bg` 把底图建出来」，所以不用给整段铺图；`hide_face` 是逐页字段，漏写哪页哪页就会把小人弹回来。
 
 ---
 
@@ -395,8 +420,8 @@ FightSession.finished 的 reason 为 "landed" / "line_broke"
 
 ## 测试边界
 
-- `selftest.gd`：当前覆盖配置、脱钩演出表、难度字段全覆盖、结算统计口径、中心偏向抽签、小肥鱼人设、自动分带、加鱼、难度档、设置读写、菜单装配、圆环判定、冷却窗口、循环蓄力、抛竿、空竿、重复上鱼、上鱼、断线、五种结局、场景装配和鼠标策略。基线：`[selftest] pass=589 fail=0`。
-- `screenshot.gd`：输出瞄准、蓄力、搏斗、上鱼、结算五张快照。它验证可见布局，不证明角色动画达标。
+- `selftest.gd`：当前覆盖配置、脱钩演出表、难度字段全覆盖、结算统计口径、中心偏向抽签、小肥鱼人设、开场剧情（32 句 / 说话人白名单 / 每条鱼一张脸 / 四语覆盖 / 队列只排一次）、自动分带、加鱼、难度档、设置读写、菜单装配、圆环判定、冷却窗口、循环蓄力、抛竿、空竿、重复上鱼、上鱼、断线、五种结局、场景装配和鼠标策略。基线：`[selftest] pass=829 fail=0`。
+- `screenshot.gd`：输出瞄准、蓄力、搏斗、上鱼、结算、开场六张快照。它验证可见布局，不证明角色动画达标。
 - `input_probe.gd`：仍是旧版探针，未接入当前验收口径。
 
 动画完成后还需要连续帧或短视频验证，单张 `04_landing.png` 只能检查某一帧的构图，不能证明姿态真的随时间变化。

@@ -10,7 +10,7 @@ Godot 4.7 · GDScript · 1280×800 · 单场景小游戏
 > 开发状态：完工，作为meme游戏，动画偏简陋和魔性
 
 **授权**：[CC BY-NC-SA 4.0](LICENSE) —— 免费、非商业、必须署名、改动同协议共享。
-**这个游戏里的角色形象不是我画的**，画风来自 ZipZipPipe，素材来源逐条列在 [CREDITS.md](CREDITS.md)。二次创作前请先读那两份文件。
+**这个游戏里的角色形象不是我画的**：鲸鱼娘这个角色原作是**上善无形**；大肥鱼、小肥鱼用的是 **ZipZipPipe** 绘制的女仆装版本（画风 LoRA 也是 ZipZipPipe 训练的），中肥鱼用的是上善无形的 Q 版汉服造型。素材来源逐条列在 [CREDITS.md](CREDITS.md)。二次创作前请先读那两份文件。
 
 ---
 
@@ -180,7 +180,7 @@ Godot 4.7 · GDScript · 1280×800 · 单场景小游戏
 
 主菜单底排三个按钮：**图 鉴** / **关 于** / **退 出**。
 
-「关 于」是这一页：授权（CC BY-NC-SA 4.0）、角色形象出处、梗图出处、音频出处，以及两条外链 —— 作者的 GitHub 小窝（`github.com/yes-a-hit`）与画风画师 ZipZipPipe 的 B 站主页（`space.bilibili.com/zh-Hans/4168597`）。点一行直接开系统浏览器。
+「关 于」是这一页：授权（CC BY-NC-SA 4.0）、角色形象出处（角色原作「上善无形」；大肥鱼、小肥鱼的女仆装版本 ZipZipPipe，中肥鱼的上善无形 Q 版汉服造型）、梗图出处、音频出处。文案和图片都在 `data/about.json`，换说法不用动代码。
 
 文案和链接全在 `data/about.json`，换地址不用动代码。
 
@@ -461,11 +461,13 @@ theme/custom_font="res://assets/fonts/game_sc.otf"
 | 文件 | 用途 | 状态 |
 |---|---|---|
 | `portrait_small.webp` | 小肥鱼立绘 | 已有 |
-| `portrait_mid.webp` | 中肥鱼立绘 | 已有 |
+| `portrait_mid.webp` | 中肥鱼立绘 | 已有（上善无形 Q 版汉服造型，920×971，透明底） |
 | `portrait_big.webp` | 大肥鱼独立立绘 | 已补充，不再与中肥鱼共用 |
+| `easter/easter_mid_bowl.webp` | 关于页彩蛋（中肥鱼端着一锅白饭） | 已有（Q 版汉服造型，透明底） |
 | `claude_hold.webp` | 陷阱鱼立绘、`claude` / `claude_sad` 结局图 | 已有（「Your account is on hold」+ 竖中指） |
 | `ending_true.webp` | `true_end` 齐人之福（真结局） | 已有（四个人挤在被窝里） |
-| `ending_feast.webp` | `feast` 齐鱼之福结局图 | 已有（被窝里三条大中小，第一人称看向镜头） |
+| `ending_feast.webp` | `feast` 齐鱼之福结局图 | 已有（床上三条大中小同框，中肥鱼汉服、另两条女仆装，夜灯与月光） |
+| `ending_feast_after.webp` | 齐鱼之福第二天的整页 CG | 已有（1216×688 俯拍：你睡在中间，三条鱼趴在你左右与胸口，晨光） |
 | `ending_doubao.webp` | `doubao_good` 白饭来咯结局图 | 已有（豆包举着一座米饭山） |
 | `ending_claude.webp` | `claude_good` 私奔结局图 | 已有（夜色海边，她拉着你的手回头笑） |
 | `ending_win.webp` | `full` 吃饱饱结局图 | 已有（梗图：吃饱了拍肚子） |

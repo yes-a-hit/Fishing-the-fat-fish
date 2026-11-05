@@ -18,23 +18,41 @@
 
 ## 角色形象
 
-### DeepSeek 鲸鱼娘（蓝发、鲸耳、鲸尾、女仆装）
+### DeepSeek 鲸鱼娘（蓝发、鲸耳、鲸尾）
 
-形象设计：**ZipZipPipe**
+角色原作：**上善无形** —— DeepSeek 鲸鱼娘这个形象最初出自其创作。
+
+本作按角色用了两套形象，署名分开写：
+
+- **女仆装版本：ZipZipPipe** —— 大肥鱼、小肥鱼的立绘与 `ending_feast.png` 都是这一版。
+  女仆装的设计与绘制出自其手。ZipZipPipe 画的是「穿上女仆装的鲸鱼娘」，
+  不是鲸鱼娘本人；这两件事必须分开署名。
+- **Q 版汉服形象：上善无形** —— 中肥鱼用的 `assets/portrait_mid.webp` 与
+  `assets/easter/easter_mid_bowl.webp` 是角色原作的 Q 版造型：浅蓝大袖外衫、深蓝襦裙、
+  白色发花。衣服是汉服，不是和服，写文案时别写错。
 
 画风模型：`DeepSeek_ZipZipPipe_style_anima2b` —— 由 ZipZipPipe 训练的画风 LoRA，
 发布在 Civitai：
 
-- 作者本人：https://space.bilibili.com/zh-Hans/4168597
+- ZipZipPipe 本人：https://space.bilibili.com/zh-Hans/4168597
 - 作品页：https://civitai.com/models/2919135
 - 基座：Anima 2B（UNET `anima-base-v1.0` + CLIP `qwen_3_06b_base` + VAE `qwen_image_vae`）
 
-本项目用这个 LoRA 生成了 `assets/ending_feast.png`。
-生成参数：LoRA 强度 0.85、32 步、CFG 5、1216×1216 一次成图。
+本项目用这个 LoRA 生成了 `assets/ending_feast.webp` 与 `assets/ending_feast_after.webp`（2026-11-05 重绘版）。
+生成参数：LoRA 强度 0.75、anima-turbo 8 步、1024×1024 出图，再 LANCZOS 放大到 1216×1216；
+`assets/anim/mid/` 四帧同样是这个 LoRA（强度 0.6）从 `portrait_mid.webp` 做的 i2i。
 
-角色的三档立绘（`portrait_small/mid/big.jpg`）与 `ending_feast.png` 均属此列。
+`ending_feast.webp` 里三只同框：大肥鱼、小肥鱼是 ZipZipPipe 的女仆装版本，
+中肥鱼按上善无形的汉服造型画（浅蓝宽袖外衫 + 深蓝襦裙 + 白色发花）。
+`ending_feast_after.webp`（1216×688 宽版）是第二天清晨的俯拍：你躺在中间、三条鱼分别趴在你左右与胸口，中肥鱼汉服、另两条女仆装。
 
-> **使用本项目时，请同样保留 ZipZipPipe 的署名。**
+大肥鱼、小肥鱼的立绘（`assets/portrait_big.webp`、`assets/portrait_small.webp`）
+属女仆装版本；中肥鱼的立绘、彩蛋图与动作帧
+（`assets/portrait_mid.webp`、`assets/easter/easter_mid_bowl.webp`、`assets/anim/mid/`）属上善无形的 Q 版形象。
+`ending_feast.webp` 两者都有，署名要一起写。
+
+> **使用本项目时，请同时保留「上善无形」（角色原作）与 ZipZipPipe（女仆装版本）两个人的署名。**
+> 只署一个人，等于替另一个人把作品送出去了。
 > 如果你把角色裁掉、换成别的东西，那不叫二创，那叫抹除出处。
 
 ### Claude 娘（橘发、黑白女仆装、花朵发饰）

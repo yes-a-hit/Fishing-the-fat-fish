@@ -25,6 +25,9 @@ const TYPE_SPEED := 0.028
 const DIM_NARRATOR := Color(0.70, 0.72, 0.78, 1.0)
 const DIM_SPEAKING := Color(1, 1, 1, 1)
 
+## 玩家的说话人名字。自己说话时不该把鱼的脸打亮 —— 说话的不是她。
+const USER_SPEAKER := "你"
+
 var _pages: Array = []
 var _index: int = 0
 var _story: Dictionary = {}
@@ -200,20 +203,43 @@ func _render() -> void:
 		return
 	var page: Dictionary = _pages[_index] as Dictionary
 
-	# 这一页可以单独覆盖立绘与背景，没写就沿用整段剧情的那张
+	var who := String(page.get("who", ""))
+
+	# 这一页可以单独覆盖立绘与背景，没写就查整段的 faces 表（谁说话画谁），
+	# 再没有就沿用上一页 —— 一段里三个人轮流说话时只写一张脸会张冠李戴。
+	# 整段没配 bg 时，页级 bg 要能把底图建出来：齐鱼之福第二天那张 CG
+	# 就只挂在后半段的句子上，不能不整段铺。
 	var want_bg := String(page.get("bg", ""))
-	if not want_bg.is_empty() and want_bg != _bg_path:
-		_swap_bg(want_bg)
+	# "bg": "-" 表示这一页把整页 CG 撤掉，回到只用立绘的普通演出
+	if want_bg == "-" and _bg != null:
+		_bg.queue_free()
+		_bg = null
+		_bg_path = ""
+	elif not want_bg.is_empty() and want_bg != "-" and want_bg != _bg_path:
+		if _bg == null:
+			_bg = _make_bg(want_bg)
+			# 整页 CG 要整张看到：装进 16:9 画框后只缩不裁，上下留一点暗边也比把手裁掉强
+			_bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			add_child(_bg)
+			move_child(_bg, 1 if get_child_count() > 1 else 0)
+			_bg_path = want_bg
+		else:
+			_swap_bg(want_bg)
 	var want_face := String(page.get("portrait", ""))
+	if want_face.is_empty() and not who.is_empty():
+		want_face = String((_story.get("faces", {}) as Dictionary).get(who, ""))
 	if not want_face.is_empty() and want_face != _face_path:
 		_swap_face(want_face)
+	# 整页 CG 的句子上把立绘收起来，不然一张小脸压在 CG 上很怪
+	if _face != null:
+		_face.visible = not bool(page.get("hide_face", false))
 
-	var who := String(page.get("who", ""))
 	_name_label.text = who
 	_name_label.visible = not who.is_empty()
-	# 旁白时把立绘压暗，有人说话时亮回来 —— 一眼能看出这句是谁在说
+	# 旁白和玩家自己的台词都把立绘压暗，只有鱼说话时亮着 —— 一眼能看出这句是谁在说
+	var speaking := not who.is_empty() and who != USER_SPEAKER
 	if _face != null:
-		_face.modulate = DIM_SPEAKING if not who.is_empty() else DIM_NARRATOR
+		_face.modulate = DIM_SPEAKING if speaking else DIM_NARRATOR
 
 	_text_label.text = String(page.get("text", ""))
 	_counter.text = "%d / %d" % [_index + 1, _pages.size()]

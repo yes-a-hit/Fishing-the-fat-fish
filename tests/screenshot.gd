@@ -5,12 +5,13 @@ extends SceneTree
 ## 运行（**不要加 --headless**，headless 没有渲染缓冲）：
 ##   Godot_v4.7.2-stable_win64_console.exe --path <工程> --script res://tests/screenshot.gd
 ##
-## 会把五个关键状态存到 <工程>/.screenshots/：
+## 会把六个关键状态存到 <工程>/.screenshots/：
 ##   01_aiming.png   开局抛竿
 ##   02_charging.png 蓄力中
 ##   03_fight.png    搏斗（圆环判定 + 浮标挣扎）
 ##   04_landing.png  上鱼飞扑
 ##   05_ending.png   结算
+##   06_opening.png  开场剧情（第一次进游戏播的那段）
 ##
 ## 用途：改完 UI 后快速确认布局没崩，不用手动点一遍。
 
@@ -23,9 +24,12 @@ var _step := 0
 
 func _initialize() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT_DIR))
-	var packed := load("res://main.tscn") as PackedScene
-	_game = packed.instantiate()
-	get_root().add_child(_game)
+	# 截图不碰玩家真实进度；开场剧情在这一层手动播，不靠 boot 自动排
+	Gallery.override_path = "user://gallery_shot.json"
+	Gallery.clear()
+	Gallery.queue_story("opening")
+	Gallery.pop_story()
+	_game = _spawn()
 
 
 func _process(delta: float) -> bool:
@@ -55,8 +59,13 @@ func _process(delta: float) -> bool:
 		3:
 			if _t > 1.8:
 				_shot("03_fight")
-				# 直接播上鱼动画，不用真的把体力打完
-				_game._landing.play(_game._fish[2], Vector2(320, 428))
+				# 直接播上鱼动画，不用真的把体力打完。
+				# 用中肥鱼：她是唯一换了 Q 版汉服立绘的一条，这张图要能看出新旧差别。
+				var mid = _game._fish[0]
+				for f in _game._fish:
+					if (f as FishSpec).id == "mid":
+						mid = f
+				_game._landing.play(mid, Vector2(320, 428))
 				_step = 4
 		4:
 			if _t > 2.9:
@@ -73,8 +82,82 @@ func _process(delta: float) -> bool:
 		5:
 			if _t > 3.5:
 				_shot("05_ending")
+				# 换一局干净的，专门拍开场剧情（结算层跟着旧实例一起销毁）
+				_game.queue_free()
+				_game = _spawn()
+				# 走 _begin_story 而不是 _story.play：这样 HUD 和暂停键会一起收起来，
+				# 拍出来的就是玩家真正看到的那一版全屏叙事。
+				_game._begin_story(_game._stories.get("opening", {}), func() -> void: pass)
+				_step = 6
+		6:
+			if _t > 4.2:
+				# 停在第 4 条（中肥鱼的台词）。每页都要先补完打字再翻，
+				# 少补一次就差一页 —— 用 while 跟着 _index 走，不数点击次数。
+				var ov = _game._story
+				ov._stop_typing()
+				while ov._index < 3:
+					ov._punch()
+					ov._stop_typing()
+				_step = 7
+		7:
+			if _t > 4.6:
+				_shot("06_opening")
+				# 换一局，专门拍齐鱼之福第二天的整页 CG（页级 bg + hide_face）
+				_game.queue_free()
+				_game = _spawn()
+				_game._begin_story(_game._stories.get("ending_feast", {}), func() -> void: pass)
+				_step = 8
+		8:
+			if _t > 5.2:
+				var ov2 = _game._story
+				ov2._stop_typing()
+				while ov2._index < ov2._pages.size() - 1:
+					ov2._punch()
+					ov2._stop_typing()
+				_step = 9
+		9:
+			if _t > 5.6:
+				_shot("07_feast_after")
+				# 再换一局，拍开场那三张 CG：中肥鱼下水 / 造小肥鱼 / 递竿后自己下水
+				_game.queue_free()
+				_game = _spawn()
+				_game._begin_story(_game._stories.get("opening", {}), func() -> void: pass)
+				_step = 10
+		10:
+			if _t > 6.2:
+				_advance_to(12)
+				_step = 11
+		11:
+			if _t > 6.5:
+				_shot("08_opening_dive")
+				_advance_to(19)
+				_step = 12
+		12:
+			if _t > 6.9:
+				_shot("09_opening_summon")
+				_advance_to(27)
+				_step = 13
+		13:
+			if _t > 7.3:
+				_shot("10_opening_rod")
 				quit()
 	return false
+
+
+# 把剧情翻到第 target 页（0 起）。每页先补完打字，翻页才生效。
+func _advance_to(target: int) -> void:
+	var ov = _game._story
+	ov._stop_typing()
+	while ov._index < target and ov._index < ov._pages.size() - 1:
+		ov._punch()
+		ov._stop_typing()
+
+
+func _spawn() -> Node:
+	var packed := load("res://main.tscn") as PackedScene
+	var node := packed.instantiate()
+	get_root().add_child(node)
+	return node
 
 
 func _shot(name: String) -> void:

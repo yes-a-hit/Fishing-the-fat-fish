@@ -66,7 +66,7 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	_endings = ConfigLoader.load_endings()
-	_stories = ConfigLoader.read_json(ConfigLoader.PATH_STORY)
+	_stories = ConfigLoader.load_story()
 	_characters = ConfigLoader.load_characters()
 	_escapes = ConfigLoader.load_escapes()
 	_unlocked = Gallery.load_unlocked()

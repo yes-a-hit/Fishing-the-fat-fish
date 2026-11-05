@@ -22,6 +22,10 @@
 		{
 			"image": "res://assets/easter/easter_density.webp",
 			"caption": "「鲸鱼密度大点怎么了」"
+		},
+		{
+			"image": "res://assets/easter/easter_mid_bowl.webp",
+			"caption": "「白饭管够，先端一锅」"
 		}
 	],
 	"sections": [
@@ -31,7 +35,7 @@
 		},
 		{
 			"title": "角色形象",
-			"body": "DeepSeek 鲸鱼娘 —— 画风来自 ZipZipPipe，LoRA 由社区训练（Anima 2B 基座）。Claude 娘与豆包 —— 社区二创与拟人形象戏仿，与 Anthropic、字节跳动无关。这套图不是本项目画的，转载时请一并署名原作者。"
+			"body": "DeepSeek 鲸鱼娘 —— 角色原作是「上善无形」。大肥鱼与小肥鱼用 ZipZipPipe 绘制的女仆装版本（画风 LoRA 也由其训练，Anima 2B 基座）；中肥鱼用上善无形的 Q 版汉服造型。Claude 娘与豆包 —— 社区二创与拟人形象戏仿，与 Anthropic、字节跳动无关。这套图不是本项目画的，转载时请一并署名两位原作者。"
 		},
 		{
 			"title": "梗图",

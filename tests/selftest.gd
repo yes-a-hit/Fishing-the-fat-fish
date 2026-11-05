@@ -35,6 +35,9 @@ func _run_all() -> void:
 	# 全局把图鉴重定向到临时文件，玩家的真实进度一个字节都不许碰。
 	Gallery.override_path = "user://gallery_sandbox.json"
 	Gallery.clear()
+	# 开场剧情是给真人第一次进游戏看的。自测里先把这段标成已播，
+	# 否则每个会 _spawn_game() 的用例都被它挡住，测的就不是用例自己了。
+	_mark_opening_seen()
 
 	# 断言里写的是中文原文，界面上找的也是中文。玩家可能把语言设成了日文，
 	# 那 UI 上一个「开始钓鱼」都找不到 —— 先钉回简中再测。
@@ -68,6 +71,7 @@ func _run_all() -> void:
 	_case_voice_rewards()
 	_case_claude_stages()
 	_case_about()
+	_case_mid_art()
 	_case_line_break()
 	_case_scene_boot()
 	_case_pause()
@@ -82,6 +86,8 @@ func _run_all() -> void:
 	_case_shadow_zones()
 	_case_reset_progress()
 	_case_story_queue()
+	_case_opening_story()
+	_case_feast_afterstory()
 	_case_doubao_second()
 	_case_grand_gate()
 	_case_i18n()
@@ -1072,14 +1078,32 @@ func _case_about() -> void:
 	_ok("长链接非空", long != "" and long != "—")
 	_ok("空链接显示占位", String(ab._pretty_url("")) == "—")
 
-	# 彩蛋：四条图都要在，否则关于页会开出空框
+	# 彩蛋：五条图都要在，否则关于页会开出空框
 	var eggs: Array = data.get("easter_eggs", [])
-	_check("彩蛋四条", eggs.size(), 4)
+	_check("彩蛋五条", eggs.size(), 5)
 	for e in eggs:
 		var img := String(e.get("image", ""))
 		_ok("彩蛋图「%s」存在" % img.get_file(), img != "" and ResourceLoader.exists(img))
 		_ok("彩蛋「%s」有配字" % img.get_file(), String(e.get("caption", "")) != "")
 	ab.free()
+
+
+func _case_mid_art() -> void:
+	# 中肥鱼用的是上善无形的 Q 版汉服造型：方图、高分、透明底。
+	# 这里锁住「不是那张 335×597 的窄条、不是和大肥鱼同一张」。
+	var tex := UIKit.load_texture("res://assets/portrait_mid.webp")
+	var size := tex.get_size()
+	_ok("中肥鱼立绘能加载", size.x > 0.0 and size.y > 0.0)
+	_ok("中肥鱼立绘高度 ≥ 900", size.y >= 900.0)
+	_ok("中肥鱼立绘不是窄条（宽/高 > 0.8）", size.x / size.y > 0.8)
+	var big := UIKit.load_texture("res://assets/portrait_big.webp")
+	_ok("中肥鱼与大肥鱼不是同一张图", size != big.get_size())
+	_ok("中肥鱼彩蛋图存在", ResourceLoader.exists("res://assets/easter/easter_mid_bowl.webp"))
+	var mid: Dictionary = {}
+	for f in ConfigLoader.load_fish():
+		if (f as FishSpec).id == "mid":
+			mid = {"name": (f as FishSpec).display_name}
+	_check("中肥鱼名字没被改坏", String(mid.get("name", "")), "中肥鱼")
 
 
 func _case_line_break() -> void:
@@ -1262,6 +1286,14 @@ func _case_mouse_policy() -> void:
 	var blocking := _find_blocking_control(g)
 	_check("没有非按钮 Control 拦截鼠标", blocking, "")
 	g.free()
+
+
+## 开场剧情是给真人第一次进游戏看的。凡是会 _spawn_game() 的用例，
+## 先把这段记成已播 —— 否则 game_root 在 boot 时会把它排进队列，
+## 用例看到的就成了开场动画，而不是自己要验的那件事。
+func _mark_opening_seen() -> void:
+	Gallery.queue_story("opening")
+	Gallery.pop_story()
 
 
 ## 实例化主场景并挂到树上，_ready 会同步跑完。
@@ -1676,6 +1708,151 @@ func _case_story_queue() -> void:
 	Gallery.override_path = before
 
 
+## 开场剧情：第一次进游戏播的那 32 句。盯三件事 —— 句数（用户定的
+## 「32 句后正式开始游戏」）、user 有自己的台词（不是纯摄像头）、
+## 每一句都进了翻译表（否则英日界面下整段是中文）。
+func _case_opening_story() -> void:
+	print("[case] 开场剧情")
+	var story := ConfigLoader.load_story()
+	_ok("story.json 里有 opening", story.has("opening"))
+	var entry: Dictionary = story.get("opening", {})
+	var pages: Array = entry.get("pages", [])
+	_check("开场 32 句", pages.size(), 32)
+
+	var allowed := ["", "你", "大肥鱼", "中肥鱼", "小肥鱼"]
+	var talk_by_user := 0
+	for i in pages.size():
+		var page: Dictionary = pages[i]
+		var text := String(page.get("text", ""))
+		var who := String(page.get("who", ""))
+		_ok("第 %d 句有字" % (i + 1), not text.strip_edges().is_empty())
+		_ok("第 %d 句说话人合法（%s）" % [i + 1, who], who in allowed)
+		if who == "你":
+			talk_by_user += 1
+	_ok("user 不是摄像头（吐槽 %d 句）" % talk_by_user, talk_by_user >= 5)
+	_check("最后一句收在大肥鱼身上", String((pages[pages.size() - 1] as Dictionary).get("who", "")), "大肥鱼")
+
+	# 说话人换立绘：会说话的三条鱼各自有一张脸，文件也得真的在。
+	# 只有一张整段立绘时，中肥鱼说「主人坐我这边」画面上却是大肥鱼，一眼出戏。
+	var faces: Dictionary = entry.get("faces", {})
+	var speakers := {}
+	for p in pages:
+		var w := String((p as Dictionary).get("who", ""))
+		if not w.is_empty() and w != "你":
+			speakers[w] = true
+	for w in speakers.keys():
+		_ok("开场：%s 有专属立绘" % w, faces.has(w))
+		_ok(
+			"开场：%s 的立绘文件存在" % w,
+			faces.has(w) and ResourceLoader.exists(String(faces[w]))
+		)
+
+	# 雷点自检：绿帽 / 出轨 / 第三者这类字眼一句话都不许出现
+	for i in pages.size():
+		var text := String((pages[i] as Dictionary).get("text", ""))
+		for word in ["绿帽", "出轨", "小三", "NTR", "ntr"]:
+			_ok("第 %d 句不含「%s」" % [i + 1, word], not text.contains(word))
+
+	# 开场三张 CG：中肥鱼下水 / 大肥鱼造小肥鱼 / 递竿后自己下水。
+	# 每张都要真的挂在句子上，文件也真的在；撤图那一句之后要能回到立绘演出。
+	var cg_paths: Array = []
+	var cg_pages := 0
+	var cleared := -1
+	for i in pages.size():
+		var page: Dictionary = pages[i]
+		if bool(page.get("hide_face", false)):
+			cg_pages += 1
+		var bg := String(page.get("bg", ""))
+		if bg == "-":
+			cleared = i
+		elif not bg.is_empty() and not cg_paths.has(bg):
+			cg_paths.append(bg)
+	_check("开场三张 CG", cg_paths.size(), 3)
+	for path in cg_paths:
+		_ok("开场 CG 文件存在：%s" % String(path).get_file(), ResourceLoader.exists(String(path)))
+	_ok("有一段用整页 CG（%d 句）" % cg_pages, cg_pages >= 15)
+	_ok("CG 撤掉之后回到立绘", cleared > 0 and cleared < pages.size() - 2)
+
+	# 翻译覆盖：切到英文重新读，每句都得变样（同形词只在繁中那边要特判）
+	var prev := TranslationServer.get_locale()
+	TranslationServer.set_locale("en")
+	var en_pages: Array = (ConfigLoader.load_story().get("opening", {}) as Dictionary).get("pages", [])
+	_check("英文版句数一致", en_pages.size(), pages.size())
+	var missing: Array = []
+	for i in en_pages.size():
+		var raw := String((pages[i] as Dictionary).get("text", ""))
+		if String((en_pages[i] as Dictionary).get("text", "")) == raw:
+			missing.append(raw)
+	_ok("每句都有英译", missing.is_empty())
+	if not missing.is_empty():
+		print("    缺翻译: %s" % [missing])
+	TranslationServer.set_locale(prev)
+
+	# 只在第一次进游戏时排：播过之后 queue_story 自己就拒绝了
+	var before := Gallery.override_path
+	Gallery.override_path = "user://gallery_opening_test.json"
+	Gallery.clear()
+	_ok("第一次会排开场", Gallery.queue_story("opening"))
+	_ok("同一段不重复排", not Gallery.queue_story("opening"))
+	_check("取出的是开场", Gallery.pop_story(), "opening")
+	_ok("播过就不再排", not Gallery.queue_story("opening"))
+	Gallery.clear()
+	Gallery.override_path = before
+
+
+func _case_feast_afterstory() -> void:
+	# 齐鱼之福的后续：拉灯、奇怪的鲸鱼叫、第二天都吃饱了。
+	# 这段是全篇唯一带成人暗示的地方，所以既要写到位，又一句露骨词都不许有。
+	print("[case] 齐鱼之福后续")
+	var story := ConfigLoader.load_story()
+	_ok("story.json 里有 ending_feast", story.has("ending_feast"))
+	var entry: Dictionary = story.get("ending_feast", {})
+	var pages: Array = entry.get("pages", [])
+	_check("齐鱼之福 35 句", pages.size(), 35)
+
+	var faces: Dictionary = entry.get("faces", {})
+	for who in ["大肥鱼", "中肥鱼", "小肥鱼"]:
+		_ok("齐鱼之福：%s 有专属立绘" % who, faces.has(who))
+		_ok("齐鱼之福：%s 的立绘文件存在" % who, faces.has(who) and ResourceLoader.exists(String(faces[who])))
+
+	var talk_by_user := 0
+	for i in pages.size():
+		var page: Dictionary = pages[i]
+		var text := String(page.get("text", ""))
+		_ok("齐鱼之福第 %d 句有字" % (i + 1), not text.strip_edges().is_empty())
+		if String(page.get("who", "")) == "你":
+			talk_by_user += 1
+	_ok("玩家有参与感（%d 句台词）" % talk_by_user, talk_by_user >= 4)
+
+	# 后面那一半必须真的讲到拉灯与吃饱
+	var tail := ""
+	for i in range(9, pages.size()):
+		tail += String((pages[i] as Dictionary).get("text", ""))
+	_ok("后半段写了拉灯", tail.contains("灯"))
+	_ok("后半段收在吃饱上", tail.contains("吃饱"))
+
+	# 暗示归暗示，画面交给玩家自己补
+	for i in pages.size():
+		var text := String((pages[i] as Dictionary).get("text", ""))
+		for word in ["裸", "性器", "高潮", "插入", "湿透"]:
+			_ok("齐鱼之福第 %d 句不含「%s」" % [i + 1, word], not text.contains(word))
+
+	# 第二天的整页 CG：这几句要收起小立绘，而且底图真的能加载
+	var cg_path := ""
+	var cg_pages := 0
+	for i in pages.size():
+		var page: Dictionary = pages[i]
+		if not bool(page.get("hide_face", false)):
+			continue
+		cg_pages += 1
+		var bg := String(page.get("bg", ""))
+		if not bg.is_empty():
+			cg_path = bg
+	_check("第二天 CG 覆盖 7 句", cg_pages, 7)
+	_ok("第二天 CG 有页级底图", not cg_path.is_empty())
+	_ok("第二天 CG 文件存在", not cg_path.is_empty() and ResourceLoader.exists(cg_path))
+
+
 func _case_doubao_second() -> void:
 	print("[case] 豆包第二次")
 	var before := Gallery.override_path
@@ -1829,6 +2006,7 @@ func _case_i18n() -> void:
 func _case_story_boots_on_start() -> void:
 	Gallery.override_path = "user://story_boot_test.json"
 	Gallery.clear()
+	_mark_opening_seen()
 	Gallery.queue_story("doubao_second")
 
 	var g: Node = _spawn_game()
@@ -1852,6 +2030,7 @@ func _case_story_boots_on_start() -> void:
 
 	# 队列空的对局不该卡住
 	Gallery.clear()
+	_mark_opening_seen()
 	var g2: Node = _spawn_game()
 	await process_frame
 	await process_frame

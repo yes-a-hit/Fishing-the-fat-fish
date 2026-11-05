@@ -6,9 +6,9 @@
 
 ---
 
-## 1. 三条主鱼共用同一张脸（最该补的一条）
+## 1. 三条主鱼共用同一张脸（已解决，留作记录）
 
-`data/fish.json:7` 自己就写着：
+`data/fish.json` 的 `_field_help` 曾经写着：
 
 > `"tint": "立绘叠色。大/中鱼目前共用同一张立绘，靠 tint 区分。"`
 
@@ -16,15 +16,17 @@
 
 | 文件 | 大小 | 尺寸 | 说明 |
 |---|---|---|---|
-| `assets/portrait_small.jpg` | 5,426 B | 200×200 | Q 版头像，硬塞进立绘框会被拉伸 |
-| `assets/portrait_mid.jpg` | 26,853 B | 335×597 | 和大鱼同一张图，只换了色温 |
-| `assets/portrait_big.jpg` | 245,113 B | 1056×1504 | 唯一认真画过的一张 |
+| `assets/portrait_small.webp` | 小 | 200×200 | Q 版头像，硬塞进立绘框会被拉伸；小肥鱼是大肥鱼的子代理，共用这张 |
+| `assets/portrait_mid.webp` | 114 KB | 920×971 | 已换成上善无形原版 Q 版汉服造型（浅蓝大袖外衫 + 深蓝襦裙 + 白花），透明底 |
+| `assets/portrait_big.webp` | 245 KB | 1056×1504 | ZipZipPipe 女仆装版本，唯一认真画过的一张 |
 
-玩家钓上来三条，眼睛看到的是同一张脸加一层色光。**一款卖立绘的作品，三条主鱼共用一张脸，这是硬伤。**
+~~三条主鱼共用一张脸~~ —— 中肥鱼不再和大肥鱼同脸。现在中肥鱼是上善无形的 Q 版汉服造型，
+大肥鱼保持 ZipZipPipe 的女仆装，小肥鱼作为大肥鱼的子代理继续共用立绘（设定上就是「造出来的小的」）。
+中肥鱼的 `tint` 已回 `#ffffff`，不再靠色差区分。
+还想要的：中肥鱼那张是方图转竖版，比大肥鱼矮一截，摆在一起高度不齐 —— 要么重绘成 1056×1504，
+要么在 `landing_view` 里按角色给缩放系数（`portrait_scale`）。
 
-要做的：按 `portrait_big.jpg` 的画风（ZipZipPipe / Anima 2B 那套，见 `CREDITS.md`）给小肥鱼、中肥鱼各出一张正式立绘，1056×1504 或者同比例。出完把 `fish.json` 里的 `tint` 改回 `#ffffff`——不再需要靠色差区分。
-
-`portrait_small.jpg` 若保留 Q 版定位，至少升到 512² 以上，别在 UI 里被放大。
+`portrait_small.webp` 若保留 Q 版定位，至少升到 512² 以上，别在 UI 里被放大。
 
 ---
 
@@ -90,8 +92,8 @@
 
 - `tests/input_probe.gd` 还是圆环之前的探针，没接进验收口径。
 - `ConfigLoader.FALLBACK_FISH` 与 `fish.json` 两份数据，只作读档失败兜底；可以考虑改成「读不到就报错退出」，让失败显性化。
-- 翻译残留：`fish.json` 的 `tagline/blurb`、`story.json` 剧情台词、`endings.json` 长正文。
-- `tests/screenshot.gd` 出的五张图还没按新布局重拍。
+- 翻译残留：`fish.json` 的 `tagline/blurb`、`endings.json` 长正文（`story.json` 的 `opening` 与结局台词已在 2026-11-04 补齐）。
+- `tests/screenshot.gd` 出的六张图还没按新布局重拍（`06_opening.png` 是新拍的）。
 
 ---
 
@@ -114,3 +116,28 @@
 - 关于页不再自己开 `FileAccess`，统一走 `ConfigLoader`
 - 小肥鱼人设从「谁给吃的跟谁走」改成「不是谁都跟，只是认准了你这双手」，四语同步
 - 自测 508 → 589（新增脱钩表、难度字段、统计口径、中心偏向、人设五组）
+
+2026-11-04 开场剧情：
+
+- `data/story.json` 加 `opening`：32 句，周末钓鱼 —— 中肥鱼自告奋勇下水赶鱼没回来，大肥鱼造了小肥鱼下去捞，也没回来，最后自己跳下去；玩家在岸上吐槽半天，把三条鱼串一根线钓回来
+- 首次进游戏自动排队播放（`Gallery.queue_story("opening")`，去重靠 Gallery 自己），播完才开始钓鱼
+- 剧情期间收起 HUD 与暂停键（`game_root._begin_story()` / `_set_play_chrome()`）
+- `faces` 表：谁说话换谁的立绘，玩家自己说话时立绘压暗
+- 33 行台词四语进 `strings.csv`；`screenshot.gd` 多拍一张 `06_opening.png`
+- 自测 589 → 829（开场 32 句 / 说话人白名单 / 三条鱼各有立绘 / 四语覆盖 / 队列只排一次）
+
+2026-11-05 形象与后续：
+
+- 中肥鱼换成上善无形的 Q 版汉服立绘（`portrait_mid.webp`）+ 顶锅彩蛋图（`assets/easter/easter_mid_bowl.webp`），动作四帧同步重画；大肥鱼、小肥鱼仍是 ZipZipPipe 的女仆装
+- 署名拆成两位：角色原作上善无形、女仆装版本 ZipZipPipe，写进 `CREDITS.md` / `about.json` / `README.md`
+- `ending_feast`（齐鱼之福）重绘：三条同框，中肥鱼汉服、另两条女仆装（anima-turbo + ZipZipPipe LoRA）
+- 齐鱼之福追加 26 句后续：拉灯 → 奇怪的鲸鱼叫 → 第二天「都吃饱了」，玩家有 4 句台词；只到暗示为止
+- 自测 829 → 1058（新增中肥鱼立绘、齐鱼之福后续两组）
+- 立绘设定：大肥鱼、小肥鱼是女仆装（ZipZipPipe 版），中肥鱼是 Q 版汉服（上善无形原版造型，浅蓝大袖外衫 + 深蓝襦裙）—— 写动作前先看对应那张图；中肥鱼没有外套、帽子、女仆围裙可脱
+
+2026-11-05 第二天 CG 与导出：
+
+- 新增 `assets/ending_feast_after.webp`（三条鱼趴在你身上、你只露胸腹与两只手的第一人称 POV，1216²），挂在齐鱼之福最后 7 句上：页级 `bg` + 逐句 `hide_face: true`
+- `StoryOverlay` 支持「整段没 `bg` 时由页级 `bg` 建底图」，并新增页字段 `hide_face`
+- 导出三端：`dist/钓肥鱼.exe`（54.87 MB）、`dist/web/*`、`dist/android/钓肥鱼.apk`（debug 签名，release 缺发布密钥库）、`dist/钓肥鱼_web.zip`（17.15 MB）
+- 自测 1058 → 1061（第二天 CG 覆盖 7 句、底图存在）

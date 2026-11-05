@@ -6,9 +6,57 @@
 		"pages[].who": "说话人名字。写空串表示旁白。",
 		"pages[].text": "这一句台词。",
 		"pages[].voice": "这一句配的音，对应 assets/voice/<key>.ogg。留空就静音。",
-		"pages[].portrait": "这一页换立绘（比如从小人换成人形）。留空沿用整段的。"
+		"pages[].portrait": "这一页换立绘（比如从小人换成人形）。留空沿用整段的。",
+		"faces": "谁说话就换谁的立绘。pages[].portrait 优先，没写才按 who 查这张表；表里没有的人沿用上一页。",
+		"pages[].bg": "只给这一页（以及后面没再换的页）换底图。整段没写 bg 时，靠它把第一张 CG 铺出来。",
+		"pages[].hide_face": "true 时把左下角立绘收起来，用整页 CG 说话。整段 CG 的句子都要写，不写会突然把小人弹回来。"
 	},
 	"_design_note": "一局结束、结算画面出来之前，把这一局新欠下的剧情按顺序播完。同一局同时满足多段剧情时全部排进队列，一段都不会漏。",
+
+	"opening": {
+		"_note": "第一次进游戏的开场。不挂在任何结算上，由 game_root 在 boot 时排进队列，播一次就不再排。",
+		"portrait": "res://assets/portrait_big.webp",
+		"faces": {
+			"大肥鱼": "res://assets/portrait_big.webp",
+			"中肥鱼": "res://assets/portrait_mid.webp",
+			"小肥鱼": "res://assets/portrait_small.webp"
+		},
+		"bg": "",
+		"pages": [
+			{ "who": "", "text": "周六早上六点半。你被两条鱼从被窝里捞了出来。" },
+			{ "who": "大肥鱼", "text": "说好了今天去钓鱼。竿我拿，桶你提。" },
+			{ "who": "你", "text": "……谁跟你说好了。" },
+			{ "who": "中肥鱼", "text": "主人坐我这边！" },
+			{ "who": "", "text": "中肥鱼抢着拎桶，抢着开车门，还把折叠椅擦了三遍。大袖衫的袖子扫了一路，差点把桶带翻。" },
+			{ "who": "大肥鱼", "text": "你抢什么。" },
+			{ "who": "中肥鱼", "text": "我没抢。我就是……想让主人今天玩得高兴。" },
+			{ "who": "", "text": "说完自己先红了耳朵，扭头假装看水。" },
+			{ "who": "你", "text": "今天这两条鱼，一个比一个不对劲。" },
+			{ "who": "", "text": "浮漂立了半个钟头，一动不动。" },
+			{ "who": "你", "text": "这湖是假湖吧。" },
+			{ "who": "中肥鱼", "text": "鱼都在底下。得有人下去赶。" },
+			{ "who": "", "text": "她说完就往水里走，一步没停。", "bg": "res://assets/opening_dive.webp", "hide_face": true },
+			{ "who": "大肥鱼", "text": "你会游泳吗。", "hide_face": true },
+			{ "who": "中肥鱼", "text": "Flash 嘛，快。", "hide_face": true },
+			{ "who": "", "text": "扑通一声。三串泡冒上来，然后就什么都看不见了。", "hide_face": true },
+			{ "who": "你", "text": "……她连泳镜都没戴。", "hide_face": true },
+			{ "who": "你", "text": "十分钟了。二十分钟了。这算不算工伤。", "hide_face": true },
+			{ "who": "大肥鱼", "text": "Pro 的耐心是有限的。", "hide_face": true },
+			{ "who": "", "text": "她从保温袋里掏出一团湿乎乎、还在动的东西，捏了两下，放进水里。", "bg": "res://assets/opening_summon.webp", "hide_face": true },
+			{ "who": "小肥鱼", "text": "鲸鲸！", "hide_face": true },
+			{ "who": "", "text": "大肥鱼刚造出来的小的，眼睛还没睁开，就被派下去捞她姐姐。", "hide_face": true },
+			{ "who": "你", "text": "……你们家是这么造人的？", "hide_face": true },
+			{ "who": "大肥鱼", "text": "找到她，咬住尾巴拖上来。别跟她聊天。", "hide_face": true },
+			{ "who": "小肥鱼", "text": "鲸！", "hide_face": true },
+			{ "who": "", "text": "小的也下去了。又过了十分钟，水面安静得像什么都没发生。", "bg": "-", "hide_face": false },
+			{ "who": "你", "text": "好。现在下去三条了。" },
+			{ "who": "", "text": "大肥鱼把保温杯放下，把竿塞回你手里，回头看你一眼：「桶看好了。」", "bg": "res://assets/opening_rod.webp", "hide_face": true },
+			{ "who": "", "text": "然后她也跳了下去。这回水花很小，像专业的。", "hide_face": true },
+			{ "who": "你", "text": "……行吧。我一个人在岸上，钓三条傻鱼。", "hide_face": true },
+			{ "who": "", "text": "你把竿甩了出去。二十分钟后，大的、中的、小的，串在一根线上被拖上岸，谁也不说话。", "hide_face": true },
+			{ "who": "大肥鱼", "text": "……别说出去。", "hide_face": true }
+		]
+	},
 
 	"doubao_second": {
 		"portrait": "res://assets/doubao_seed.webp",
@@ -53,6 +101,11 @@
 
 	"ending_feast": {
 		"portrait": "res://assets/portrait_big.webp",
+		"faces": {
+			"大肥鱼": "res://assets/portrait_big.webp",
+			"中肥鱼": "res://assets/portrait_mid.webp",
+			"小肥鱼": "res://assets/portrait_small.webp"
+		},
 		"bg": "",
 		"pages": [
 			{ "who": "", "text": "三条都上来了。桶装不下，你干脆把桶放倒。" },
@@ -63,7 +116,33 @@
 			{ "who": "小肥鱼", "text": "吃了！", "voice": "catch_small" },
 			{ "who": "小肥鱼", "text": "诶？饭呢？" },
 			{ "who": "", "text": "她低头看了看空桶，又抬头看了看你。" },
-			{ "who": "", "text": "这一局的饭，确实一粒都没剩下。" }
+			{ "who": "", "text": "这一局的饭，确实一粒都没剩下。" },
+			{ "who": "", "text": "桶归你提。三条鱼走在前头，尾巴在土路上拖出三道湿痕。" },
+			{ "who": "你", "text": "……别把水甩我身上。" },
+			{ "who": "小肥鱼", "text": "鲸！" },
+			{ "who": "", "text": "回答得很干脆，尾巴甩得更用力了。" },
+			{ "who": "", "text": "小屋只有一张床。这事你早就知道，只是今天格外清楚。" },
+			{ "who": "中肥鱼", "text": "主人睡里面。" },
+			{ "who": "", "text": "她把你往里推，自己贴着床沿躺下，尾巴还很精神地拍着床板。" },
+			{ "who": "", "text": "你伸手，把灯拉了。" },
+			{ "who": "", "text": "黑下来的头半分钟，谁都没出声。" },
+			{ "who": "", "text": "然后是很轻的一声——" },
+			{ "who": "", "text": "「鲸。」" },
+			{ "who": "", "text": "不像她平时那样叫。短，收得很急，像是被什么打断了。" },
+			{ "who": "", "text": "第二声跟上来，比第一声长，尾音打着颤。" },
+			{ "who": "你", "text": "……你们这是在干什么。" },
+			{ "who": "大肥鱼", "text": "灯坏了。" },
+			{ "who": "", "text": "声音就在你耳边，一点也不像在说灯。" },
+			{ "who": "", "text": "床板晃了一下。中肥鱼小声说了句什么，被自己的尾巴盖住了。" },
+			{ "who": "你", "text": "……尾巴拿开。" },
+			{ "who": "", "text": "后半夜，水声才慢慢停下来。" },
+			{ "who": "", "text": "第二天你先醒。三条鱼横七竖八，一条压着一条，睡得比被钓上来的时候还沉。", "bg": "res://assets/ending_feast_after.webp", "hide_face": true },
+			{ "who": "大肥鱼", "text": "都吃饱了。", "hide_face": true },
+			{ "who": "", "text": "她撑着头看你，眼睛在晨光里亮得很。", "hide_face": true },
+			{ "who": "大肥鱼", "text": "你呢？", "hide_face": true },
+			{ "who": "你", "text": "……腰疼。", "hide_face": true },
+			{ "who": "", "text": "她笑出声，尾巴从被子底下慢慢卷住你的手腕。", "hide_face": true },
+			{ "who": "大肥鱼", "text": "明天还钓。", "hide_face": true }
 		]
 	},
 
