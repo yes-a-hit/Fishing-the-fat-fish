@@ -268,6 +268,12 @@ FightSession.finished 的 reason 为 "landed" / "line_broke"
 - `ConfigLoader.load_story()` 会对 `pages[].who` 和 `pages[].text` 过 `TranslationServer.translate()` —— **`StoryOverlay` 直接往 Label 写字符串，不会自己 `tr()`**，所以漏进 `strings.csv` 的台词在任何语种下都是中文原句。
 - `game_root._begin_story()` 是唯一入口：开播前 `_set_play_chrome(false)` 把 HUD 和右上角暂停键收起来，`finished` 时还原再调 `done`。开场是全屏叙事，顶上的白饭计数压在字上很出戏；直接 `_story.play()` 会绕过收 HUD。
 - `_case_opening_story()` 锁死：`pages.size() == 32`、每句非空、`who` 在白名单、`你` 至少 5 句、最后一句是大肥鱼、三条鱼各有专属立绘且文件存在、切英文后每句都变样（缺翻译会列出缺哪几句）、`Gallery` 只排一次。`tests/screenshot.gd` 的第 6 步拍 `06_opening.png`，靠 `while ov._index < 3` 翻到第 4 句，不数点击次数。
+- 三张整页 CG 挂在 13–30 句上：
+  - `assets/opening_dive.webp` —— 中肥鱼说完就往水里走（第 13 句起）
+  - `assets/opening_summon.webp` —— 大肥鱼从保温袋掏出小的、放进水里（第 20 句起）
+  - `assets/opening_rod.webp` —— 把竿塞回你手里、自己下水（第 28 句起）
+  - 第 26 句用 `"bg": "-"` 把 CG 撤掉，回到只用立绘的水面安静段，再进最后一张。
+- `_case_opening_story()` 另外断言：三张 CG 都在、文件存在、带 `hide_face` 的句子 ≥ 15、`"-"` 出现在中段（撤图之后还能回到立绘）。
 
 ## 齐鱼之福的后半段（`ending_feast`）
 

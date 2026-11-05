@@ -141,3 +141,9 @@
 - `StoryOverlay` 支持「整段没 `bg` 时由页级 `bg` 建底图」，并新增页字段 `hide_face`
 - 导出三端：`dist/钓肥鱼.exe`（54.87 MB）、`dist/web/*`、`dist/android/钓肥鱼.apk`（debug 签名，release 缺发布密钥库）、`dist/钓肥鱼_web.zip`（17.15 MB）
 - 自测 1058 → 1061（第二天 CG 覆盖 7 句、底图存在）
+
+2026-11-05 开场 CG 与 v1.1.0 发布：
+
+- 开场三张整页 CG：中肥鱼走进水里 / 大肥鱼造小肥鱼 / 把竿塞回你手里再自己下水；第 26 句用 `bg: "-"` 撤图，回到只用立绘的水面安静段
+- 剧情层新增 `hide_face` 与 `bg: "-"`；整页 CG 改成等比完整显示，不再把第一人称的手裁掉
+- GitHub 推送并发布 `v1.1.0`（Windows exe / Android apk / Web zip 三个资产），自测 1067
