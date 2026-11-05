@@ -151,14 +151,19 @@ func _process(delta: float) -> bool:
 				_advance_to(26)
 				_step = 11
 		11:
-			if _t > 6.5:
+			if _t > 6.6:
 				_shot("08_opening_dive")
-				_advance_to(33)
+				_advance_to(34)     # 大肥鱼贴着主人请示：再派一个下去
+				_step = 108
+		108:
+			if _t > 6.7:
+				_shot("15_opening_ask")
+				_advance_to(39)
 				_step = 12
 		12:
 			if _t > 6.9:
 				_shot("09_opening_summon")
-				_advance_to(41)
+				_advance_to(46)
 				_step = 13
 		13:
 			if _t > 7.3:

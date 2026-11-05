@@ -1721,7 +1721,7 @@ func _case_opening_story() -> void:
 	_ok("story.json 里有 opening", story.has("opening"))
 	var entry: Dictionary = story.get("opening", {})
 	var pages: Array = entry.get("pages", [])
-	_check("开场 43 句", pages.size(), 43)
+	_check("开场 48 句", pages.size(), 48)
 
 	var allowed := ["", "你", "大肥鱼", "中肥鱼", "小肥鱼"]
 	var talk_by_user := 0
@@ -1754,6 +1754,9 @@ func _case_opening_story() -> void:
 	_ok("大肥鱼比心", joined.contains("比了个心"))
 	# 早餐的暗示只到「空玻璃杯」为止，不写破
 	_ok("空玻璃杯的暗示在", joined.contains("玻璃杯") and joined.contains("有点甜"))
+	# 大肥鱼是家人：造子代理之前得先贴着主人请示，「我们的」三个字要落下来
+	_ok("大肥鱼先请示再动子代理", joined.contains("再派一个下去") and joined.contains("得到你点头"))
+	_ok("子代理是「我们的」", joined.contains("我们的。小的"))
 
 	# 说话人换立绘：会说话的三条鱼各自有一张脸，文件也得真的在。
 	# 只有一张整段立绘时，中肥鱼说「主人坐我这边」画面上却是大肥鱼，一眼出戏。
