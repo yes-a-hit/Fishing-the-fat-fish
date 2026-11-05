@@ -460,9 +460,9 @@ theme/custom_font="res://assets/fonts/game_sc.otf"
 
 | 文件 | 用途 | 状态 |
 |---|---|---|
-| `portrait_small.webp` | 小肥鱼立绘 | 已有 |
-| `portrait_mid.webp` | 中肥鱼立绘 | 已有（上善无形 Q 版汉服造型，920×971，透明底） |
-| `portrait_big.webp` | 大肥鱼独立立绘 | 已补充，不再与中肥鱼共用 |
+| `portrait_small.webp` | 小肥鱼立绘 | 已有，基于经典chibi |
+| `portrait_mid.webp` | 中肥鱼立绘 | 已有（我基于上善无形开源的人设溟月重绘的汉服肥鱼，920×971，透明底） |
+| `portrait_big.webp` | 大肥鱼独立立绘 | 已补充，不再与中肥鱼共用，基于社区的女仆装成女deepseek强化身材 |
 | `easter/easter_mid_bowl.webp` | 关于页彩蛋（中肥鱼端着一锅白饭） | 已有（Q 版汉服造型，透明底） |
 | `claude_hold.webp` | 陷阱鱼立绘、`claude` / `claude_sad` 结局图 | 已有（「Your account is on hold」+ 竖中指） |
 | `ending_true.webp` | `true_end` 齐人之福（真结局） | 已有（四个人挤在被窝里） |
