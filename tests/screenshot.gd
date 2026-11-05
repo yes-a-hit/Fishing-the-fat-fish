@@ -133,6 +133,21 @@ func _process(delta: float) -> bool:
 				_step = 10
 		10:
 			if _t > 6.2:
+				_advance_to(5)      # 中肥鱼捂着胸口：这条台词开始挂 denial 那张 CG
+				_step = 105
+		105:
+			if _t > 6.3:
+				_shot("12_opening_denial")
+				_advance_to(12)     # 大肥鱼比心
+				_step = 106
+		106:
+			if _t > 6.4:
+				_shot("13_opening_heart")
+				_advance_to(16)     # 河边：放下空玻璃杯、撒饵
+				_step = 107
+		107:
+			if _t > 6.5:
+				_shot("14_opening_bank")
 				_advance_to(26)
 				_step = 11
 		11:
