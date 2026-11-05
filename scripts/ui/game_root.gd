@@ -36,6 +36,12 @@ var _doubao_pic: TextureRect = null
 var _doubao_tip: Label = null
 var _doubao_gain: Label = null
 
+## 这一局的分。纯逻辑在 ScoreBoard，这里只负责接信号和往结算页塞数字。
+var _score := ScoreBoard.new()
+var _score_layer: ScoreLayer = null
+## 当前搏斗。命中判定从它身上听，鱼一换就换对象。
+var _fight: FightSession = null
+
 ## 暂停遮罩。非 null 就代表正暂停着 —— 输入、tick、QTE 全靠这一个判据让路。
 var _paused_layer: Control = null
 
@@ -225,10 +231,14 @@ func _build_ui() -> void:
 	_feedback = SceneFeedback.new()
 	add_child(_feedback)
 
+	# 4b. 分数与连击。压在「上鱼飞扑」上面加：上鱼那一刻 +240 要跟画面一起出现，
+	# 藏在下层就被演出挡掉了（结算层仍在它之上，不会挡按钮）。
+	_score_layer = ScoreLayer.new()
 	# 5. 上鱼飞扑动画
 	_landing = LandingView.new()
 	add_child(_landing)
 	_landing.finished.connect(_on_landing_finished)
+	add_child(_score_layer)
 
 	# 6. 结算层（最顶）
 	_ending = EndingOverlay.new()
@@ -389,6 +399,10 @@ func _start_session() -> void:
 	_qte.unbind()
 	_qte.visible = false
 	_feedback.clear()
+	_score.reset()
+	if _score_layer != null:
+		_score_layer.reset()
+	_fight = null
 	_lake.set_fight_intensity(0.0)
 	_lake.set_fish_shadow(false)
 	_lake.set_bobber(0.0, false)
@@ -471,6 +485,9 @@ func _on_cast_made(point: float, _fish_id: String) -> void:
 
 func _on_bite_started(fish: FishSpec, fight: FightSession) -> void:
 	_qte.bind(fight)
+	_fight = fight
+	if not fight.strike_result.is_connected(_on_strike_result):
+		fight.strike_result.connect(_on_strike_result)
 	_lake.set_bite(true)
 	# 咬钩这一刻不开口。水底下有东西咬钩，但它是什么得等真捞上来才知道 ——
 	# 一出声就等于提前报菜名，惊喜全没了。声音一律留到 landing 那一下。
@@ -480,6 +497,10 @@ func _on_landing_started(fish: FishSpec) -> void:
 	_hud.refresh_caught(_session.caught_ids())
 	_cast_panel.refresh_caught(_session.caught_ids())
 	_landing.play(fish, _lake.bobber_screen_pos())
+	# 上鱼也算进分里。放在 landing 这一刻而不是 resolved：
+	# 鱼真的被拎出水面了，玩家看到的 +240 和动画是同一拍。
+	if _score_layer != null:
+		_score_layer.landing(_score.landed(fish.id), _score.score)
 	# 上鱼那句和咬钩那句是两回事：咬钩时鱼还在水里说话（bite_*），
 	# 被捞出水面的瞬间说的是另一句（catch_*）。豆包用主人录的那条。
 	if fish.is_doubao:
@@ -493,6 +514,17 @@ func _on_landing_started(fish: FishSpec) -> void:
 func _on_landing_finished() -> void:
 	if _session != null:
 		_session.landing_done()
+
+
+## 一次判定。kind: "round"(完美) / "good" / "miss"，来自 FightSession。
+func _on_strike_result(kind: String) -> void:
+	var r := _score.hit(kind)
+	if _score_layer == null:
+		return
+	if kind == "miss":
+		_score_layer.break_combo()
+	else:
+		_score_layer.bump(int(r["gain"]), int(r["combo"]), float(r["mult"]), _score.score)
 
 
 func _on_resolved(kind: String, fish: FishSpec) -> void:
@@ -588,6 +620,14 @@ func _on_finished(ending: String, summary: Dictionary) -> void:
 		print(tr("[gallery] 新解锁结局: ") + ending)
 	var data: Dictionary = _endings.get(ending, {})
 	Audio.play_voice(ending)
+	# 分数在这里定死：尾款、难度系数、历史最高一次算完，
+	# 结算页只是把 summary 里的数字画出来。
+	var final := _score.finalize(summary, _tuning.difficulty)
+	summary["score"] = final["score"]
+	summary["score_bonus"] = final["bonus"]
+	summary["best_combo"] = final["best_combo"]
+	summary["best_score"] = final["best_score"]
+	summary["new_record"] = final["new_record"]
 	# 这一局欠下的剧情先播完，再播这个结局自己的那段，最后才摆结算。
 	# 顺序反了的话，第二次钓上豆包那一竿恰好也是集齐三条鱼的那一竿，
 	# 结算卡片一盖上来，「白饭来咯」就永远看不到了。
@@ -644,6 +684,9 @@ func _set_play_chrome(on: bool) -> void:
 		_hud.visible = on
 	if _pause_row != null:
 		_pause_row.visible = on
+	# 分数也跟着收：全屏剧情里顶着一个「1240」很出戏
+	if _score_layer != null:
+		_score_layer.visible = on
 
 
 func _back_to_menu() -> void:

@@ -193,7 +193,9 @@ func _complete_round(perfect: bool) -> void:
 	if perfect:
 		_relieve(float(_tune.fight_value("perfect_relief", 3.0)))
 	_lock()
-	strike_result.emit("round")
+	# 完美与普通分别发出去：UI 的闪光、评分都要能区分，
+	# 早先一律发 "round"，good 分支在 qte_overlay 里根本没被触发过。
+	strike_result.emit("round" if perfect else "good")
 	_damage(spec.damage_ratio)
 
 

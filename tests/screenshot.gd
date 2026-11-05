@@ -70,12 +70,20 @@ func _process(delta: float) -> bool:
 		4:
 			if _t > 2.9:
 				_shot("04_landing")
+				# 计分层单独拍一张：_shot 抓的是上一帧的纹理，
+				# 同一帧里先 bump 再拍是拍不到的，必须隔一帧。
+				_game._score_layer.bump(130, 4, 1.45, 1860)
+				_step = 45
+		45:
+			if _t > 2.95:
+				_shot("11_score")
 				# 用一份完整的假数据直接渲染结算页，验证真实布局下的高度
 				var fake := {
 					"bait_total": 5, "bait_left": 2, "bait_used": 3,
 					"caught": ["small", "mid", "big"], "caught_count": 3, "landed": 3,
 					"fish_total": 3, "claude_caught": false,
 					"rounds": 16, "perfect": 9, "miss": 3, "good": 7,
+					"score": 1840, "best_combo": 6, "best_score": 2210, "new_record": false,
 				}
 				_game._ending.show_ending("feast", _game._endings.get("feast", {}), fake, _game._fish)
 				_step = 5

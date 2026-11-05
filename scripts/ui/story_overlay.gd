@@ -43,6 +43,7 @@ var _text_label: Label = null
 var _counter: Label = null
 var _arrow: Label = null
 var _back_btn: Button = null
+var _skip_btn: Button = null
 
 ## 打字机：_reveal 是当前已经显示到第几个字，_typing 是还在打
 var _reveal: float = 0.0
@@ -171,9 +172,9 @@ func _build() -> void:
 	_back_btn.pressed.connect(_on_back)
 	top.add_child(_back_btn)
 
-	var skip := UIKit.button("跳过 ▶▶", false, true)
-	skip.pressed.connect(_on_skip)
-	top.add_child(skip)
+	_skip_btn = UIKit.button("跳过 ▶▶", false, true)
+	_skip_btn.pressed.connect(_on_skip)
+	top.add_child(_skip_btn)
 
 
 func _make_bg(path: String) -> TextureRect:
@@ -327,20 +328,10 @@ func _punch() -> void:
 
 ## 用 _gui_input 而不是 _unhandled_input：这一层 mouse_filter 是 STOP，
 ## 鼠标事件在 GUI 阶段就被它自己吃掉了，压根到不了 unhandled_input。
-func _gui_input(event: InputEvent) -> void:
-	if not visible:
-		return
-	var go := false
-	if event is InputEventMouseButton:
-		var mb := event as InputEventMouseButton
-		go = mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT
-	elif event is InputEventScreenTouch:
-		go = (event as InputEventScreenTouch).pressed
-	if go:
-		accept_event()
-		_punch()
-
-
+##
+## 但对话框本身是一堆 Label，Label 会先把落在自己身上的点击吃掉，
+## 结果就是「点字没反应、只能按 Enter」。所以点击统一在 _input 里收，
+## 只把右上角两个按钮的范围让出去 —— 手机上也没有别的输入方式了。
 func _input(event: InputEvent) -> void:
 	# 键盘走 _input：这一层不抢焦点，Key 事件到不了 _gui_input。
 	if not visible:
@@ -350,6 +341,28 @@ func _input(event: InputEvent) -> void:
 		if k.pressed and not k.echo and (k.keycode == KEY_SPACE or k.keycode == KEY_ENTER):
 			get_viewport().set_input_as_handled()
 			_punch()
+		return
+
+	var pressed := false
+	var pos := Vector2.ZERO
+	if event is InputEventMouseButton:
+		var mb := event as InputEventMouseButton
+		pressed = mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT
+		pos = mb.position
+	elif event is InputEventScreenTouch:
+		var st := event as InputEventScreenTouch
+		pressed = st.pressed
+		pos = st.position
+	if not pressed:
+		return
+
+	# 右上角的「回看 / 跳过」自己接点击，别在这一层抢掉
+	for b in [_back_btn, _skip_btn]:
+		if b != null and b.visible and b.get_global_rect().has_point(pos):
+			return
+
+	get_viewport().set_input_as_handled()
+	_punch()
 
 
 func _clear() -> void:

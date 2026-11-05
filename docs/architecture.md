@@ -52,11 +52,13 @@
 | `core/fight_session.gd` | 游标推进、环形判定、体力、张力、冷却 | 绘制、读取输入事件 |
 | `core/fishing_session.gd` | 阶段机、抛竿、等待、收集、结局、汇总 | 读文件、创建控件、播放动画 |
 | `core/config_loader.gd` | JSON 读取、结构校验、兜底、数据层文案过翻译 | 保存一局运行时状态 |
+| `core/score_board.gd` | 命中底分、连击倍率、尾款、最高分读写 | 绘制、读输入 |
 | `ui/menu_root.gd` | 主菜单、切到 `main.tscn`（难度在设置页改） | 任何游戏规则 |
 | `ui/game_root.gd` | 装配、输入转发、信号连接、阶段显示 | 计算伤害、张力或结局 |
 | `ui/lake_view.gd` | 场景绘制和浮标挣扎表现 | 决定何时上鱼 |
 | `ui/qte_overlay.gd` | 订阅搏斗信号并绘制反馈 | 修改序列或判定输入 |
 | `ui/scene_feedback.gd` | 空竿、断线短提示 | 决定提示对应的结果 |
+| `ui/score_layer.gd` | 画分数行与命中飘字，只显示不算分 | 自己累加分数 |
 | `ui/landing_view.gd` | 播放上鱼演出并回报完成 | 记录收集、决定下一阶段 |
 | `ui/ending_overlay.gd` | 显示结局、统计和收集项 | 生成统计或判断结局 |
 | `ui/lake_backdrop.gd` | 绘制湖面背景（天空/水面渐变、两层山、水线） | 处理输入、读取数据 |
@@ -212,6 +214,38 @@ FightSession.finished 的 reason 为 "landed" / "line_broke"
 
 ---
 
+## 计分（`ScoreBoard` + `ScoreLayer`）
+
+分数只在 `scripts/core/score_board.gd` 里算，UI 层不许自己加数。
+
+| 规则 | 数值 | 说明 |
+|---|---|---|
+| 完美命中 | 100 × 倍率 | `PERFECT_BASE` |
+| 普通命中 | 45 × 倍率 | `GOOD_BASE` |
+| 失手 | 0 | 不加分、不扣分，只清连击 |
+| 连击倍率 | `1 + min(combo-1, 9) × 0.15` | 上限 ×2.35，`COMBO_CAP` 卡在 10 连 |
+| 上鱼 | 底分 × 倍率 | small 120 / mid 180 / big 240 / doubao 60 / claude 400 |
+| 全收 | +300 | `FULL_CATCH_BONUS` |
+| 每条鱼剩的饵 | +40 | `PER_BAIT_BONUS` |
+| 零失手 | +200 | `CLEAN_RUN_BONUS` |
+| 难度系数 | 轻 0.8 / 普通 1.0 / 困难 1.3 | 只乘尾款，不乘单次命中 |
+
+最高分存在 `user://record.json`（`ScoreBoard.PATH`），`finalize()` 读旧记录、破纪录才写盘，返回
+`{score, bonus, scale, best_score, best_combo, new_record}`，由 `game_root._on_finished()` 塞进 summary。
+同分不算新纪录。记录文件读坏按 0 处理，不拦启动。
+
+界面侧只有两个 Label：
+- 分数行（左上第二行）显示「得分 N   x4」，连击直接并进这一行；
+- 飘字（画面中上）只报这一次的 `+130`，连击 ≥6 换成发烫的 `HOT_COLOR`。
+
+连击早先单独占一个 Label，实际跑起来总是晚一帧才重绘、而且位置被上鱼演出压住。并进分数行之后就没这问题：
+**连击是「此刻的状态」，飘字是「这一下的收益」，两件事不该抢同一块地方。**
+
+`ScoreLayer` 在 `game_root._build_ui()` 里加在 `_landing` **之后**（结算层之前）：上鱼那一刻的 `+240`
+必须压在上鱼演出上面才看得见。
+
+---
+
 ## 数据文件一览
 
 | 文件 | 内容 | 读取入口 | 改它会影响 |
@@ -343,6 +377,24 @@ FightSession.finished 的 reason 为 "landed" / "line_broke"
 
 搏斗阶段把点击、空格、回车、`ui_accept` 和 `InputEventScreenTouch` 全部当作同一个「点一下」，忽略 `key.echo`，防止长按被当成连续多次输入。这是为了手机上单手拇指也能玩 —— 不需要方向键，也不需要第二根手指。
 
+### 剧情层为什么不用 `_gui_input`
+
+`story_overlay.gd` 最早用 `_gui_input` 收左键，结果是**点了完全没反应，只能按 Enter**：
+对话框里全是 `Label`，`Label` 自己会吃掉落在它身上的鼠标事件，`_gui_input` 永远收不到。
+改法是整个覆盖层不碰 `_gui_input`，全部在 `_input` 里按坐标判断：
+
+```gdscript
+func _input(event: InputEvent) -> void:
+	# 只让「回看」「跳过」两个按钮自己去响应，其余位置一律当作推进
+	for b in [_back_btn, _skip_btn]:
+		if b != null and b.visible and b.get_global_rect().has_point(get_global_mouse_position()):
+			return
+	...
+```
+
+`_input` 早于 GUI 事件分发，所以不会被 Label 截胡；`_skip_btn` 因此从 `_build()` 里的局部变量提升成了成员。
+新增可点区域时必须同时加进这个让位列表，否则点按钮会顺带翻页。
+
 ---
 
 ## 为什么这样划分
@@ -426,8 +478,9 @@ FightSession.finished 的 reason 为 "landed" / "line_broke"
 
 ## 测试边界
 
-- `selftest.gd`：当前覆盖配置、脱钩演出表、难度字段全覆盖、结算统计口径、中心偏向抽签、小肥鱼人设、开场剧情（32 句 / 说话人白名单 / 每条鱼一张脸 / 四语覆盖 / 队列只排一次）、自动分带、加鱼、难度档、设置读写、菜单装配、圆环判定、冷却窗口、循环蓄力、抛竿、空竿、重复上鱼、上鱼、断线、五种结局、场景装配和鼠标策略。基线：`[selftest] pass=829 fail=0`。
-- `screenshot.gd`：输出瞄准、蓄力、搏斗、上鱼、结算、开场六张快照。它验证可见布局，不证明角色动画达标。
+- `selftest.gd`：当前覆盖配置、脱钩演出表、难度字段全覆盖、结算统计口径、中心偏向抽签、小肥鱼人设、开场剧情（32 句 / 说话人白名单 / 每条鱼一张脸 / 四语覆盖 / 队列只排一次）、齐鱼之福后半段、计分板（底分、倍率、失手清零、尾款、最高分落盘与同分不算新纪录）、剧情层点击与触屏推进（含按钮让位）、自动分带、加鱼、难度档、设置读写、菜单装配、圆环判定、冷却窗口、循环蓄力、抛竿、空竿、重复上鱼、上鱼、断线、五种结局、场景装配和鼠标策略。基线：`[selftest] pass=1093 fail=0`。
+- `screenshot.gd`：输出瞄准、蓄力、搏斗、上鱼、结算、开场、齐鱼之福后续、开场三张 CG、计分行共十一张快照。它验证可见布局，不证明角色动画达标。
+  **注意 `_shot()` 抓的是上一帧纹理**：同一帧里先改 UI 再 `_shot()` 是拍不到的，计分那张图因此单独占了一个 `_step = 45`，隔一帧再拍。
 - `input_probe.gd`：仍是旧版探针，未接入当前验收口径。
 
 动画完成后还需要连续帧或短视频验证，单张 `04_landing.png` 只能检查某一帧的构图，不能证明姿态真的随时间变化。

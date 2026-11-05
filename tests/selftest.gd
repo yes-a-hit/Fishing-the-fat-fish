@@ -88,6 +88,8 @@ func _run_all() -> void:
 	_case_story_queue()
 	_case_opening_story()
 	_case_feast_afterstory()
+	_case_score_board()
+	_case_story_click()
 	_case_doubao_second()
 	_case_grand_gate()
 	_case_i18n()
@@ -1851,6 +1853,116 @@ func _case_feast_afterstory() -> void:
 	_check("第二天 CG 覆盖 7 句", cg_pages, 7)
 	_ok("第二天 CG 有页级底图", not cg_path.is_empty())
 	_ok("第二天 CG 文件存在", not cg_path.is_empty() and ResourceLoader.exists(cg_path))
+
+
+func _case_score_board() -> void:
+	print("[case] 计分与最高分")
+	var s := ScoreBoard.new()
+
+	# 单次判定：完美比普通贵，连击把两者都放大
+	var first := s.hit("round")
+	_check("首个完美 100 分", int(first["gain"]), 100)
+	_check("第一下没有倍率", snappedf(float(first["mult"]), 0.001), 1.0)
+	var second := s.hit("good")
+	_check("第二下倍率 1.15", snappedf(float(second["mult"]), 0.001), 1.15)
+	_check("45 × 1.15 取整", int(second["gain"]), 52)
+	_check("连击到 2", int(second["combo"]), 2)
+	_check("总分累加", s.score, 152)
+
+	# 失手：不扣分，但连击归零
+	var before := s.score
+	var miss := s.hit("miss")
+	_check("失手不加分", int(miss["gain"]), 0)
+	_check("失手不扣分", s.score, before)
+	_check("失手清连击", s.combo, 0)
+	_check("最高连击记住了", s.best_combo, 2)
+
+	# 上鱼也吃连击
+	s.hit("round")
+	s.hit("round")
+	var gain := s.landed("big")
+	_check("上鱼 = 底分 × 当前倍率", gain, int(round(240.0 * s.multiplier())))
+	_ok("连击确实放大了上鱼", gain > 240)
+	_check("豆包只值 60 底分", int(round(60.0 * s.multiplier())), s.landed("doubao"))
+
+	# 尾款与难度系数：100 + 300(全钓) + 80(剩两碗) + 200(零失手) = 680
+	var path := "user://record_test.json"
+	if FileAccess.file_exists(path):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+	var t := ScoreBoard.new()
+	t.hit("round")
+	var well := t.finalize(
+		{"caught": ["small", "mid", "big"], "bait_left": 2, "rounds": 1, "miss": 0},
+		"hard", path
+	)
+	_check("hard 尾款算对", int(well["score"]), 884)
+	_check("首次就是新纪录", bool(well["new_record"]), true)
+	_check("落盘的最高分读得回来", int(ScoreBoard.load_best(path).get("score", 0)), 884)
+
+	# 同样的局再算一次，分数没超过就不是新纪录
+	var again := t.finalize(
+		{"caught": ["small", "mid", "big"], "bait_left": 2, "rounds": 1, "miss": 0},
+		"hard", path
+	)
+	_ok("同分不算新纪录", not bool(again["new_record"]))
+	_check("最高分保持不变", int(again["best_score"]), 884)
+
+	if FileAccess.file_exists(path):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+
+
+func _case_story_click() -> void:
+	# 剧情推进必须能点：手机上没有 Enter 可按。
+	# 之前的坑是对话框里的 Label 把点击吃掉，玩家只能按键盘。
+	print("[case] 剧情点击推进")
+	# 用 load 而不是直接 StoryOverlay.new()：
+	# --script 模式下 autoload 不在编译期作用域里，story_overlay 里用到的
+	# Audio 会让静态依赖链直接编译失败。运行时再加载就没事。
+	var ov = load("res://scripts/ui/story_overlay.gd").new()
+	(Engine.get_main_loop() as SceneTree).root.add_child(ov)
+	ov.play({"pages": [
+		{"who": "大肥鱼", "text": "第一句。"},
+		{"who": "你", "text": "第二句。"},
+		{"who": "大肥鱼", "text": "第三句。"},
+	]})
+	_check("从第一句开始", ov._index, 0)
+	_ok("一开始在打字", ov._typing)
+
+	var click := InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_LEFT
+	click.pressed = true
+	click.position = Vector2(640, 300)
+
+	ov._input(click)
+	_check("点击先补完打字", ov._index, 0)
+	_ok("打字被补齐", not ov._typing)
+
+	ov._input(click)
+	_check("再点一次翻页", ov._index, 1)
+
+	# 右上角按钮的位置不能被当成翻页。
+	# headless 下容器还没排完版，这里手动给一个矩形 —— 测的是「矩形排除」这段逻辑。
+	ov._back_btn.position = Vector2(1000, 20)
+	ov._back_btn.size = Vector2(80, 32)
+	var btn_pos: Vector2 = ov._back_btn.get_global_rect().get_center()
+	var btn_click := InputEventMouseButton.new()
+	btn_click.button_index = MOUSE_BUTTON_LEFT
+	btn_click.pressed = true
+	btn_click.position = btn_pos
+	ov._input(btn_click)
+	# 直接喂 _input 不会走 GUI 派发，按钮自己不会被按下去；
+	# 这里要证明的是「没被当成翻页」——所以 index 停在 1，而不是跳到 2。
+	_check("点回看按钮不前进", ov._index, 1)
+
+	# 触摸屏同理：手机上只有这个
+	var touch := InputEventScreenTouch.new()
+	touch.pressed = true
+	touch.position = Vector2(640, 300)
+	ov._input(touch)
+	_check("触摸先把字补完", ov._index, 1)
+	ov._input(touch)
+	_check("触摸第二下翻页", ov._index, 2)
+	ov.queue_free()
 
 
 func _case_doubao_second() -> void:

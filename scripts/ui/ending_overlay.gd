@@ -223,6 +223,11 @@ func _stats_block(summary: Dictionary, fish_list: Array) -> Control:
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 8)
 
+	# 分数放最上面：这一局唯一会被拿去跟别人比数字的东西
+	var score := int(summary.get("score", 0))
+	if score > 0:
+		col.add_child(_score_block(summary))
+
 	var line1 := HBoxContainer.new()
 	line1.add_theme_constant_override("separation", 26)
 	line1.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -262,6 +267,36 @@ func _stats_block(summary: Dictionary, fish_list: Array) -> Control:
 		chips.add_child(chip)
 
 	return col
+
+
+func _score_block(summary: Dictionary) -> Control:
+	var row := VBoxContainer.new()
+	row.add_theme_constant_override("separation", 2)
+
+	var total := int(summary.get("score", 0))
+	var best := int(summary.get("best_score", 0))
+	var is_record := bool(summary.get("new_record", false))
+
+	var big := UIKit.label(str(total), Palette.F_TITLE, Palette.ACCENT_DEEP if is_record else Palette.INK)
+	big.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	row.add_child(big)
+
+	var caption := UIKit.label(tr("得分"), Palette.F_SMALL, Palette.INK_FAINT)
+	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	row.add_child(caption)
+
+	var line := HBoxContainer.new()
+	line.add_theme_constant_override("separation", 26)
+	line.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_child(line)
+
+	line.add_child(_stat(tr("最高连击"), "x%d" % int(summary.get("best_combo", 0)), Palette.GOOD))
+	line.add_child(_stat(
+		tr("新纪录") if is_record else tr("最高分"),
+		str(best),
+		Palette.ACCENT_DEEP if is_record else Palette.INK_SOFT
+	))
+	return row
 
 
 func _stat(caption: String, value: String, value_color: Color = Palette.INK) -> Control:
